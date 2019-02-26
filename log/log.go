@@ -3,11 +3,13 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"path"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -15,90 +17,103 @@ const (
 	ERROR = iota
 	INFO  = iota
 	DEBUG = iota
-	TRACE = iota
 )
 
 // Logging level
-var Level uint = INFO
+var logLevel int = INFO
 
-// Write to error log and exit application
-func Fatal(v ...interface{}) {
-	log.Fatal(v...)
+// Set logging level
+func SetLevel(level int) {
+	logLevel = level
+}
+
+// Set output printing method
+func SetOutput(w io.Writer) {
+	log.SetOutput(w)
 }
 
 // Write to error log and exit application
-func Fatalf(format string, v ...interface{}) {
-	log.Fatalf(format, v...)
+func Fatal(args ...interface{}) {
+	writeLog("fatal", "", "%s", fmt.Sprint(args...))
+	os.Exit(1)
+}
+
+// Write to error log and exit application
+func Fatalf(format string, args ...interface{}) {
+	writeLog("fatal", "", format, args...)
+	os.Exit(1)
 }
 
 // Write to error log
-func Error(fmt string, args ...interface{}) {
-	log.Printf("[error] "+fmt+"\n", args...)
+func Error(format string, args ...interface{}) {
+	writeLog("error", "", format, args...)
 }
 
 // Write to info log
-func Print(v ...interface{}) {
-	if Level >= INFO {
-		log.Print(v...)
-	}
+func Print(args ...interface{}) {
+	Info("%s", fmt.Sprint(args...))
 }
 
 // Write to info log
-func Printf(format string, v ...interface{}) {
-	if Level >= INFO {
-		Info(format, v...)
-	}
+func Printf(format string, args ...interface{}) {
+	Info(format, args...)
 }
 
 // Write to info log
-func Println(v ...interface{}) {
-	if Level >= INFO {
-		log.Println(v...)
-	}
+func Println(args ...interface{}) {
+	Info("%s", fmt.Sprint(args...))
 }
 
 // Write to info log
-func Info(fmt string, args ...interface{}) {
-	if Level >= INFO {
-		log.Printf("[info] "+fmt+"\n", args...)
+func Info(format string, args ...interface{}) {
+	if logLevel >= INFO {
+		writeLog("info", "", format, args...)
 	}
 }
 
 // Write to debug log
-func Debug(fmt string, args ...interface{}) {
-	if Level >= DEBUG {
-		log.Printf("[debug] "+fmt+"\n", args...)
+func Debug(format string, args ...interface{}) {
+	if logLevel >= DEBUG {
+		writeLog("debug", "", format, args...)
 	}
 }
 
-// Write to debug log with the calling function's name
-func DebugFunc(format string, args ...interface{}) {
-	if Level >= DEBUG {
+// Write to debug log and add the calling function's name
+func Tracef(format string, args ...interface{}) {
+	if logLevel >= DEBUG {
 		pc := make([]uintptr, 10)
 		runtime.Callers(2, pc)
 		f := runtime.FuncForPC(pc[0])
-
-		var buf strings.Builder
-		buf.WriteString(fmt.Sprintf("[debug] %s(): ", f.Name()))
-		buf.WriteString(fmt.Sprintf(format+"\n", args...))
-		log.Print(buf.String())
+		writeLog("debug", f.Name(), format, args...)
 	}
 }
 
-// Write to trace log with the calling function's name
-func Tracef(format string, v ...interface{}) {
-	if Level >= TRACE {
-		pc := make([]uintptr, 10)
-		runtime.Callers(2, pc)
-		f := runtime.FuncForPC(pc[0])
+// Get goroutine ID
+// (https://blog.sgmansfield.com/2015/12/goroutine-ids/)
+func goroutineID() uint64 {
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	n, _ := strconv.ParseUint(string(b), 10, 64)
+	return n
+}
 
-		var buf strings.Builder
-		buf.WriteString(fmt.Sprintf("%s(): ", path.Base(f.Name())))
-		text := fmt.Sprintf(format, v...)
-		buf.WriteString(text)
-		if len(text) == 0 || text[len(text)-1] != '\n' {
-			buf.WriteRune('\n')
-		}
-		fmt.Fprint(os.Stderr, buf.String())
+// Construct a log message and write it
+// TIME PID#GOID [LEVEL] FUNCNAME(): TEXT
+func writeLog(level string, funcName string, format string, args ...interface{}) {
+	var buf strings.Builder
+
+	if logLevel >= DEBUG {
+		buf.WriteString(fmt.Sprintf("%d#%d ", os.Getpid(), goroutineID()))
 	}
+
+	buf.WriteString(fmt.Sprintf("[%s] ", level))
+
+	if len(funcName) != 0 {
+		buf.WriteString(fmt.Sprintf("%s(): ", funcName))
+	}
+
+	buf.WriteString(fmt.Sprintf(format, args...))
+	log.Println(buf.String())
 }
