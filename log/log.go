@@ -20,7 +20,7 @@ const (
 )
 
 // Logging level
-var logLevel int = INFO
+var logLevel = INFO
 
 // Set logging level
 func SetLevel(level int) {
