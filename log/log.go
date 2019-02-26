@@ -13,6 +13,7 @@ import (
 	"strings"
 )
 
+// Logging level
 const (
 	ERROR = iota
 	INFO  = iota
@@ -22,63 +23,63 @@ const (
 // Logging level
 var logLevel = INFO
 
-// Set logging level
+// SetLevel sets logging level
 func SetLevel(level int) {
 	logLevel = level
 }
 
-// Set output printing method
+// SetOutput sets output printing method
 func SetOutput(w io.Writer) {
 	log.SetOutput(w)
 }
 
-// Write to error log and exit application
+// Fatal writes to error log and exits application
 func Fatal(args ...interface{}) {
 	writeLog("fatal", "", "%s", fmt.Sprint(args...))
 	os.Exit(1)
 }
 
-// Write to error log and exit application
+// Fatalf writes to error log and exits application
 func Fatalf(format string, args ...interface{}) {
 	writeLog("fatal", "", format, args...)
 	os.Exit(1)
 }
 
-// Write to error log
+// Error writes to error log
 func Error(format string, args ...interface{}) {
 	writeLog("error", "", format, args...)
 }
 
-// Write to info log
+// Print writes to info log
 func Print(args ...interface{}) {
 	Info("%s", fmt.Sprint(args...))
 }
 
-// Write to info log
+// Printf writes to info log
 func Printf(format string, args ...interface{}) {
 	Info(format, args...)
 }
 
-// Write to info log
+// Println writes to info log
 func Println(args ...interface{}) {
 	Info("%s", fmt.Sprint(args...))
 }
 
-// Write to info log
+// Info writes to info log
 func Info(format string, args ...interface{}) {
 	if logLevel >= INFO {
 		writeLog("info", "", format, args...)
 	}
 }
 
-// Write to debug log
+// Debug writes to debug log
 func Debug(format string, args ...interface{}) {
 	if logLevel >= DEBUG {
 		writeLog("debug", "", format, args...)
 	}
 }
 
-// Write to debug log and add the calling function's name
+// Tracef writes to debug log and adds the calling function's name
 func Tracef(format string, args ...interface{}) {
 	if logLevel >= DEBUG {
 		pc := make([]uintptr, 10)
