@@ -29,29 +29,36 @@ type Timer struct {
 	start time.Time
 }
 
-// StartTimer returns a Timer with a start time if logLevel >= DEBUG
+// StartTimer returns a Timer with a start time
 func StartTimer() Timer {
-	if logLevel >= DEBUG {
-		return Timer{start: time.Now()}
-	}
-	return Timer{}
+	return Timer{start: time.Now()}
 }
 
-// LogElapsed writes to debug log message and elapsed time
+// LogElapsed writes to log message and elapsed time
 func (t *Timer) LogElapsed(message string, args ...interface{}) {
+	var buf strings.Builder
+	buf.WriteString(message)
+	buf.WriteString(fmt.Sprintf("; Elapsed time: %dms", int(time.Since(t.start)/time.Millisecond)))
+
+	pc := make([]uintptr, 10)
+	runtime.Callers(2, pc)
+	f := runtime.FuncForPC(pc[0])
+
+	level := "info"
 	if logLevel >= DEBUG {
-		elapsed := fmt.Sprintf("; Elapsed time: %dms", int(time.Since(t.start)/time.Millisecond))
-		text := message + elapsed
-		pc := make([]uintptr, 10)
-		runtime.Callers(2, pc)
-		f := runtime.FuncForPC(pc[0])
-		writeLog("debug", f.Name(), text, args...)
+		level = "debug"
 	}
+	writeLog(level, f.Name(), buf.String(), args...)
 }
 
 // SetLevel sets logging level
 func SetLevel(level int) {
 	logLevel = level
+}
+
+// GetLevel returns logLevel
+func GetLevel() int {
+	return logLevel
 }
 
 // SetOutput sets output printing method
