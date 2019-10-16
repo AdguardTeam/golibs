@@ -70,17 +70,22 @@ func TestCache(t *testing.T) {
 	// MaxElementSize limit
 	assert.True(t, !c.Set([]byte("k1"), []byte("12345678901")))
 	assert.True(t, c.Get([]byte("k1")) == nil)
+
+	c.Del([]byte("k1"))
+	assert.True(t, c.Stats().Count == 0)
+	assert.True(t, c.Stats().Size == 0)
 }
 
 // Set, get, delete items in parallel
 func TestParallel(t *testing.T) {
 	conf := Config{}
 	conf.EnableLRU = true
+	conf.MaxSize = 1024
 	c := New(conf)
 
 	wg := sync.WaitGroup{}
-	N := 10000
-	for w := 0; w != 4; w++ {
+	N := 1000
+	for w := 0; w != 100; w++ {
 		wg.Add(1)
 		go func(wid int) {
 			for i := 0; i != N; i++ {
@@ -89,7 +94,9 @@ func TestParallel(t *testing.T) {
 				_ = c.Set(key, val)
 
 				rval := c.Get(key)
-				assert.True(t, val[3] == rval[3])
+				if rval != nil {
+					assert.True(t, val[3] == rval[3])
+				}
 
 				c.Del(key)
 			}
