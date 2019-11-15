@@ -12,6 +12,8 @@ This repository contains several useful functions and interfaces for Go:
 * Log - logger with configurable log-level on top of standard "log"
 * File:
     * safe file writing
+* JSON:
+    * JSON format helper functions
 * Utils:
     * hostname validator
 
