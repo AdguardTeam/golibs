@@ -20,7 +20,7 @@ func SafeWrite(path string, data []byte) (err error) {
 	// Ensure multiple simultaneous callers will not choose the same file.
 	tmpFile, err := ioutil.TempFile(dir,  "tmp")
 	if err != nil {
-		return err
+		return
 	}
 
 	tmpPath := tmpFile.Name()
@@ -39,5 +39,5 @@ func SafeWrite(path string, data []byte) (err error) {
 
 	// Assign err explicitly to make defer func aware about error
 	err = os.Rename(tmpPath, path)
-	return err
+	return
 }
