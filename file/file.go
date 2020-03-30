@@ -28,7 +28,7 @@ func SafeWrite(path string, data []byte) error {
 	defer func() {
 		tmpFile.Close()
 		if err != nil {
-			os.Remove(tmpPath)
+			_ = os.Remove(tmpPath)
 		}
 	}()
 
