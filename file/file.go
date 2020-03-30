@@ -9,18 +9,18 @@ import (
 )
 
 // SafeWrite writes data to a temporary file and then renames it to what's specified in path
-func SafeWrite(path string, data []byte) (err error) {
+func SafeWrite(path string, data []byte) error {
 	dir := filepath.Dir(path)
 
-	err = os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0755)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Ensure multiple simultaneous callers will not choose the same file.
 	tmpFile, err := ioutil.TempFile(dir,  "tmp")
 	if err != nil {
-		return
+		return err
 	}
 
 	tmpPath := tmpFile.Name()
@@ -34,16 +34,16 @@ func SafeWrite(path string, data []byte) (err error) {
 
 	_, err = tmpFile.Write(data)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Change file mode to retain compat with old version of function
 	err = tmpFile.Chmod(0644)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Assign err explicitly to make defer func aware about error
 	err = os.Rename(tmpPath, path)
-	return
+	return err
 }
