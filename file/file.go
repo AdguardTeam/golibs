@@ -32,7 +32,13 @@ func SafeWrite(path string, data []byte) (err error) {
 		}
 	}()
 
-	err = ioutil.WriteFile(tmpPath, data, 0644)
+	_, err = tmpFile.Write(data)
+	if err != nil {
+		return
+	}
+
+	// Change file mode to retain compat with old version of function
+	err = tmpFile.Chmod(0644)
 	if err != nil {
 		return
 	}
