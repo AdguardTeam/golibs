@@ -24,7 +24,7 @@ func TestSafeWriteBasic(t *testing.T) {
 	path := filepath.Join(dir, TEST_FILENAME)
 
 	data := make([]byte, TESTDATA_LEN)
-	rand.Read(data)
+	_, _ = rand.Read(data)
 
 	// Reference hash
 	refHash := sha256.New()
@@ -46,7 +46,7 @@ func TestSafeWriteBasic(t *testing.T) {
 
 	// Validate written file contents
 	examinedHash := sha256.New()
-	io.Copy(examinedHash, f)
+	_, _ = io.Copy(examinedHash, f)
 	examinedSum := examinedHash.Sum(nil)
 
 	if bytes.Compare(origSum, examinedSum) != 0 {
