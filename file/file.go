@@ -1,5 +1,4 @@
-// File functions
-
+// Package file provides helper functions for working with files
 package file
 
 import (
@@ -12,13 +11,13 @@ import (
 func SafeWrite(path string, data []byte) error {
 	dir := filepath.Dir(path)
 
-	err := os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0750)
 	if err != nil {
 		return err
 	}
 
 	// Ensure multiple simultaneous callers will not choose the same file.
-	tmpFile, err := ioutil.TempFile(dir,  "tmp")
+	tmpFile, err := ioutil.TempFile(dir, "tmp")
 	if err != nil {
 		return err
 	}
@@ -26,7 +25,7 @@ func SafeWrite(path string, data []byte) error {
 	tmpPath := tmpFile.Name()
 	// Don't leak temp files left by failed write attempts
 	defer func() {
-		tmpFile.Close()
+		_ = tmpFile.Close()
 		if err != nil {
 			_ = os.Remove(tmpPath)
 		}

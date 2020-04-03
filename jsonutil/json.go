@@ -1,5 +1,4 @@
-// JSON functions
-
+// Package jsonutil provides some helper functions for working with JSON objects
 package jsonutil
 
 import (
