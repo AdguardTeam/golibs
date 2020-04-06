@@ -65,6 +65,8 @@ issues:
     - G404
     # gosec: Use of unsafe calls should be audited
     - G103
+    # gosec: Expect directory permissions to be 0750 or less
+    - G301
     # errcheck defer Close
     - error return value not checked \(defer .*\.Close()\)
     # gosec: False positive is triggered by 'src, err := ioutil.ReadFile(filename)'
