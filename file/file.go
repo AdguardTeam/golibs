@@ -42,6 +42,9 @@ func SafeWrite(path string, data []byte) error {
 		_ = tmpFile.Chmod(0644)
 	}
 
+	// Close explicitly before renaming (this is necessary on Windows)
+	_ = tmpFile.Close()
+
 	// Assign err explicitly to make defer func aware about error
 	err = os.Rename(tmpPath, path)
 	return err

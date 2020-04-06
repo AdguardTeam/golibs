@@ -3,6 +3,8 @@ sudo: false
 
 os:
   - linux
+  - osx
+  - windows
 
 env:
   - GO111MODULE=on
@@ -15,7 +17,7 @@ script:
   - go test -race -v -bench=. -coverprofile=coverage.txt -covermode=atomic ./...
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then bash <(curl -s https://codecov.io/bash) ; fi
 
 notifications:
   slack: performix:yXTihlSzsLFSZiqbXMNzvTSX
