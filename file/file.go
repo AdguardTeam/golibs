@@ -24,16 +24,12 @@ func SafeWrite(path string, data []byte) error {
 	}
 
 	tmpPath := tmpFile.Name()
-	// Don't leak temp files left by failed write attempts
-	defer func() {
-		_ = tmpFile.Close()
-		if err != nil {
-			_ = os.Remove(tmpPath)
-		}
-	}()
 
 	_, err = tmpFile.Write(data)
 	if err != nil {
+        // Don't leak temp files left by failed write attempts
+		_ = tmpFile.Close()
+        _ = os.Remove(tmpPath)
 		return err
 	}
 
@@ -42,7 +38,10 @@ func SafeWrite(path string, data []byte) error {
 		_ = tmpFile.Chmod(0644)
 	}
 
-	// Assign err explicitly to make defer func aware about error
+    _ = tmpFile.Close()
 	err = os.Rename(tmpPath, path)
+    if err != nil {
+        _ = os.Remove(tmpPath)
+    }
 	return err
 }
