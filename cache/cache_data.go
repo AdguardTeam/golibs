@@ -17,7 +17,7 @@ type cache struct {
 	// When the item is accessed, it's moved to the end of the list.
 	usage listItem
 
-	lock sync.Mutex
+	lock sync.RWMutex
 	size uint // current size in bytes (keys+values)
 
 	conf Config
@@ -116,13 +116,13 @@ func (c *cache) Set(key []byte, val []byte) bool {
 
 // Get value
 func (c *cache) Get(key []byte) []byte {
-	c.lock.Lock()
+	c.lock.RLock()
 	val, ok := c.items[string(key)]
 	if ok && c.conf.EnableLRU {
 		listUnlink(&val.used)
 		listAppend(&val.used, listLast(&c.usage))
 	}
-	c.lock.Unlock()
+	c.lock.RUnlock()
 	if !ok {
 		atomic.AddInt32(&c.miss, 1)
 		return nil
