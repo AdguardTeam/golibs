@@ -45,8 +45,9 @@ type Cache interface {
 
 // Stats - counters
 type Stats struct {
-	Count int
-	Size  int
-	Hit   int
-	Miss  int
+	Count          int
+	Size           int
+	Hit            int
+	Miss           int
+	PromotionFails int
 }
