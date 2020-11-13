@@ -50,6 +50,11 @@ func (t *Timer) LogElapsed(message string, args ...interface{}) {
 	writeLog(level, f.Name(), buf.String(), args...)
 }
 
+// Writer returns the output destination for the default logger.
+func Writer() io.Writer {
+	return log.Writer()
+}
+
 // SetLevel sets logging level
 func SetLevel(level int) {
 	logLevel = level
