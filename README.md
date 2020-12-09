@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/AdguardTeam/golibs.svg?branch=master)](https://travis-ci.org/AdguardTeam/golibs)
 [![Code Coverage](https://img.shields.io/codecov/c/github/AdguardTeam/golibs/master.svg)](https://codecov.io/github/AdguardTeam/golibs?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/AdguardTeam/golibs)](https://goreportcard.com/report/AdguardTeam/golibs)
 [![GolangCI](https://golangci.com/badges/github.com/AdguardTeam/golibs.svg)](https://golangci.com/r/github.com/AdguardTeam/golibs)
