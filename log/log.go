@@ -174,17 +174,29 @@ type stdLogWriter struct {
 }
 
 func (w *stdLogWriter) Write(p []byte) (n int, err error) {
-	levelStr := "info"
-	switch w.level {
-	case ERROR:
-		levelStr = "error"
-	case DEBUG:
-		levelStr = "debug"
-	default:
-		// Go on, "info" is the default.
+	if logLevel < w.level {
+		return 0, nil
 	}
 
-	writeLog(levelStr, "", "%s: %s", w.prefix, p)
+	// The log.(*Logger).Output() method always appends a new line symbol to
+	// the message before calling Write.  We do the same thing, so trim it.
+	p = bytes.TrimSuffix(p, []byte{'\n'})
+
+	var logFunc func(format string, args ...interface{})
+	switch w.level {
+	case ERROR:
+		logFunc = Error
+	case DEBUG:
+		logFunc = Debug
+	case INFO:
+		logFunc = Info
+	}
+
+	if prefix := w.prefix; prefix == "" {
+		logFunc("%s", p)
+	} else {
+		logFunc("%s: %s", prefix, p)
+	}
 
 	return len(p), nil
 }
