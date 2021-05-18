@@ -65,9 +65,32 @@ func GetLevel() int {
 	return logLevel
 }
 
+// These constants are the same as in the standard package "log".
+//
+// See the output of:
+//
+//   go doc log.Ldate
+//
+const (
+	Ldate = 1 << iota
+	Ltime
+	Lmicroseconds
+	Llongfile
+	Lshortfile
+	LUTC
+	Lmsgprefix
+	LstdFlags = Ldate | Ltime
+)
+
 // SetOutput sets output printing method
 func SetOutput(w io.Writer) {
 	log.SetOutput(w)
+}
+
+// SetFlags sets the output flags for the default logger.  The flag bits are
+// Ldate, Ltime, and so on.
+func SetFlags(flags int) {
+	log.SetFlags(flags)
 }
 
 // Fatal writes to error log and exits application
