@@ -223,3 +223,17 @@ func (w *stdLogWriter) Write(p []byte) (n int, err error) {
 
 	return len(p), nil
 }
+
+// LogPanic is a convinient deferred helper function to log a panic in
+// a goroutine.  It should not be used where proper error handling is required.
+func LogPanic(prefix string) {
+	if v := recover(); v != nil {
+		if prefix != "" {
+			Error("%s: recovered from panic: %v", prefix, v)
+
+			return
+		}
+
+		Error("recovered from panic: %v", v)
+	}
+}
