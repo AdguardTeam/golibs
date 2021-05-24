@@ -10,17 +10,18 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
-// Logging level
+// Logging level constants.
 const (
-	ERROR = iota
-	INFO  = iota
-	DEBUG = iota
+	ERROR uint32 = iota
+	INFO
+	DEBUG
 )
 
-// Logging level
+// logLevel is the current logging level.  It must only be updated atomically.
 var logLevel = INFO
 
 // Timer is a wrapper for time
@@ -44,7 +45,7 @@ func (t *Timer) LogElapsed(message string, args ...interface{}) {
 	f := runtime.FuncForPC(pc[0])
 
 	level := "info"
-	if logLevel >= DEBUG {
+	if atomic.LoadUint32(&logLevel) >= DEBUG {
 		level = "debug"
 	}
 	writeLog(level, f.Name(), buf.String(), args...)
@@ -57,12 +58,12 @@ func Writer() io.Writer {
 
 // SetLevel sets logging level
 func SetLevel(level int) {
-	logLevel = level
+	atomic.SwapUint32(&logLevel, uint32(level))
 }
 
 // GetLevel returns logLevel
 func GetLevel() int {
-	return logLevel
+	return int(atomic.LoadUint32(&logLevel))
 }
 
 // These constants are the same as in the standard package "log".
@@ -127,21 +128,21 @@ func Println(args ...interface{}) {
 
 // Info writes to info log
 func Info(format string, args ...interface{}) {
-	if logLevel >= INFO {
+	if atomic.LoadUint32(&logLevel) >= INFO {
 		writeLog("info", "", format, args...)
 	}
 }
 
 // Debug writes to debug log
 func Debug(format string, args ...interface{}) {
-	if logLevel >= DEBUG {
+	if atomic.LoadUint32(&logLevel) >= DEBUG {
 		writeLog("debug", "", format, args...)
 	}
 }
 
 // Tracef writes to debug log and adds the calling function's name
 func Tracef(format string, args ...interface{}) {
-	if logLevel >= DEBUG {
+	if atomic.LoadUint32(&logLevel) >= DEBUG {
 		pc := make([]uintptr, 10)
 		runtime.Callers(2, pc)
 		f := runtime.FuncForPC(pc[0])
@@ -165,7 +166,7 @@ func goroutineID() uint64 {
 func writeLog(level string, funcName string, format string, args ...interface{}) {
 	var buf strings.Builder
 
-	if logLevel >= DEBUG {
+	if atomic.LoadUint32(&logLevel) >= DEBUG {
 		buf.WriteString(fmt.Sprintf("%d#%d ", os.Getpid(), goroutineID()))
 	}
 
@@ -185,7 +186,7 @@ func writeLog(level string, funcName string, format string, args ...interface{})
 func StdLog(prefix string, level int) (std *log.Logger) {
 	slw := &stdLogWriter{
 		prefix: prefix,
-		level:  level,
+		level:  uint32(level),
 	}
 
 	return log.New(slw, "", 0)
@@ -193,11 +194,11 @@ func StdLog(prefix string, level int) (std *log.Logger) {
 
 type stdLogWriter struct {
 	prefix string
-	level  int
+	level  uint32
 }
 
 func (w *stdLogWriter) Write(p []byte) (n int, err error) {
-	if logLevel < w.level {
+	if atomic.LoadUint32(&logLevel) < w.level {
 		return 0, nil
 	}
 
@@ -224,9 +225,9 @@ func (w *stdLogWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// LogPanic is a convinient deferred helper function to log a panic in
+// OnPanic is a convinient deferred helper function to log a panic in
 // a goroutine.  It should not be used where proper error handling is required.
-func LogPanic(prefix string) {
+func OnPanic(prefix string) {
 	if v := recover(); v != nil {
 		if prefix != "" {
 			Error("%s: recovered from panic: %v", prefix, v)

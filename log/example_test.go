@@ -6,12 +6,12 @@ import (
 	"github.com/AdguardTeam/golibs/log"
 )
 
-func ExampleLogPanic() {
+func ExampleOnPanic() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
 
 	f := func() {
-		defer log.LogPanic("")
+		defer log.OnPanic("")
 
 		panic("fail")
 	}
@@ -19,7 +19,7 @@ func ExampleLogPanic() {
 	f()
 
 	f = func() {
-		defer log.LogPanic("f")
+		defer log.OnPanic("f")
 
 		panic("fail")
 	}
