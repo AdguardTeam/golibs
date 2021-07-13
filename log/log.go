@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -228,16 +229,37 @@ func (w *stdLogWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// OnPanic is a convinient deferred helper function to log a panic in
+// OnPanic is a convenient deferred helper function to log a panic in
 // a goroutine.  It should not be used where proper error handling is required.
 func OnPanic(prefix string) {
 	if v := recover(); v != nil {
 		if prefix != "" {
 			Error("%s: recovered from panic: %v", prefix, v)
+			debug.PrintStack()
 
 			return
 		}
 
 		Error("recovered from panic: %v", v)
+		debug.PrintStack()
+	}
+}
+
+// OnPanicAndExit is a convenient deferred helper function to log a panic in
+// a goroutine.  Once a panic happens, it logs it and then calls os.Exit with
+// the specified exit code.
+func OnPanicAndExit(prefix string, exitCode int) {
+	if v := recover(); v != nil {
+		if prefix != "" {
+			Error("%s: panic encountered, exiting: %v", prefix, v)
+			debug.PrintStack()
+
+			os.Exit(exitCode)
+			return
+		}
+
+		Error("panic encountered, exiting: %v", v)
+		debug.PrintStack()
+		os.Exit(exitCode)
 	}
 }
