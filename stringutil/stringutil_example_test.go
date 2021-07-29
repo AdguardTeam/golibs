@@ -103,6 +103,19 @@ func ExampleInSlice() {
 	// ["1" "2" "3"] contains "4" is false
 }
 
+func ExampleSplitTrimmed() {
+	s := ""
+	fmt.Printf("%q is split into %q\n", s, stringutil.SplitTrimmed(s, ","))
+
+	s = "a, b  ,  , c"
+	fmt.Printf("%q is split into %q\n", s, stringutil.SplitTrimmed(s, ","))
+
+	// Output:
+	//
+	// "" is split into []
+	// "a, b  ,  , c" is split into ["a" "b" "c"]
+}
+
 func ExampleWriteToBuilder() {
 	b := &strings.Builder{}
 

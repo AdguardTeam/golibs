@@ -57,6 +57,37 @@ func InSlice(strs []string, str string) (ok bool) {
 	return false
 }
 
+// SplitTrimmed slices str into all substrings separated by sep and returns
+// a slice of the trimmed substrings between those separators with empty strings
+// skipped.  If str has no such substrings, strs is an empty slice.
+func SplitTrimmed(str, sep string) (strs []string) {
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return []string{}
+	}
+
+	split := strings.Split(str, sep)
+
+	// Use the same underlying storage to reduce allocations.
+	strs = split[:0]
+	for _, s := range split {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+
+		strs = append(strs, s)
+	}
+
+	// Reset the remaining elements of the original slice so that the
+	// garbage is collected.
+	for i := len(strs); i < len(split); i++ {
+		split[i] = ""
+	}
+
+	return strs
+}
+
 // WriteToBuilder is a convenient wrapper for strings.(*Builder).WriteString
 // that deals with multiple strings and ignores errors, since they are
 // guaranteed to be nil.
