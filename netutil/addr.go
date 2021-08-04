@@ -1,12 +1,17 @@
 // Package netutil contains common utilities for IP, MAC, and other kinds of
 // network addresses.
 //
-// TODO(a.garipov): Add examples.
+// TODO(a.garipov): Add more examples.
+//
+// TODO(a.garipov): Add HostPort and IPPort structs with decoding and encoding,
+// fmt.Srtinger implementations, etc.
 package netutil
 
 import (
+	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -46,6 +51,18 @@ func CloneMAC(mac net.HardwareAddr) (clone net.HardwareAddr) {
 	return append(clone, mac...)
 }
 
+// CloneURL returns a deep clone of u.  The User pointer of clone is the same,
+// since a *url.Userinfo is effectively an immutable value.
+func CloneURL(u *url.URL) (clone *url.URL) {
+	if u == nil {
+		return nil
+	}
+
+	cloneVal := *u
+
+	return &cloneVal
+}
+
 // IPPortFromAddr returns the IP address and the port from addr.  If addr is
 // neither a *net.TCPAddr nor a *net.UDPAddr, it returns nil and 0.
 func IPPortFromAddr(addr net.Addr) (ip net.IP, port int) {
@@ -79,6 +96,36 @@ func JoinHostPort(host string, port int) (hostport string) {
 	return net.JoinHostPort(host, strconv.Itoa(port))
 }
 
+// ParseIP is a wrapper around net.ParseIP that returns a useful error.
+//
+// Any error returned will have the underlying type of *BadIPError.
+func ParseIP(s string) (ip net.IP, err error) {
+	ip = net.ParseIP(s)
+	if ip == nil {
+		return nil, &BadIPError{IP: s}
+	}
+
+	return ip, nil
+}
+
+// ParseIPv4 is a wrapper around net.ParseIP that makes sure that the parsed IP
+// is an IPv4 address and returns a useful error.
+//
+// Any error returned will have the underlying type of either *BadIPError or
+// *BadIPv4Error,
+func ParseIPv4(s string) (ip net.IP, err error) {
+	ip, err = ParseIP(s)
+	if err != nil {
+		return nil, err
+	}
+
+	if ip = ip.To4(); ip == nil {
+		return nil, &BadIPv4Error{IP: s}
+	}
+
+	return ip, nil
+}
+
 // SplitHostPort is a convenient wrapper for net.SplitHostPort with port of type
 // int.
 func SplitHostPort(hostport string) (host string, port int, err error) {
@@ -94,6 +141,28 @@ func SplitHostPort(hostport string) (host string, port int, err error) {
 	}
 
 	return host, port, nil
+}
+
+// SplitHost is a wrapper for net.SplitHostPort for cases when the hostport may
+// or may not contain a port.
+func SplitHost(hostport string) (host string, err error) {
+	host, _, err = net.SplitHostPort(hostport)
+	if err != nil {
+		// Check for the missing port error.  If it is that error, just
+		// use the host as is.
+		//
+		// See the source code for net.SplitHostPort.
+		const missingPort = "missing port in address"
+
+		addrErr := &net.AddrError{}
+		if !errors.As(err, &addrErr) || addrErr.Err != missingPort {
+			return "", err
+		}
+
+		host = hostport
+	}
+
+	return host, nil
 }
 
 // ValidateMAC returns an error if hwa is not a valid EUI-48, EUI-64, or
@@ -191,13 +260,17 @@ func ValidateDomainNameLabel(label string) (err error) {
 //
 // Any error returned will have the underlying type of *BadDomainError.
 func ValidateDomainName(name string) (err error) {
+	const kind = "domain name"
+
 	defer func() {
 		if err != nil {
-			err = &BadDomainError{Err: err, Name: name}
+			err = &BadDomainError{
+				Err:  err,
+				Kind: kind,
+				Name: name,
+			}
 		}
 	}()
-
-	const kind = "domain name"
 
 	name, err = idna.ToASCII(name)
 	if err != nil {
@@ -220,4 +293,154 @@ func ValidateDomainName(name string) (err error) {
 	}
 
 	return nil
+}
+
+// fromHexByte converts a single hexadecimal ASCII digit character into an
+// integer from 0 to 15.  For all other characters it returns 0xff.
+func fromHexByte(c byte) (n byte) {
+	switch {
+	case c >= '0' && c <= '9':
+		return c - '0'
+	case c >= 'a' && c <= 'f':
+		return c - 'a' + 10
+	case c >= 'A' && c <= 'F':
+		return c - 'A' + 10
+	default:
+		return 0xff
+	}
+}
+
+// ARPA reverse address domains.
+const (
+	arpaV4Suffix = ".in-addr.arpa"
+	arpaV6Suffix = ".ip6.arpa"
+)
+
+// The maximum lengths of the ARPA-formatted reverse addresses.
+//
+// An example of IPv4 with a maximum length:
+//
+//   49.91.20.104.in-addr.arpa
+//
+// An example of IPv6 with a maximum length:
+//
+//   1.3.b.5.4.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa
+//
+const (
+	arpaV4MaxIPLen = len("000.000.000.000")
+	arpaV6MaxIPLen = len("0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0")
+
+	arpaV4MaxLen = arpaV4MaxIPLen + len(arpaV4Suffix)
+	arpaV6MaxLen = arpaV6MaxIPLen + len(arpaV6Suffix)
+)
+
+// reverseIP inverts the order of bytes in an IP address in-place.
+func reverseIP(ip net.IP) {
+	l := len(ip)
+	for i := range ip[:l/2] {
+		ip[i], ip[l-i-1] = ip[l-i-1], ip[i]
+	}
+}
+
+// ipv6FromReversedAddr parses an IPv6 reverse address.  It assumes that arpa is
+// a valid domain name.
+func ipv6FromReversedAddr(arpa string) (ip net.IP, err error) {
+	const kind = "arpa domain name"
+
+	ip = make(net.IP, net.IPv6len)
+
+	const addrStep = len("0.0.")
+	for i := range ip {
+		// Get the two half-byte and merge them together.  Validate the
+		// dots between them since while arpa is assumed to be a valid
+		// domain name, those labels can still be invalid on their own.
+		sIdx := i * addrStep
+
+		c := arpa[sIdx]
+		lo := fromHexByte(c)
+		if lo == 0xff {
+			return nil, &BadRuneError{
+				Kind: kind,
+				Rune: rune(c),
+			}
+		}
+
+		c = arpa[sIdx+2]
+		hi := fromHexByte(c)
+		if hi == 0xff {
+			return nil, &BadRuneError{
+				Kind: kind,
+				Rune: rune(c),
+			}
+		}
+
+		if arpa[sIdx+1] != '.' || arpa[sIdx+3] != '.' {
+			return nil, ErrNotAReversedIP
+		}
+
+		ip[net.IPv6len-i-1] = hi<<4 | lo
+	}
+
+	return ip, nil
+}
+
+// IPFromReversedAddr tries to convert a full reversed ARPA address to a normal
+// IP address.  arpa can be domain name or an FQDN.
+//
+// Any error returned will have the underlying type of *BadDomainError.
+func IPFromReversedAddr(arpa string) (ip net.IP, err error) {
+	const kind = "arpa domain name"
+
+	arpa = strings.TrimSuffix(arpa, ".")
+	err = ValidateDomainName(arpa)
+	if err != nil {
+		bdErr := err.(*BadDomainError)
+		bdErr.Kind = kind
+
+		return nil, bdErr
+	}
+
+	defer func() {
+		if err != nil {
+			err = &BadDomainError{
+				Err:  err,
+				Kind: kind,
+				Name: arpa,
+			}
+		}
+	}()
+
+	// TODO(a.garipov): Add stringutil.HasSuffixFold and remove this.
+	arpa = strings.ToLower(arpa)
+
+	if strings.HasSuffix(arpa, arpaV4Suffix) {
+		ipStr := arpa[:len(arpa)-len(arpaV4Suffix)]
+		ip, err = ParseIPv4(ipStr)
+		if err != nil {
+			return nil, err
+		}
+
+		reverseIP(ip)
+
+		return ip, nil
+	}
+
+	if strings.HasSuffix(arpa, arpaV6Suffix) {
+		if l := len(arpa); l != arpaV6MaxLen {
+			return nil, &BadLengthError{
+				Kind:    kind,
+				Allowed: []int{arpaV6MaxLen},
+				Length:  l,
+			}
+		}
+
+		ip, err = ipv6FromReversedAddr(arpa)
+		if err != nil {
+			return nil, err
+		}
+
+		return ip, nil
+	}
+
+	return nil, ErrNotAReversedIP
 }
