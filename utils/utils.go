@@ -1,4 +1,7 @@
 // Package utils provides simple helper functions that are used in AdGuard projects
+//
+// Deprecated: This package is deprecated and will be removed in v0.10.0.  Use
+// functions and methods from other packages of module golibs.
 package utils
 
 import (
@@ -8,10 +11,14 @@ import (
 	"sync"
 )
 
-var hostnameRegexp *regexp.Regexp
-var hostnameRegexpLock sync.Mutex // to silence Go race detector
+var (
+	hostnameRegexp     *regexp.Regexp
+	hostnameRegexpLock sync.Mutex // to silence Go race detector
+)
 
 // IsValidHostname returns an error if hostname is invalid
+//
+// Deprecated: Use netutil.ValidateDomainName instead.
 func IsValidHostname(hostname string) error {
 	hostnameRegexpLock.Lock()
 	if hostnameRegexp == nil {

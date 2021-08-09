@@ -1,4 +1,7 @@
 // Package file provides helper functions for working with files
+//
+// Deprecated: This package is deprecated and will be removed in v0.10.0.  Use
+// functions and methods from other packages of module golibs.
 package file
 
 import (
@@ -9,6 +12,9 @@ import (
 )
 
 // SafeWrite writes data to a temporary file and then renames it to what's specified in path
+//
+// Deprecated: Use renameio.WriteFile or maybe.WriteFile from module
+// github.com/google/renameio.
 func SafeWrite(path string, data []byte) error {
 	dir := filepath.Dir(path)
 

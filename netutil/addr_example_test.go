@@ -45,7 +45,7 @@ func ExampleParseIPv4() {
 	//
 	// 1.2.3.4 <nil>
 	// <nil> bad ipv4 address "1234::cdef"
-	// <nil> bad ip address "!!!"
+	// <nil> bad ipv4 address "!!!"
 }
 
 func ExampleSplitHostPort() {
