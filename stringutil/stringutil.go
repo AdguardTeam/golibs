@@ -3,6 +3,8 @@ package stringutil
 
 import (
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // CloneSliceOrEmpty returns the copy of strs or empty strings slice if strs is
@@ -32,6 +34,35 @@ func Coalesce(strs ...string) (res string) {
 	}
 
 	return ""
+}
+
+// ContainsFold reports whehter s contains, ignoring letter case, substr.
+func ContainsFold(s, substr string) (ok bool) {
+	sLen, substrLen := len(s), len(substr)
+	if sLen < substrLen {
+		return false
+	}
+
+	if sLen == substrLen {
+		return strings.EqualFold(s, substr)
+	}
+
+	first, _ := utf8.DecodeRuneInString(substr)
+	firstFolded := unicode.SimpleFold(first)
+
+	for i := 0; i != -1 && len(s) >= len(substr); {
+		if strings.EqualFold(s[:substrLen], substr) {
+			return true
+		}
+
+		i = strings.IndexFunc(s[1:], func(r rune) (eq bool) {
+			return r == first || r == firstFolded
+		})
+
+		s = s[1+i:]
+	}
+
+	return false
 }
 
 // FilterOut returns a copy of strs with all strings for which f returned true

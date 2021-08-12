@@ -67,6 +67,21 @@ func ExampleCoalesce() {
 	// "a"
 }
 
+func ExampleContainsFold() {
+	if stringutil.ContainsFold("abc", "b") {
+		fmt.Println("works with the same case")
+	}
+
+	if stringutil.ContainsFold("abc", "B") {
+		fmt.Println("works with a different case")
+	}
+
+	// Output:
+	//
+	// works with the same case
+	// works with a different case
+}
+
 func ExampleFilterOut() {
 	strs := []string{
 		"some text",
