@@ -87,7 +87,7 @@ func IsValidHostOuterRune(r rune) (ok bool) {
 		(r >= '0' && r <= '9')
 }
 
-// JoinHostPort is a convinient wrapper for net.JoinHostPort with port of type
+// JoinHostPort is a convenient wrapper for net.JoinHostPort with port of type
 // int.
 func JoinHostPort(host string, port int) (hostport string) {
 	return net.JoinHostPort(host, strconv.Itoa(port))

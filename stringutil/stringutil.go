@@ -36,7 +36,7 @@ func Coalesce(strs ...string) (res string) {
 	return ""
 }
 
-// ContainsFold reports whehter s contains, ignoring letter case, substr.
+// ContainsFold reports whether s contains, ignoring letter case, substr.
 func ContainsFold(s, substr string) (ok bool) {
 	sLen, substrLen := len(s), len(substr)
 	if sLen < substrLen {
