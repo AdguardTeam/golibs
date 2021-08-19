@@ -6,6 +6,11 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 )
 
+// Errors
+//
+// TODO(a.garipov): Implement the errors.Iser interface and use errors.Is in
+// tests to test the whole content of the errors.
+
 const (
 	// ErrAddrIsEmpty is the underlying error returned from validation
 	// functions when an address is empty.

@@ -105,6 +105,61 @@ func TestIPAndPortFromAddr(t *testing.T) {
 	}
 }
 
+func TestValidateIP(t *testing.T) {
+	testCases := []struct {
+		name       string
+		wantErrMsg string
+		wantErrAs  interface{}
+		in         net.IP
+	}{{
+		name:       "success_ipv4",
+		wantErrMsg: "",
+		wantErrAs:  nil,
+		in:         net.IP{1, 2, 3, 4},
+	}, {
+		name:       "success_ipv6",
+		wantErrMsg: "",
+		wantErrAs:  nil,
+		in: net.IP{
+			0x12, 0x34, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0xcd, 0xef,
+		},
+	}, {
+		name:       "error_nil",
+		wantErrMsg: `bad ip address "<nil>": address is empty`,
+		wantErrAs:  new(errors.Error),
+		in:         nil,
+	}, {
+		name:       "error_empty",
+		wantErrMsg: `bad ip address "<nil>": address is empty`,
+		wantErrAs:  new(errors.Error),
+		in:         net.IP{},
+	}, {
+		name: "error_bad",
+		wantErrMsg: `bad ip address "?010203": ` +
+			`bad ip address length 3, allowed: [4 16]`,
+		wantErrAs: new(*netutil.LengthError),
+		in:        net.IP{1, 2, 3},
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := netutil.ValidateIP(tc.in)
+			if tc.wantErrMsg == "" {
+				assert.NoError(t, err)
+			} else {
+				require.Error(t, err)
+
+				assert.Equal(t, tc.wantErrMsg, err.Error())
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
+				assert.ErrorAs(t, err, tc.wantErrAs)
+			}
+		})
+	}
+}
+
 func TestValidateMAC(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -157,6 +212,7 @@ func TestValidateMAC(t *testing.T) {
 				require.Error(t, err)
 
 				assert.Equal(t, tc.wantErrMsg, err.Error())
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
 		})

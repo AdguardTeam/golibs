@@ -73,6 +73,14 @@ func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port int) {
 	return nil, 0
 }
 
+// IPv4Zero returns a new unspecified (aka empty or null) IPv4 address, 0.0.0.0.
+func IPv4Zero() (ip net.IP) { return net.IP{0, 0, 0, 0} }
+
+// IPv6Zero returns a new unspecified (aka empty or null) IPv6 address, [::].
+func IPv6Zero() (ip net.IP) {
+	return net.IP{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+}
+
 // IsValidHostInnerRune returns true if r is a valid inner—that is, neither
 // initial nor final—rune for a hostname label.
 func IsValidHostInnerRune(r rune) (ok bool) {
@@ -169,7 +177,27 @@ func SplitHost(hostport string) (host string, err error) {
 	return host, nil
 }
 
-// ValidateMAC returns an error if hwa is not a valid EUI-48, EUI-64, or
+// ValidateIP returns an error if ip is not a valid IPv4 or IPv6 address.
+//
+// Any error returned will have the underlying type of *AddrError.
+func ValidateIP(ip net.IP) (err error) {
+	defer makeAddrError(&err, ip.String(), AddrKindIP)
+
+	switch l := len(ip); l {
+	case 0:
+		return ErrAddrIsEmpty
+	case net.IPv4len, net.IPv6len:
+		return nil
+	default:
+		return &LengthError{
+			Kind:    AddrKindIP,
+			Allowed: []int{net.IPv4len, net.IPv6len},
+			Length:  l,
+		}
+	}
+}
+
+// ValidateMAC returns an error if mac is not a valid EUI-48, EUI-64, or
 // 20-octet InfiniBand link-layer address.
 //
 // Any error returned will have the underlying type of *AddrError.

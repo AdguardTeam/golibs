@@ -48,6 +48,22 @@ func ExampleParseIPv4() {
 	// <nil> bad ipv4 address "!!!"
 }
 
+func ExampleIPv4Zero() {
+	fmt.Println(netutil.IPv4Zero())
+
+	// Output:
+	//
+	// 0.0.0.0
+}
+
+func ExampleIPv6Zero() {
+	fmt.Println(netutil.IPv6Zero())
+
+	// Output:
+	//
+	// ::
+}
+
 func ExampleSplitHostPort() {
 	host, port, err := netutil.SplitHostPort("example.com:12345")
 	if err != nil {
