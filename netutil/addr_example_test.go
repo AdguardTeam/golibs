@@ -103,3 +103,17 @@ func ExampleSplitHost() {
 	// example.org
 	// address [BAD:!: missing ']' in address
 }
+
+func ExampleSubdomains() {
+	subdomains := netutil.Subdomains("subsub.sub.domain.tld")
+	for _, sub := range subdomains {
+		fmt.Println(sub)
+	}
+
+	// Output:
+	//
+	// subsub.sub.domain.tld
+	// sub.domain.tld
+	// domain.tld
+	// tld
+}

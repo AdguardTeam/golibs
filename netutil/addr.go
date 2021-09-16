@@ -1,7 +1,5 @@
 // Package netutil contains common utilities for IP, MAC, and other kinds of
 // network addresses.
-//
-// TODO(a.garipov): Add more examples.
 package netutil
 
 import (
@@ -73,10 +71,28 @@ func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port int) {
 	return nil, 0
 }
 
+// IPv4bcast returns a new limited broadcast IPv4 address, 255.255.255.255.  It
+// has the same name as the variable in package net, but the result always has
+// four bytes.
+func IPv4bcast() (ip net.IP) { return net.IP{255, 255, 255, 255} }
+
+// IPv4allsys returns a new all systems (aka all hosts) IPv4 address, 224.0.0.1.
+// It has the same name as the variable in package net, but the result always
+// has four bytes.
+func IPv4allsys() (ip net.IP) { return net.IP{224, 0, 0, 1} }
+
+// IPv4allrouter returns a new all routers IPv4 address, 224.0.0.2.  It has the
+// same name as the variable in package net, but the result always has four
+// bytes.
+func IPv4allrouter() (ip net.IP) { return net.IP{224, 0, 0, 2} }
+
 // IPv4Zero returns a new unspecified (aka empty or null) IPv4 address, 0.0.0.0.
+// It has the same name as the variable in package net, but the result always
+// has four bytes.
 func IPv4Zero() (ip net.IP) { return net.IP{0, 0, 0, 0} }
 
 // IPv6Zero returns a new unspecified (aka empty or null) IPv6 address, [::].
+// It has the same name as the variable in package net.
 func IPv6Zero() (ip net.IP) {
 	return net.IP{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 }
@@ -175,6 +191,29 @@ func SplitHost(hostport string) (host string, err error) {
 	}
 
 	return host, nil
+}
+
+// Subdomains returns all subdomains of domain, starting from domain itself.
+// domain must be a valid, non-fully-qualified domain name.  If domain is empty,
+// Subdomains returns nil.
+func Subdomains(domain string) (sub []string) {
+	if domain == "" {
+		return nil
+	}
+
+	sub = []string{domain}
+
+	for domain != "" {
+		i := strings.IndexByte(domain, '.')
+		if i < 0 {
+			break
+		}
+
+		domain = domain[i+1:]
+		sub = append(sub, domain)
+	}
+
+	return sub
 }
 
 // ValidateIP returns an error if ip is not a valid IPv4 or IPv6 address.
