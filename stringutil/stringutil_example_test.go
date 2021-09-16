@@ -7,6 +7,19 @@ import (
 	"github.com/AdguardTeam/golibs/stringutil"
 )
 
+func ExampleAllUnique() {
+	unique := []string{"a", "b", "c"}
+	fmt.Printf("%q is unique: %t\n", unique, stringutil.AllUnique(unique))
+
+	nonUnique := []string{"a", "b", "a"}
+	fmt.Printf("%q is unique: %t\n", nonUnique, stringutil.AllUnique(nonUnique))
+
+	// Output:
+	//
+	// ["a" "b" "c"] is unique: true
+	// ["a" "b" "a"] is unique: false
+}
+
 func ExampleCloneSlice() {
 	var a, b []string
 
