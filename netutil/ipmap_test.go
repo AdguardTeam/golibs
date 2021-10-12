@@ -54,6 +54,10 @@ func TestIPMap(t *testing.T) {
 		var m *netutil.IPMap
 
 		assert.NotPanics(t, func() {
+			m.Clear()
+		})
+
+		assert.NotPanics(t, func() {
 			m.Del(ip4)
 			m.Del(ip6)
 		})
