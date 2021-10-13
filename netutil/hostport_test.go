@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,4 +28,14 @@ func TestCloneHostPorts(t *testing.T) {
 
 	require.Len(t, clone, len(hps))
 	require.Len(t, clone[0].Host, len(hps[0].Host))
+}
+
+func TestHostPort_encoding(t *testing.T) {
+	v := &netutil.HostPort{
+		Host: "example.com",
+		Port: 12345,
+	}
+
+	testutil.AssertMarshalText(t, "example.com:12345", v)
+	testutil.AssertUnmarshalText(t, "example.com:12345", v)
 }

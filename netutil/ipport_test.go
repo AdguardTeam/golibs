@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -69,4 +70,14 @@ func TestCloneIPPorts(t *testing.T) {
 
 	assert.NotSame(t, &ipps[0], &clone[0])
 	assert.NotSame(t, &ipps[0].IP[0], &clone[0].IP[0])
+}
+
+func TestIPPort_encoding(t *testing.T) {
+	v := &netutil.IPPort{
+		IP:   net.IPv4(1, 2, 3, 4),
+		Port: 12345,
+	}
+
+	testutil.AssertMarshalText(t, "1.2.3.4:12345", v)
+	testutil.AssertUnmarshalText(t, "1.2.3.4:12345", v)
 }

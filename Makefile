@@ -10,4 +10,5 @@ check:
 	$(MAKE) test
 
 test:
-	$(GO) test --count 1 --coverprofile='./coverage.txt' --race --shuffle=on ./...
+# TODO(a.garipov): Add shuffle in Go 1.17.
+	$(GO) test --count 1 --coverprofile='./coverage.txt' --race ./...
