@@ -9,6 +9,8 @@ import (
 )
 
 func TestContainsFold(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		inS      string
@@ -82,7 +84,10 @@ func TestContainsFold(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			if tc.want {
 				assert.True(t, stringutil.ContainsFold(tc.inS, tc.inSubstr))
 			} else {

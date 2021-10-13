@@ -38,7 +38,9 @@ const (
 	ipv6RevSpace   = `4.3.2.1.d.c.b.a. .0.0.0.0.0.0.0.` + ipv6Suffix
 )
 
-func TestUnreverseAddr(t *testing.T) {
+func TestIPFromReversedAddr(t *testing.T) {
+	t.Parallel()
+
 	ip4 := net.IP{127, 0, 0, 1}
 	ip6 := net.IP{
 		0x00, 0x00, 0x00, 0x00,
@@ -161,7 +163,10 @@ func TestUnreverseAddr(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ip, err := netutil.IPFromReversedAddr(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)
@@ -178,6 +183,8 @@ func TestUnreverseAddr(t *testing.T) {
 }
 
 func TestIPToReversedAddr(t *testing.T) {
+	t.Parallel()
+
 	ip4 := net.IP{127, 0, 0, 1}
 	ip6 := net.IP{
 		0x00, 0x00, 0x00, 0x00,
@@ -237,7 +244,10 @@ func TestIPToReversedAddr(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			arpa, err := netutil.IPToReversedAddr(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)

@@ -12,12 +12,11 @@ type jsonStruct struct {
 }
 
 func TestDecode(t *testing.T) {
-	var err error
-	var j *JSON
+	t.Parallel()
 
 	o := jsonStruct{}
 	data := `{"keyStr": "value", "keyBool": true}`
-	j, err = DecodeObjectBuffer(&o, []byte(data))
+	j, err := DecodeObjectBuffer(&o, []byte(data))
 	assert.True(t, err == nil)
 	assert.True(t, o.Str == "value")
 	assert.True(t, o.Bool == true)

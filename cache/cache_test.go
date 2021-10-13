@@ -10,6 +10,8 @@ import (
 )
 
 func TestCache(t *testing.T) {
+	t.Parallel()
+
 	conf := Config{}
 	var rmKey, rmVal []byte
 	conf.OnDelete = func(key []byte, val []byte) {
@@ -78,13 +80,15 @@ func TestCache(t *testing.T) {
 
 // Set, get, delete items in parallel
 func TestParallel(t *testing.T) {
+	t.Parallel()
+
 	conf := Config{}
 	conf.EnableLRU = true
 	conf.MaxSize = 1024
 	c := New(conf)
 
 	wg := sync.WaitGroup{}
-	N := 1000
+	N := 100
 	for w := 0; w != 100; w++ {
 		wg.Add(1)
 		go func(wid int) {

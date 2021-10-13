@@ -10,6 +10,8 @@ import (
 )
 
 func TestCloneHostPort(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, (*netutil.HostPort)(nil), (*netutil.HostPort)(nil).Clone())
 	assert.Equal(t, &netutil.HostPort{}, (&netutil.HostPort{}).Clone())
 
@@ -19,6 +21,8 @@ func TestCloneHostPort(t *testing.T) {
 }
 
 func TestCloneHostPorts(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, []*netutil.HostPort(nil), netutil.CloneHostPorts(nil))
 	assert.Equal(t, []*netutil.HostPort{}, netutil.CloneHostPorts([]*netutil.HostPort{}))
 
@@ -31,6 +35,8 @@ func TestCloneHostPorts(t *testing.T) {
 }
 
 func TestHostPort_encoding(t *testing.T) {
+	t.Parallel()
+
 	v := &netutil.HostPort{
 		Host: "example.com",
 		Port: 12345,

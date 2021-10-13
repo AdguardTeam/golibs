@@ -10,6 +10,8 @@ import (
 )
 
 func TestIPMap_allocs(t *testing.T) {
+	t.Parallel()
+
 	ip4 := net.IP{1, 2, 3, 4}
 	m := netutil.NewIPMap(0)
 	m.Set(ip4, 42)
@@ -40,6 +42,8 @@ func TestIPMap_allocs(t *testing.T) {
 }
 
 func TestIPMap(t *testing.T) {
+	t.Parallel()
+
 	ip4 := net.IP{1, 2, 3, 4}
 	ip6 := net.IP{
 		0x12, 0x34, 0x00, 0x00,
@@ -138,10 +142,14 @@ func TestIPMap(t *testing.T) {
 	}
 
 	t.Run("ipv4", func(t *testing.T) {
+		t.Parallel()
+
 		testIPMap(t, ip4, "map[1.2.3.4:42]")
 	})
 
 	t.Run("ipv6", func(t *testing.T) {
+		t.Parallel()
+
 		testIPMap(t, ip6, "map[1234::5678:42]")
 	})
 }

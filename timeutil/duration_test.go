@@ -10,6 +10,8 @@ import (
 )
 
 func TestDuration_String(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		val  time.Duration
@@ -49,7 +51,10 @@ func TestDuration_String(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			d := timeutil.Duration{Duration: tc.val}
 			assert.Equal(t, tc.name, d.String())
 		})
@@ -57,6 +62,8 @@ func TestDuration_String(t *testing.T) {
 }
 
 func TestDuration_encoding(t *testing.T) {
+	t.Parallel()
+
 	v := &timeutil.Duration{
 		Duration: time.Millisecond,
 	}

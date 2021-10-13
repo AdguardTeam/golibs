@@ -11,6 +11,8 @@ import (
 )
 
 func TestIPPortFromAddr(t *testing.T) {
+	t.Parallel()
+
 	ip4 := net.IP{1, 2, 3, 4}
 	ipp := &netutil.IPPort{IP: ip4, Port: 12345}
 
@@ -37,7 +39,10 @@ func TestIPPortFromAddr(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			gotIPPort := netutil.IPPortFromAddr(tc.in)
 			assert.Equal(t, tc.wantIPPort, gotIPPort)
 		})
@@ -45,6 +50,8 @@ func TestIPPortFromAddr(t *testing.T) {
 }
 
 func TestCloneIPPort(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, (*netutil.IPPort)(nil), (*netutil.IPPort)(nil).Clone())
 	assert.Equal(t, &netutil.IPPort{}, (&netutil.IPPort{}).Clone())
 
@@ -58,6 +65,8 @@ func TestCloneIPPort(t *testing.T) {
 }
 
 func TestCloneIPPorts(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, []*netutil.IPPort(nil), netutil.CloneIPPorts(nil))
 	assert.Equal(t, []*netutil.IPPort{}, netutil.CloneIPPorts([]*netutil.IPPort{}))
 
@@ -73,6 +82,8 @@ func TestCloneIPPorts(t *testing.T) {
 }
 
 func TestIPPort_encoding(t *testing.T) {
+	t.Parallel()
+
 	v := &netutil.IPPort{
 		IP:   net.IPv4(1, 2, 3, 4),
 		Port: 12345,

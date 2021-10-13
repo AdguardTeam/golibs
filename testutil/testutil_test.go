@@ -49,6 +49,8 @@ func (t *testTB) Name() (name string) {
 }
 
 func TestAssertErrorMsg(t *testing.T) {
+	t.Parallel()
+
 	t.Run("msg", func(t *testing.T) {
 		numHelper := 0
 		gotFormat := ""
@@ -150,6 +152,8 @@ func (c badCodec) UnmarshalText(b []byte) (err error) {
 }
 
 func TestAssertMarshalText(t *testing.T) {
+	t.Parallel()
+
 	t.Run("good", func(t *testing.T) {
 		numHelper := 0
 		tt := &testTB{
@@ -184,6 +188,8 @@ func TestAssertMarshalText(t *testing.T) {
 }
 
 func TestAssertUnmarshalText(t *testing.T) {
+	t.Parallel()
+
 	t.Run("good", func(t *testing.T) {
 		numHelper := 0
 		tt := &testTB{
@@ -218,6 +224,8 @@ func TestAssertUnmarshalText(t *testing.T) {
 }
 
 func TestCleanupAndRequireSuccess(t *testing.T) {
+	t.Parallel()
+
 	cleanupFuncCalled := false
 	cleanupFunc := func() (err error) {
 		cleanupFuncCalled = true

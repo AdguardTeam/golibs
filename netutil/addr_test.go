@@ -14,6 +14,8 @@ import (
 )
 
 func TestCloneIP(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, net.IP(nil), netutil.CloneIP(nil))
 	assert.Equal(t, net.IP{}, netutil.CloneIP(net.IP{}))
 
@@ -27,6 +29,8 @@ func TestCloneIP(t *testing.T) {
 }
 
 func TestCloneIPs(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, []net.IP(nil), netutil.CloneIPs(nil))
 	assert.Equal(t, []net.IP{}, netutil.CloneIPs([]net.IP{}))
 
@@ -42,6 +46,8 @@ func TestCloneIPs(t *testing.T) {
 }
 
 func TestCloneMAC(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, net.HardwareAddr(nil), netutil.CloneMAC(nil))
 	assert.Equal(t, net.HardwareAddr{}, netutil.CloneMAC(net.HardwareAddr{}))
 
@@ -55,6 +61,8 @@ func TestCloneMAC(t *testing.T) {
 }
 
 func TestCloneURL(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, (*url.URL)(nil), netutil.CloneURL(nil))
 	assert.Equal(t, &url.URL{}, netutil.CloneURL(&url.URL{}))
 
@@ -67,6 +75,8 @@ func TestCloneURL(t *testing.T) {
 }
 
 func TestIPAndPortFromAddr(t *testing.T) {
+	t.Parallel()
+
 	ip := net.IP{1, 2, 3, 4}
 
 	testCases := []struct {
@@ -97,7 +107,10 @@ func TestIPAndPortFromAddr(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			gotIP, gotPort := netutil.IPAndPortFromAddr(tc.in)
 			assert.Equal(t, tc.wantIP, gotIP)
 			assert.Equal(t, tc.wantPort, gotPort)
@@ -106,6 +119,8 @@ func TestIPAndPortFromAddr(t *testing.T) {
 }
 
 func TestValidateIP(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		wantErrMsg string
@@ -145,7 +160,10 @@ func TestValidateIP(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := netutil.ValidateIP(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)
@@ -161,6 +179,8 @@ func TestValidateIP(t *testing.T) {
 }
 
 func TestValidateMAC(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		wantErrMsg string
@@ -204,7 +224,10 @@ func TestValidateMAC(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := netutil.ValidateMAC(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)
@@ -220,6 +243,8 @@ func TestValidateMAC(t *testing.T) {
 }
 
 func TestJoinHostPort(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, ":0", netutil.JoinHostPort("", 0))
 	assert.Equal(t, "host:12345", netutil.JoinHostPort("host", 12345))
 	assert.Equal(t, "1.2.3.4:12345", netutil.JoinHostPort("1.2.3.4", 12345))
@@ -228,6 +253,8 @@ func TestJoinHostPort(t *testing.T) {
 }
 
 func TestSplitHostPort(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		in         string
@@ -273,7 +300,10 @@ func TestSplitHostPort(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			host, port, err := netutil.SplitHostPort(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)
@@ -295,6 +325,8 @@ func repeatStr(b *strings.Builder, s string, n int) {
 }
 
 func TestValidateDomainName(t *testing.T) {
+	t.Parallel()
+
 	b := &strings.Builder{}
 	repeatStr(b, "a", 255)
 	longDomainName := b.String()
@@ -377,7 +409,10 @@ func TestValidateDomainName(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := netutil.ValidateDomainName(tc.in)
 			if tc.wantErrMsg == "" {
 				assert.NoError(t, err)
