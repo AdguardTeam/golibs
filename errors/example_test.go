@@ -83,6 +83,33 @@ func ExampleAnnotate() {
 	// without err : <nil>
 }
 
+func ExampleAnnotate_end() {
+	f := func(fn string) (err error) {
+		err = errors.Error("not found")
+
+		// Some operations.
+
+		return errors.Annotate(err, "reading %q: %w", fn)
+	}
+
+	err := f("non-existing")
+	fmt.Println("with err    :", err)
+
+	f = func(fn string) (err error) {
+		// Some operations.
+
+		return errors.Annotate(err, "reading %q: %w", fn)
+	}
+
+	err = f("non-existing")
+	fmt.Println("without err :", err)
+
+	// Output:
+	//
+	// with err    : reading "non-existing": not found
+	// without err : <nil>
+}
+
 func ExampleAnnotate_bad() {
 	const errNotFound errors.Error = "not found"
 
