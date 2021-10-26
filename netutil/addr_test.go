@@ -9,41 +9,10 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil"
 	"github.com/AdguardTeam/golibs/stringutil"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestCloneIP(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, net.IP(nil), netutil.CloneIP(nil))
-	assert.Equal(t, net.IP{}, netutil.CloneIP(net.IP{}))
-
-	ip := net.IP{1, 2, 3, 4}
-	clone := netutil.CloneIP(ip)
-	assert.Equal(t, ip, clone)
-
-	require.Len(t, clone, len(ip))
-
-	assert.NotSame(t, &ip[0], &clone[0])
-}
-
-func TestCloneIPs(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, []net.IP(nil), netutil.CloneIPs(nil))
-	assert.Equal(t, []net.IP{}, netutil.CloneIPs([]net.IP{}))
-
-	ips := []net.IP{{1, 2, 3, 4}}
-	clone := netutil.CloneIPs(ips)
-	assert.Equal(t, ips, clone)
-
-	require.Len(t, clone, len(ips))
-	require.Len(t, clone[0], len(ips[0]))
-
-	assert.NotSame(t, &ips[0], &clone[0])
-	assert.NotSame(t, &ips[0][0], &clone[0][0])
-}
 
 func TestCloneMAC(t *testing.T) {
 	t.Parallel()
@@ -72,110 +41,6 @@ func TestCloneURL(t *testing.T) {
 	clone := netutil.CloneURL(u)
 	assert.Equal(t, u, clone)
 	assert.NotSame(t, u, clone)
-}
-
-func TestIPAndPortFromAddr(t *testing.T) {
-	t.Parallel()
-
-	ip := net.IP{1, 2, 3, 4}
-
-	testCases := []struct {
-		name     string
-		in       net.Addr
-		wantIP   net.IP
-		wantPort int
-	}{{
-		name:     "nil",
-		in:       nil,
-		wantIP:   nil,
-		wantPort: 0,
-	}, {
-		name:     "tcp",
-		in:       &net.TCPAddr{IP: ip, Port: 12345},
-		wantIP:   ip,
-		wantPort: 12345,
-	}, {
-		name:     "udp",
-		in:       &net.UDPAddr{IP: ip, Port: 12345},
-		wantIP:   ip,
-		wantPort: 12345,
-	}, {
-		name:     "custom",
-		in:       struct{ net.Addr }{},
-		wantIP:   nil,
-		wantPort: 0,
-	}}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			gotIP, gotPort := netutil.IPAndPortFromAddr(tc.in)
-			assert.Equal(t, tc.wantIP, gotIP)
-			assert.Equal(t, tc.wantPort, gotPort)
-		})
-	}
-}
-
-func TestValidateIP(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name       string
-		wantErrMsg string
-		wantErrAs  interface{}
-		in         net.IP
-	}{{
-		name:       "success_ipv4",
-		wantErrMsg: "",
-		wantErrAs:  nil,
-		in:         net.IP{1, 2, 3, 4},
-	}, {
-		name:       "success_ipv6",
-		wantErrMsg: "",
-		wantErrAs:  nil,
-		in: net.IP{
-			0x12, 0x34, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0xcd, 0xef,
-		},
-	}, {
-		name:       "error_nil",
-		wantErrMsg: `bad ip address "<nil>": address is empty`,
-		wantErrAs:  new(errors.Error),
-		in:         nil,
-	}, {
-		name:       "error_empty",
-		wantErrMsg: `bad ip address "<nil>": address is empty`,
-		wantErrAs:  new(errors.Error),
-		in:         net.IP{},
-	}, {
-		name: "error_bad",
-		wantErrMsg: `bad ip address "?010203": ` +
-			`bad ip address length 3, allowed: [4 16]`,
-		wantErrAs: new(*netutil.LengthError),
-		in:        net.IP{1, 2, 3},
-	}}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			err := netutil.ValidateIP(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-			} else {
-				require.Error(t, err)
-
-				assert.Equal(t, tc.wantErrMsg, err.Error())
-				assert.ErrorAs(t, err, new(*netutil.AddrError))
-				assert.ErrorAs(t, err, tc.wantErrAs)
-			}
-		})
-	}
 }
 
 func TestValidateMAC(t *testing.T) {
@@ -229,12 +94,11 @@ func TestValidateMAC(t *testing.T) {
 			t.Parallel()
 
 			err := netutil.ValidateMAC(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-			} else {
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
 				require.Error(t, err)
 
-				assert.Equal(t, tc.wantErrMsg, err.Error())
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
@@ -305,15 +169,9 @@ func TestSplitHostPort(t *testing.T) {
 			t.Parallel()
 
 			host, port, err := netutil.SplitHostPort(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.wantHost, host)
-				assert.Equal(t, tc.wantPort, port)
-			} else {
-				require.Error(t, err)
-
-				assert.Equal(t, tc.wantErrMsg, err.Error())
-			}
+			assert.Equal(t, tc.wantHost, host)
+			assert.Equal(t, tc.wantPort, port)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 		})
 	}
 }
@@ -414,12 +272,11 @@ func TestValidateDomainName(t *testing.T) {
 			t.Parallel()
 
 			err := netutil.ValidateDomainName(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-			} else {
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
 				require.Error(t, err)
 
-				assert.Equal(t, tc.wantErrMsg, err.Error())
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}

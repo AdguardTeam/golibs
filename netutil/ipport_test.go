@@ -13,8 +13,7 @@ import (
 func TestIPPortFromAddr(t *testing.T) {
 	t.Parallel()
 
-	ip4 := net.IP{1, 2, 3, 4}
-	ipp := &netutil.IPPort{IP: ip4, Port: 12345}
+	ipp := &netutil.IPPort{IP: testIPv4, Port: 12345}
 
 	testCases := []struct {
 		in         net.Addr
@@ -25,11 +24,11 @@ func TestIPPortFromAddr(t *testing.T) {
 		wantIPPort: nil,
 		name:       "nil",
 	}, {
-		in:         &net.TCPAddr{IP: ip4, Port: 12345},
+		in:         &net.TCPAddr{IP: testIPv4, Port: 12345},
 		wantIPPort: ipp,
 		name:       "tcp",
 	}, {
-		in:         &net.UDPAddr{IP: ip4, Port: 12345},
+		in:         &net.UDPAddr{IP: testIPv4, Port: 12345},
 		wantIPPort: ipp,
 		name:       "udp",
 	}, {
@@ -55,7 +54,7 @@ func TestCloneIPPort(t *testing.T) {
 	assert.Equal(t, (*netutil.IPPort)(nil), (*netutil.IPPort)(nil).Clone())
 	assert.Equal(t, &netutil.IPPort{}, (&netutil.IPPort{}).Clone())
 
-	ipp := &netutil.IPPort{IP: net.IP{1, 2, 3, 4}, Port: 12345}
+	ipp := &netutil.IPPort{IP: testIPv4, Port: 12345}
 	clone := ipp.Clone()
 	assert.Equal(t, ipp, clone)
 
@@ -70,7 +69,7 @@ func TestCloneIPPorts(t *testing.T) {
 	assert.Equal(t, []*netutil.IPPort(nil), netutil.CloneIPPorts(nil))
 	assert.Equal(t, []*netutil.IPPort{}, netutil.CloneIPPorts([]*netutil.IPPort{}))
 
-	ipps := []*netutil.IPPort{{IP: net.IP{1, 2, 3, 4}, Port: 12345}}
+	ipps := []*netutil.IPPort{{IP: testIPv4, Port: 12345}}
 	clone := netutil.CloneIPPorts(ipps)
 	assert.Equal(t, ipps, clone)
 

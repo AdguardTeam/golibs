@@ -6,13 +6,14 @@ import (
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	ipv4RevGood   = `1.0.0.127.in-addr.arpa`
-	ipv4RevGoodUp = `1.0.0.127.In-Addr.Arpa`
+	ipv4RevGood   = `4.3.2.1.in-addr.arpa`
+	ipv4RevGoodUp = `4.3.2.1.In-Addr.Arpa`
 
 	ipv4RevGoodUnspecified = `0.0.0.0.in-addr.arpa`
 
@@ -21,33 +22,26 @@ const (
 )
 
 const (
+	ipv6Suffix    = `.ip6.arpa`
 	ipv6RevZeroes = `0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0`
-	ipv6Suffix    = ipv6RevZeroes + `.ip6.arpa`
 
-	ipv6RevGood   = `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevGoodUp = `4.3.2.1.D.C.B.A.0.0.0.0.0.0.0.0.` + ipv6Suffix
+	ipv6RevGoodSuffix = `0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa`
+	ipv6RevGood       = `f.e.d.c.0.0.0.0.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevGoodUp     = `F.E.D.C.0.0.0.0.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 
-	ipv6RevGoodUnspecified = `0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.` + ipv6Suffix
+	ipv6RevGoodUnspecified = ipv6RevZeroes + "." + ipv6RevZeroes + ipv6Suffix
 
-	ipv6RevCharHi  = `4.3.2.1.d.c.b.a.0.z.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevCharLo  = `4.3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevDots    = `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6RevZeroes + `..ip6.arpa`
-	ipv6RevLen     = `3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevMany    = `4.3.2.1.dbc.b.a.0.0.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevMissing = `.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6Suffix
-	ipv6RevSpace   = `4.3.2.1.d.c.b.a. .0.0.0.0.0.0.0.` + ipv6Suffix
+	ipv6RevCharHi  = `4.3.2.1.d.c.b.a.0.z.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevCharLo  = `4.3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevDots    = `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6RevZeroes + "." + ipv6Suffix
+	ipv6RevLen     = `3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevMany    = `4.3.2.1.dbc.b.a.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevMissing = `.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevSpace   = `4.3.2.1.d.c.b.a. .0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 )
 
 func TestIPFromReversedAddr(t *testing.T) {
 	t.Parallel()
-
-	ip4 := net.IP{127, 0, 0, 1}
-	ip6 := net.IP{
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0xab, 0xcd, 0x12, 0x34,
-	}
 
 	testCases := []struct {
 		name       string
@@ -60,19 +54,19 @@ func TestIPFromReversedAddr(t *testing.T) {
 		in:         ipv4RevGood,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip4,
+		want:       testIPv4,
 	}, {
 		name:       "good_ipv4_fqdn",
 		in:         ipv4RevGood + ".",
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip4,
+		want:       testIPv4,
 	}, {
 		name:       "good_ipv4_case",
 		in:         ipv4RevGoodUp,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip4,
+		want:       testIPv4,
 	}, {
 		name: "bad_ipv4_missing",
 		in:   ipv4Missing,
@@ -92,19 +86,19 @@ func TestIPFromReversedAddr(t *testing.T) {
 		in:         ipv6RevGood,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip6,
+		want:       testIPv6,
 	}, {
 		name:       "good_ipv6_fqdn",
 		in:         ipv6RevGood + ".",
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip6,
+		want:       testIPv6,
 	}, {
 		name:       "good_ipv6_case",
 		in:         ipv6RevGoodUp,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		want:       ip6,
+		want:       testIPv6,
 	}, {
 		name: "bad_ipv6_many",
 		in:   ipv6RevMany,
@@ -168,13 +162,12 @@ func TestIPFromReversedAddr(t *testing.T) {
 			t.Parallel()
 
 			ip, err := netutil.IPFromReversedAddr(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.want.To16(), ip.To16())
-			} else {
+			assert.Equal(t, tc.want.To16(), ip.To16())
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
 				require.Error(t, err)
 
-				assert.Equal(t, tc.wantErrMsg, err.Error())
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
@@ -184,14 +177,6 @@ func TestIPFromReversedAddr(t *testing.T) {
 
 func TestIPToReversedAddr(t *testing.T) {
 	t.Parallel()
-
-	ip4 := net.IP{127, 0, 0, 1}
-	ip6 := net.IP{
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0xab, 0xcd, 0x12, 0x34,
-	}
 
 	testCases := []struct {
 		name       string
@@ -204,13 +189,13 @@ func TestIPToReversedAddr(t *testing.T) {
 		want:       ipv4RevGood,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		in:         ip4,
+		in:         testIPv4,
 	}, {
 		name:       "good_ipv6",
 		want:       ipv6RevGood,
 		wantErrMsg: "",
 		wantErrAs:  nil,
-		in:         ip6,
+		in:         testIPv6,
 	}, {
 		name:       "nil_ip",
 		want:       "",
@@ -249,13 +234,13 @@ func TestIPToReversedAddr(t *testing.T) {
 			t.Parallel()
 
 			arpa, err := netutil.IPToReversedAddr(tc.in)
-			if tc.wantErrMsg == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.want, arpa)
-			} else {
+			assert.Equal(t, tc.want, arpa)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
 				require.Error(t, err)
 
-				assert.Equal(t, tc.wantErrMsg, err.Error())
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
 		})

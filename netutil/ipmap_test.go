@@ -12,15 +12,14 @@ import (
 func TestIPMap_allocs(t *testing.T) {
 	t.Parallel()
 
-	ip4 := net.IP{1, 2, 3, 4}
 	m := netutil.NewIPMap(0)
-	m.Set(ip4, 42)
+	m.Set(testIPv4, 42)
 
 	t.Run("get", func(t *testing.T) {
 		var v interface{}
 		var ok bool
 		allocs := testing.AllocsPerRun(100, func() {
-			v, ok = m.Get(ip4)
+			v, ok = m.Get(testIPv4)
 		})
 
 		require.True(t, ok)
@@ -44,14 +43,6 @@ func TestIPMap_allocs(t *testing.T) {
 func TestIPMap(t *testing.T) {
 	t.Parallel()
 
-	ip4 := net.IP{1, 2, 3, 4}
-	ip6 := net.IP{
-		0x12, 0x34, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x56, 0x78,
-	}
-
 	val := 42
 
 	t.Run("nil", func(t *testing.T) {
@@ -62,16 +53,16 @@ func TestIPMap(t *testing.T) {
 		})
 
 		assert.NotPanics(t, func() {
-			m.Del(ip4)
-			m.Del(ip6)
+			m.Del(testIPv4)
+			m.Del(testIPv6)
 		})
 
 		assert.NotPanics(t, func() {
-			v, ok := m.Get(ip4)
+			v, ok := m.Get(testIPv4)
 			assert.Nil(t, v)
 			assert.False(t, ok)
 
-			v, ok = m.Get(ip6)
+			v, ok = m.Get(testIPv6)
 			assert.Nil(t, v)
 			assert.False(t, ok)
 		})
@@ -92,11 +83,11 @@ func TestIPMap(t *testing.T) {
 		})
 
 		assert.Panics(t, func() {
-			m.Set(ip4, val)
+			m.Set(testIPv4, val)
 		})
 
 		assert.Panics(t, func() {
-			m.Set(ip6, val)
+			m.Set(testIPv6, val)
 		})
 
 		assert.NotPanics(t, func() {
@@ -144,12 +135,12 @@ func TestIPMap(t *testing.T) {
 	t.Run("ipv4", func(t *testing.T) {
 		t.Parallel()
 
-		testIPMap(t, ip4, "map[1.2.3.4:42]")
+		testIPMap(t, testIPv4, "map[1.2.3.4:42]")
 	})
 
 	t.Run("ipv6", func(t *testing.T) {
 		t.Parallel()
 
-		testIPMap(t, ip6, "map[1234::5678:42]")
+		testIPMap(t, testIPv6, "map[1234::cdef:42]")
 	})
 }
