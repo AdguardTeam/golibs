@@ -195,9 +195,9 @@ func ValidateDomainNameLabel(label string) (err error) {
 	return nil
 }
 
-// ValidateDomainName validates the domain name in accordance to RFC 952, RFC
-// 1035, and with RFC-1123's inclusion of digits at the start of the host.  It
-// doesn't validate against two or more hyphens to allow punycode and
+// ValidateDomainName validates the domain name in accordance to RFC 952,
+// RFC 1035, and with RFC 1123's inclusion of digits at the start of the host.
+// It doesn't validate against two or more hyphens to allow punycode and
 // internationalized domains.
 //
 // Any error returned will have the underlying type of *AddrError.

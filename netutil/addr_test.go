@@ -8,7 +8,6 @@ import (
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil"
-	"github.com/AdguardTeam/golibs/stringutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -176,25 +175,12 @@ func TestSplitHostPort(t *testing.T) {
 	}
 }
 
-func repeatStr(b *strings.Builder, s string, n int) {
-	for i := 0; i < n; i++ {
-		stringutil.WriteToBuilder(b, s)
-	}
-}
-
 func TestValidateDomainName(t *testing.T) {
 	t.Parallel()
 
-	b := &strings.Builder{}
-	repeatStr(b, "a", 255)
-	longDomainName := b.String()
-
-	b.Reset()
-	repeatStr(b, "a", 64)
-	longLabel := b.String()
-
-	_, _ = b.WriteString(".com")
-	longLabelDomainName := b.String()
+	longDomainName := strings.Repeat("a", 255)
+	longLabel := strings.Repeat("a", 64)
+	longLabelDomainName := longLabel + ".com"
 
 	testCases := []struct {
 		name       string
