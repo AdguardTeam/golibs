@@ -65,12 +65,13 @@ func SplitHostPort(hostport string) (host string, port int, err error) {
 		return "", 0, err
 	}
 
-	port, err = strconv.Atoi(portStr)
+	var portUint uint64
+	portUint, err = strconv.ParseUint(portStr, 10, 16)
 	if err != nil {
 		return "", 0, fmt.Errorf("parsing port: %w", err)
 	}
 
-	return host, port, nil
+	return host, int(portUint), nil
 }
 
 // SplitHost is a wrapper for net.SplitHostPort for cases when the hostport may
@@ -156,10 +157,12 @@ const MaxDomainNameLen = 253
 func ValidateDomainNameLabel(label string) (err error) {
 	defer makeAddrError(&err, label, AddrKindLabel)
 
-	l := len(label)
-	if l == 0 {
+	if label == "" {
 		return ErrLabelIsEmpty
-	} else if l > MaxDomainLabelLen {
+	}
+
+	l := len(label)
+	if l > MaxDomainLabelLen {
 		return &LengthError{
 			Kind:   AddrKindLabel,
 			Max:    MaxDomainLabelLen,
@@ -209,10 +212,9 @@ func ValidateDomainName(name string) (err error) {
 		return err
 	}
 
-	l := len(name)
-	if l == 0 {
+	if name == "" {
 		return ErrAddrIsEmpty
-	} else if l > MaxDomainNameLen {
+	} else if l := len(name); l > MaxDomainNameLen {
 		return &LengthError{
 			Kind:   AddrKindName,
 			Max:    MaxDomainNameLen,

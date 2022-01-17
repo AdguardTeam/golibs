@@ -121,44 +121,50 @@ func TestSplitHostPort(t *testing.T) {
 	testCases := []struct {
 		name       string
 		in         string
-		wantHost   string
 		wantErrMsg string
+		wantHost   string
 		wantPort   int
 	}{{
 		name:       "success_ipv4",
 		in:         "1.2.3.4:12345",
-		wantHost:   "1.2.3.4",
 		wantErrMsg: "",
+		wantHost:   "1.2.3.4",
 		wantPort:   12345,
 	}, {
 		name:       "success_ipv6",
 		in:         "[1234::5678]:12345",
-		wantHost:   "1234::5678",
 		wantErrMsg: "",
+		wantHost:   "1234::5678",
 		wantPort:   12345,
 	}, {
 		name:       "success_ipv6_zone",
 		in:         "[1234::5678%lo]:12345",
-		wantHost:   "1234::5678%lo",
 		wantErrMsg: "",
+		wantHost:   "1234::5678%lo",
 		wantPort:   12345,
 	}, {
 		name:       "success_host",
 		in:         "example.com:12345",
-		wantHost:   "example.com",
 		wantErrMsg: "",
+		wantHost:   "example.com",
 		wantPort:   12345,
 	}, {
 		name:       "bad_port",
 		in:         "example.com:!!!",
+		wantErrMsg: "parsing port: strconv.ParseUint: parsing \"!!!\": invalid syntax",
 		wantHost:   "",
-		wantErrMsg: "parsing port: strconv.Atoi: parsing \"!!!\": invalid syntax",
+		wantPort:   0,
+	}, {
+		name:       "port_too_big",
+		in:         "example.com:99999",
+		wantErrMsg: "parsing port: strconv.ParseUint: parsing \"99999\": value out of range",
+		wantHost:   "",
 		wantPort:   0,
 	}, {
 		name:       "bad_syntax",
 		in:         "[1234::5678:12345",
-		wantHost:   "",
 		wantErrMsg: "address [1234::5678:12345: missing ']' in address",
+		wantHost:   "",
 		wantPort:   0,
 	}}
 
@@ -168,9 +174,9 @@ func TestSplitHostPort(t *testing.T) {
 			t.Parallel()
 
 			host, port, err := netutil.SplitHostPort(tc.in)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 			assert.Equal(t, tc.wantHost, host)
 			assert.Equal(t, tc.wantPort, port)
-			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 		})
 	}
 }
