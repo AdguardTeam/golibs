@@ -275,3 +275,117 @@ func TestValidateDomainName(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateSRVDomainName(t *testing.T) {
+	t.Parallel()
+
+	longDomainName := strings.Repeat("a", 255)
+	longLabel := "_" + strings.Repeat("a", 16)
+	longLabelDomainName := longLabel + ".com"
+
+	testCases := []struct {
+		name       string
+		in         string
+		wantErrAs  interface{}
+		wantErrMsg string
+	}{{
+		name:       "success",
+		in:         "_http.example.com",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "success_idna",
+		in:         "_http.пример.рф",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "success_one",
+		in:         "_u",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "empty",
+		in:         "",
+		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad service domain name "": address is empty`,
+	}, {
+		name:      "bad_symbol",
+		in:        "_!",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad service domain name "_!": ` +
+			`bad service name label "_!": bad service name label rune '!'`,
+	}, {
+		name:      "bad_length",
+		in:        longDomainName,
+		wantErrAs: new(*netutil.LengthError),
+		wantErrMsg: `bad service domain name "` + longDomainName + `": ` +
+			`service domain name is too long: got 255, max 253`,
+	}, {
+		name:      "bad_label_length",
+		in:        longLabelDomainName,
+		wantErrAs: new(*netutil.LengthError),
+		wantErrMsg: `bad service domain name "` + longLabelDomainName + `": ` +
+			`bad service name label "` + longLabel + `": ` +
+			`service name label is too long: got 17, max 16`,
+	}, {
+		name:      "bad_label_empty",
+		in:        "example..com",
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad service domain name "example..com": ` +
+			`bad domain name label "": label is empty`,
+	}, {
+		name:      "bad_label_first_symbol",
+		in:        "example._-a.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad service domain name "example._-a.com": ` +
+			`bad service name label "_-a": bad service name label rune '-'`,
+	}, {
+		name:      "bad_label_last_symbol",
+		in:        "_example-.aa.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad service domain name "_example-.aa.com": ` +
+			`bad service name label "_example-": bad service name label rune '-'`,
+	}, {
+		name:      "bad_label_unexpected_underscore",
+		in:        "example._ht_tp.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad service domain name "example._ht_tp.com": ` +
+			`bad service name label "_ht_tp": bad service name label rune '_'`,
+	}, {
+		name:      "bad_service_label_empty",
+		in:        "example._.com",
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad service domain name "example._.com": ` +
+			`bad service name label "_": label is empty`,
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := netutil.ValidateSRVDomainName(tc.in)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
+				require.Error(t, err)
+
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
+				assert.ErrorAs(t, err, tc.wantErrAs)
+			}
+		})
+	}
+
+	t.Run("bad_service_label", func(t *testing.T) {
+		t.Parallel()
+
+		wantErrMsg := `bad service name label "non-service.com": ` +
+			`bad service name label rune 'n'`
+
+		err := netutil.ValidateServiceNameLabel("non-service.com")
+		testutil.AssertErrorMsg(t, wantErrMsg, err)
+
+		assert.ErrorAs(t, err, new(*netutil.AddrError))
+		assert.ErrorAs(t, err, new(*netutil.RuneError))
+	})
+}
