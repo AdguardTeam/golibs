@@ -15,14 +15,8 @@ func ExampleIPFromReversedAddr() {
 
 	fmt.Println(ip)
 
-	// Output:
-	//
-	// 1.2.3.4
-}
-
-func ExampleIPFromReversedAddr_ipv6() {
 	a := `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa`
-	ip, err := netutil.IPFromReversedAddr(a)
+	ip, err = netutil.IPFromReversedAddr(a)
 	if err != nil {
 		panic(err)
 	}
@@ -31,6 +25,7 @@ func ExampleIPFromReversedAddr_ipv6() {
 
 	// Output:
 	//
+	// 1.2.3.4
 	// ::abcd:1234
 }
 
@@ -42,14 +37,8 @@ func ExampleIPToReversedAddr() {
 
 	fmt.Println(arpa)
 
-	// Output:
-	//
-	// 4.3.2.1.in-addr.arpa
-}
-
-func ExampleIPToReversedAddr_ipv6() {
 	ip := net.ParseIP("::abcd:1234")
-	arpa, err := netutil.IPToReversedAddr(ip)
+	arpa, err = netutil.IPToReversedAddr(ip)
 	if err != nil {
 		panic(err)
 	}
@@ -58,5 +47,46 @@ func ExampleIPToReversedAddr_ipv6() {
 
 	// Output:
 	//
+	// 4.3.2.1.in-addr.arpa
 	// 4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
+}
+
+func ExampleSubnetFromReversedAddr() {
+	subnet, err := netutil.SubnetFromReversedAddr("10.in-addr.arpa")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(subnet)
+
+	subnet, err = netutil.SubnetFromReversedAddr("0.10.in-addr.arpa")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(subnet)
+
+	subnet, err = netutil.SubnetFromReversedAddr("3.2.1.d.c.b.a.ip6.arpa")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(subnet)
+
+	// Output:
+	//
+	// 10.0.0.0/8
+	// 10.0.0.0/16
+	// abcd:1230::/28
+}
+
+func ExampleSubnetFromReversedAddr_domainOnly() {
+	a := `in-addr.arpa`
+	_, err := netutil.SubnetFromReversedAddr(a)
+
+	fmt.Println(err)
+
+	// Output:
+	//
+	// bad arpa domain name "in-addr.arpa": not a reversed ip network
 }

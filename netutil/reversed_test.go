@@ -2,6 +2,8 @@ package netutil_test
 
 import (
 	"net"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/errors"
@@ -12,13 +14,15 @@ import (
 )
 
 const (
-	ipv4RevGood   = `4.3.2.1.in-addr.arpa`
-	ipv4RevGoodUp = `4.3.2.1.In-Addr.Arpa`
+	ipv4Suffix     = `.in-addr.arpa`
+	ipv4RevGood    = `4.3.2.1` + ipv4Suffix
+	ipv4RevGoodUp  = `4.3.2.1.In-Addr.Arpa`
+	ipv4NetRevGood = `10` + ipv4Suffix
 
-	ipv4RevGoodUnspecified = `0.0.0.0.in-addr.arpa`
+	ipv4RevGoodUnspecified = `0.0.0.0` + ipv4Suffix
 
-	ipv4Missing = `.0.0.127.in-addr.arpa`
-	ipv4Char    = `1.0.z.127.in-addr.arpa`
+	ipv4Missing = `.0.0.127` + ipv4Suffix
+	ipv4Char    = `1.0.z.127` + ipv4Suffix
 )
 
 const (
@@ -28,6 +32,7 @@ const (
 	ipv6RevGoodSuffix = `0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa`
 	ipv6RevGood       = `f.e.d.c.0.0.0.0.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 	ipv6RevGoodUp     = `F.E.D.C.0.0.0.0.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6NetRevGood    = `1.` + ipv6RevGoodSuffix
 
 	ipv6RevGoodUnspecified = ipv6RevZeroes + "." + ipv6RevZeroes + ipv6Suffix
 
@@ -35,9 +40,12 @@ const (
 	ipv6RevCharLo  = `4.3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 	ipv6RevDots    = `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6RevZeroes + "." + ipv6Suffix
 	ipv6RevLen     = `3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6RevTooLong = `5.4.3.2.1.d.c.b.a.z.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 	ipv6RevMany    = `4.3.2.1.dbc.b.a.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 	ipv6RevMissing = `.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
 	ipv6RevSpace   = `4.3.2.1.d.c.b.a. .0.0.0.0.0.0.0.` + ipv6RevGoodSuffix
+	ipv6NetRevHex  = `10.` + ipv6RevGoodSuffix
+	ipv6NetRevChar = `z.` + ipv6RevGoodSuffix
 )
 
 func TestIPFromReversedAddr(t *testing.T) {
@@ -149,11 +157,12 @@ func TestIPFromReversedAddr(t *testing.T) {
 		wantErrAs: new(*netutil.RuneError),
 		want:      nil,
 	}, {
-		name:       "not_a_reversed_ip",
-		in:         "1.2.3.4",
-		wantErrMsg: `bad arpa domain name "1.2.3.4": not a full reversed ip address`,
-		wantErrAs:  new(errors.Error),
-		want:       nil,
+		name: "not_a_reversed_ip",
+		in:   testIPv4.String(),
+		wantErrMsg: `bad arpa domain name "` + testIPv4.String() + `": ` +
+			`not a full reversed ip address`,
+		wantErrAs: new(errors.Error),
+		want:      nil,
 	}}
 
 	for _, tc := range testCases {
@@ -243,6 +252,273 @@ func TestIPToReversedAddr(t *testing.T) {
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
+		})
+	}
+}
+
+// newIPNet returns an IP network to use in test cases.  It doesn't validate
+// anything.
+func newIPNet(ip net.IP, ones int) (n *net.IPNet) {
+	return &net.IPNet{
+		IP:   ip,
+		Mask: net.CIDRMask(ones, len(ip)*8),
+	}
+}
+
+func TestSubnetFromReversedAddr(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want       *net.IPNet
+		wantErrAs  interface{}
+		wantErrMsg string
+		in         string
+		name       string
+	}{{
+		want:       newIPNet(testIPv4, netutil.IPv4BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv4RevGood,
+		name:       "good_ipv4_single_addr",
+	}, {
+		want:       newIPNet(testIPv4, netutil.IPv4BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv4RevGood + ".",
+		name:       "good_ipv4_single_addr_fqdn",
+	}, {
+		want:       newIPNet(testIPv4, netutil.IPv4BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv4RevGoodUp,
+		name:       "good_ipv4_single_addr_case",
+	}, {
+		want:       newIPNet(testIPv4ZeroTail, netutil.IPv4BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         `0.0.0.` + ipv4NetRevGood,
+		name:       "good_ipv4_single_addr_leading_zero",
+	}, {
+		want:       newIPNet(testIPv4ZeroTail, 16),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         "0." + ipv4NetRevGood,
+		name:       "good_ipv4_subnet_leading_zero",
+	}, {
+		want:       newIPNet(testIPv4ZeroTail, 8),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv4NetRevGood,
+		name:       "good_ipv4_subnet",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + ipv4Missing + `": ` +
+			`bad domain name label "": label is empty`,
+		in:   ipv4Missing,
+		name: "bad_ipv4_missing",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "` + ipv4Char + `": ` +
+			`bad ipv4 address "1.0.z.127"`,
+		in:   ipv4Char,
+		name: "bad_ipv4_char",
+	}, {
+		want:      nil,
+		wantErrAs: new(*strconv.NumError),
+		wantErrMsg: `bad arpa domain name "x.` + ipv4NetRevGood + `": ` +
+			`strconv.ParseUint: parsing "x": invalid syntax`,
+		in:   `x.` + ipv4NetRevGood,
+		name: "bad_ipv4_subnet_char",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "05.` + ipv4NetRevGood + `": ` +
+			`bad domain name label "05": leading zero is forbidden at this position`,
+		in:   `05.` + ipv4NetRevGood,
+		name: "bad_ipv4_subnet_unexpected_zero",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "5.` + ipv4RevGood + `": ` +
+			`not a reversed ip network`,
+		in:   `5.` + ipv4RevGood,
+		name: "bad_ipv4_too_long",
+	}, {
+		want:       newIPNet(testIPv6, netutil.IPv6BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv6RevGood,
+		name:       "good_ipv6_single_addr",
+	}, {
+		want:       newIPNet(testIPv6, netutil.IPv6BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv6RevGood + ".",
+		name:       "good_ipv6_single_addr_fqdn",
+	}, {
+		want:       newIPNet(testIPv6, netutil.IPv6BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv6RevGoodUp,
+		name:       "good_ipv6_single_addr_case",
+	}, {
+		want:       newIPNet(testIPv6ZeroTail, netutil.IPv6BitLen),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         ipv6RevZeroes + "." + ipv6RevGoodSuffix,
+		name:       "good_ipv6_single_addr_leading_zeroes",
+	}, {
+		want:       newIPNet(testIPv6ZeroTail, 68),
+		wantErrAs:  nil,
+		wantErrMsg: "",
+		in:         "0." + ipv6RevGoodSuffix,
+		name:       "good_ipv6_subnet_leading_zeroes",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevMany + `": ` +
+			`not a full reversed ip address`,
+		in:   ipv6RevMany,
+		name: "bad_ipv6_single_addr_many",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "` + strings.TrimPrefix(ipv6RevMany, "4.3.2.1.") + `": ` +
+			`not a reversed ip network`,
+		in:   strings.TrimPrefix(ipv6RevMany, "4.3.2.1."),
+		name: "bad_ipv6_many",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevMissing + `": ` +
+			`bad domain name label "": label is empty`,
+		in:   ipv6RevMissing,
+		name: "bad_ipv6_missing",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevCharLo + `": ` +
+			`bad arpa domain name rune 'z'`,
+		in:   ipv6RevCharLo,
+		name: "bad_ipv6_single_addr_char_lo",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevCharHi + `": ` +
+			`bad arpa domain name rune 'z'`,
+		in:   ipv6RevCharHi,
+		name: "bad_ipv6_single_addr_char_hi",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad arpa domain name "` + ipv6NetRevChar + `": ` +
+			`bad arpa domain name rune 'z'`,
+		in:   ipv6NetRevChar,
+		name: "bad_ipv6_char",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevDots + `": ` +
+			`bad domain name label "": label is empty`,
+		in:   ipv6RevDots,
+		name: "bad_ipv6_dots",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.LengthError),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevTooLong + `": ` +
+			`arpa domain name is too long: got 74, max 72`,
+		in:   ipv6RevTooLong,
+		name: "bad_ipv6_len",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad arpa domain name "` + ipv6RevSpace + `": ` +
+			`bad domain name label " ": bad domain name label rune ' '`,
+		in:   ipv6RevSpace,
+		name: "bad_ipv6_space",
+	}, {
+		want:      nil,
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "` + ipv6NetRevHex + `": ` +
+			`not a reversed ip network`,
+		in:   ipv6NetRevHex,
+		name: "bad_ipv6_hex",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + testIPv4.String() + `": ` +
+			`not a reversed ip network`,
+		in:   testIPv4.String(),
+		name: "not_a_reversed_subnet",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + ipv4Suffix[1:] + `": ` +
+			`not a reversed ip network`,
+		in:   ipv4Suffix[1:],
+		name: "root_arpa_v4",
+	}, {
+		want:      nil,
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad arpa domain name "` + ipv6Suffix[1:] + `": ` +
+			`not a reversed ip network`,
+		in:   ipv6Suffix[1:],
+		name: "root_arpa_v6",
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			subnet, err := netutil.SubnetFromReversedAddr(tc.in)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
+				require.Error(t, err)
+
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
+				assert.ErrorAs(t, err, tc.wantErrAs)
+			} else {
+				require.NotNil(t, subnet)
+
+				assert.Equal(t, tc.want.IP.To16(), subnet.IP.To16())
+				assert.Equal(t, tc.want.Mask, subnet.Mask)
+			}
+		})
+	}
+}
+
+func BenchmarkSubnetFromReversedAddr(b *testing.B) {
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "ipv4_single_addr",
+		in:   ipv4RevGood,
+	}, {
+		name: "ipv4_subnet",
+		in:   ipv4NetRevGood,
+	}, {
+		name: "ipv6_single_addr",
+		in:   ipv6RevGood,
+	}, {
+		name: "ipv6_subnet",
+		in:   ipv6NetRevGood,
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				ipNetSink, errSink = netutil.SubnetFromReversedAddr(bc.in)
+			}
+
+			require.NotNil(b, ipNetSink)
+			require.NoError(b, errSink)
 		})
 	}
 }

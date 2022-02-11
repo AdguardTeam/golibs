@@ -246,29 +246,25 @@ var (
 
 func BenchmarkParseSubnet(b *testing.B) {
 	b.Run("good_cidr", func(b *testing.B) {
-		var err error
-
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			ipNetSink, err = netutil.ParseSubnet("1.2.3.4/16")
+			ipNetSink, errSink = netutil.ParseSubnet("1.2.3.4/16")
 		}
 
-		assert.NotNil(b, ipNetSink)
-		assert.NoError(b, err)
+		require.NotNil(b, ipNetSink)
+		require.NoError(b, errSink)
 	})
 
 	b.Run("good_ip", func(b *testing.B) {
-		var err error
-
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			ipNetSink, err = netutil.ParseSubnet("1.2.3.4")
+			ipNetSink, errSink = netutil.ParseSubnet("1.2.3.4")
 		}
 
-		assert.NotNil(b, ipNetSink)
-		assert.NoError(b, err)
+		require.NotNil(b, ipNetSink)
+		require.NoError(b, errSink)
 	})
 
 	b.Run("bad_cidr", func(b *testing.B) {
@@ -277,7 +273,7 @@ func BenchmarkParseSubnet(b *testing.B) {
 			_, errSink = netutil.ParseSubnet("1.2.3.4//567")
 		}
 
-		assert.Error(b, errSink)
+		require.Error(b, errSink)
 	})
 
 	b.Run("bad_ip", func(b *testing.B) {
@@ -286,6 +282,6 @@ func BenchmarkParseSubnet(b *testing.B) {
 			_, errSink = netutil.ParseSubnet("1.2.3.4.5")
 		}
 
-		assert.Error(b, errSink)
+		require.Error(b, errSink)
 	})
 }

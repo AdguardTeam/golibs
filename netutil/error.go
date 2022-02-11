@@ -23,6 +23,10 @@ const (
 	// ErrNotAReversedIP is the underlying error returned from validation
 	// functions when a domain name is not a full reversed IP address.
 	ErrNotAReversedIP errors.Error = "not a full reversed ip address"
+
+	// ErrNotAReversedSubnet is the underlying error returned from validation
+	// functions when a domain name is not a valid reversed IP network.
+	ErrNotAReversedSubnet errors.Error = "not a reversed ip network"
 )
 
 // AddrKind is the kind of address or address part used for error reporting.
