@@ -134,6 +134,72 @@ func TestIPAndPortFromAddr(t *testing.T) {
 	}
 }
 
+func TestCloneIPNet(t *testing.T) {
+	t.Parallel()
+
+	var (
+		ip4   = net.IP{1, 2, 3, 4}
+		mask4 = net.IPMask{0xff, 0xff, 0x0, 0x0}
+
+		ip6   = net.IP{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+		mask6 = net.IPMask{0xff, 0xff, 0xff, 0xff, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	)
+
+	testCases := []struct {
+		n    *net.IPNet
+		name string
+	}{{
+		n:    &net.IPNet{IP: ip4, Mask: mask4},
+		name: "common_v4",
+	}, {
+		n:    &net.IPNet{IP: nil, Mask: mask4},
+		name: "nil_ip_v4",
+	}, {
+		n:    &net.IPNet{IP: ip4, Mask: nil},
+		name: "nil_mask_v4",
+	}, {
+		n:    &net.IPNet{IP: ip6, Mask: mask6},
+		name: "common_v6",
+	}, {
+		n:    &net.IPNet{IP: nil, Mask: mask6},
+		name: "nil_ip_v6",
+	}, {
+		n:    &net.IPNet{IP: ip6, Mask: nil},
+		name: "nil_mask_v6",
+	}, {
+		n:    &net.IPNet{IP: nil, Mask: nil},
+		name: "empty",
+	}, {
+		n:    nil,
+		name: "nil",
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			clone := netutil.CloneIPNet(tc.n)
+			assert.Equal(t, tc.n, clone)
+
+			if tc.n == nil {
+				return
+			}
+
+			assert.Len(t, clone.IP, len(tc.n.IP))
+			assert.Len(t, clone.Mask, len(tc.n.Mask))
+
+			assert.NotSame(t, tc.n, clone)
+			if tc.n.IP != nil {
+				assert.NotSame(t, &tc.n.IP[0], &clone.IP[0])
+			}
+			if tc.n.Mask != nil {
+				assert.NotSame(t, &tc.n.Mask[0], &clone.Mask[0])
+			}
+		})
+	}
+}
+
 func TestParseSubnet(t *testing.T) {
 	t.Parallel()
 

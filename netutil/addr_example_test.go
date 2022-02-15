@@ -55,15 +55,15 @@ func ExampleSplitHost() {
 }
 
 func ExampleSubdomains() {
-	subdomains := netutil.Subdomains("subsub.sub.domain.tld")
-	for _, sub := range subdomains {
-		fmt.Println(sub)
-	}
+	fmt.Printf("%#v\n", netutil.Subdomains("subsub.sub.domain.tld"))
+
+	fmt.Println()
+
+	fmt.Printf("%#v\n", netutil.Subdomains(""))
 
 	// Output:
 	//
-	// subsub.sub.domain.tld
-	// sub.domain.tld
-	// domain.tld
-	// tld
+	// []string{"subsub.sub.domain.tld", "sub.domain.tld", "domain.tld", "tld"}
+	//
+	// []string(nil)
 }
