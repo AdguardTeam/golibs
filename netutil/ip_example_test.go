@@ -81,6 +81,35 @@ func ExampleParseSubnet() {
 	// 1.2.3.5 is in 1.2.3.4/16: true
 }
 
+func ExampleParseSubnets() {
+	ns, err := netutil.ParseSubnets("1.2.3.4", "1.2.3.4/16")
+	fmt.Println("error:   ", err)
+	fmt.Println("networks:", ns)
+
+	fmt.Println()
+
+	ns, err = netutil.ParseSubnets()
+	fmt.Println("error:   ", err)
+	fmt.Println("networks:", ns)
+
+	fmt.Println()
+
+	ns, err = netutil.ParseSubnets("4.3.2.1/32", "5.5.5.5/33")
+	fmt.Println("error:   ", err)
+	fmt.Println("networks:", ns)
+
+	// Output:
+	//
+	// error:    <nil>
+	// networks: [1.2.3.4/32 1.2.3.4/16]
+	//
+	// error:    <nil>
+	// networks: []
+	//
+	// error:    parsing network at index 1: bad cidr address "5.5.5.5/33"
+	// networks: []
+}
+
 func ExampleSingleIPSubnet() {
 	ip4 := net.IP{1, 2, 3, 4}
 	otherIP4 := net.IP{1, 2, 3, 5}

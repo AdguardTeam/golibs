@@ -20,3 +20,10 @@ var (
 		0x00, 0x00, 0x00, 0x00,
 	}
 )
+
+// Typed sinks for benchmarks.
+var (
+	boolSink  bool
+	errSink   error
+	ipNetSink *net.IPNet
+)

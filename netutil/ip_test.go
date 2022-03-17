@@ -305,11 +305,6 @@ func TestValidateIP(t *testing.T) {
 	}
 }
 
-var (
-	errSink   error
-	ipNetSink *net.IPNet
-)
-
 func BenchmarkParseSubnet(b *testing.B) {
 	b.Run("good_cidr", func(b *testing.B) {
 		b.ReportAllocs()
