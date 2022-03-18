@@ -7,6 +7,22 @@ import (
 	"github.com/AdguardTeam/golibs/netutil"
 )
 
+func ExampleSubnetSet_single() {
+	var s netutil.SubnetSet
+	_, s, err := net.ParseCIDR("1.2.3.4/16")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("contains 1.2.3.4:", s.Contains(net.IP{1, 2, 3, 4}))
+	fmt.Println("contains 4.3.2.1:", s.Contains(net.IP{4, 3, 2, 1}))
+
+	// Output:
+	//
+	// contains 1.2.3.4: true
+	// contains 4.3.2.1: false
+}
+
 func ExampleSubnetSet_slice() {
 	nets, err := netutil.ParseSubnets("1.2.3.0/24", "ffff:12ab::/16")
 	if err != nil {

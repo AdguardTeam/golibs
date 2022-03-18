@@ -147,7 +147,13 @@ func ParseSubnet(s string) (n *net.IPNet, err error) {
 			}
 		}
 
-		n.IP = ip
+		// Reduce the length of IP if possible so that IPNet.Contains doesn't
+		// waste time converting between 16- and 4-byte versions.
+		if ip4 := ip.To4(); ip4 != nil {
+			n.IP = ip4
+		} else {
+			n.IP = ip
+		}
 
 		return n, nil
 	}
