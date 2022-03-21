@@ -101,6 +101,14 @@ func ExampleHostPort_UnmarshalText() {
 
 	fmt.Printf("%#v\n", respPtrs.HostPtrs[0])
 	fmt.Printf("%#v\n", respPtrs.HostPtrs[1])
+	fmt.Println()
+
+	r = strings.NewReader(`{"host_ptrs":["example.com:99999","example.org:99999"]}`)
+	err = json.NewDecoder(r).Decode(respPtrs)
+
+	isOutOfRange := err.Error() == `bad hostport address "example.com:99999": `+
+		`parsing port: strconv.ParseUint: parsing "99999": value out of range`
+	fmt.Printf("got the expected error: %t", isOutOfRange)
 
 	// Output:
 	//
@@ -108,4 +116,6 @@ func ExampleHostPort_UnmarshalText() {
 	// netutil.HostPort{Host:"example.org", Port:23456}
 	// &netutil.HostPort{Host:"example.com", Port:12345}
 	// &netutil.HostPort{Host:"example.org", Port:23456}
+	//
+	// got the expected error: true
 }

@@ -138,3 +138,30 @@ func ExampleIPPort_UnmarshalText() {
 	// [1.2.3.4:12345 [1234::cdef]:23456]
 	// [1.2.3.4:12345 [1234::cdef]:23456]
 }
+
+func ExampleIPPort_UnmarshalText_errors() {
+	resp := &struct {
+		IPs netutil.IPPort `json:"ip"`
+	}{}
+
+	r := strings.NewReader(`{"ip":"1.2.3.4:a"}`)
+	err := json.NewDecoder(r).Decode(resp)
+
+	isBadPort := err.Error() == `bad ipport address "1.2.3.4:a": `+
+		`parsing port: strconv.ParseUint: parsing "a": invalid syntax`
+	fmt.Printf("bad port causes an error: %t", isBadPort)
+
+	fmt.Println()
+
+	r = strings.NewReader(`{"ip":"1.2.3.4.5:12345"}`)
+	err = json.NewDecoder(r).Decode(resp)
+
+	isBadIP := err.Error() == `bad ipport address "1.2.3.4.5:12345": `+
+		`bad ip address "1.2.3.4.5"`
+	fmt.Printf("bad ip causes an error:   %t", isBadIP)
+
+	// Output:
+	//
+	// bad port causes an error: true
+	// bad ip causes an error:   true
+}

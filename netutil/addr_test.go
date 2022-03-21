@@ -112,6 +112,7 @@ func TestJoinHostPort(t *testing.T) {
 	assert.Equal(t, "host:12345", netutil.JoinHostPort("host", 12345))
 	assert.Equal(t, "1.2.3.4:12345", netutil.JoinHostPort("1.2.3.4", 12345))
 	assert.Equal(t, "[1234::5678]:12345", netutil.JoinHostPort("1234::5678", 12345))
+	assert.Equal(t, "[1234::5678]:12345", netutil.JoinHostPort("[1234::5678]", 12345))
 	assert.Equal(t, "[1234::5678%lo]:12345", netutil.JoinHostPort("1234::5678%lo", 12345))
 }
 
@@ -203,6 +204,11 @@ func TestValidateDomainName(t *testing.T) {
 		in:         "пример.рф",
 		wantErrAs:  nil,
 		wantErrMsg: "",
+	}, {
+		name:       "bad_idna",
+		in:         "xn---.com",
+		wantErrAs:  nil,
+		wantErrMsg: `bad domain name "xn---.com": idna: invalid label "-"`,
 	}, {
 		name:       "success_one",
 		in:         "e",
@@ -299,6 +305,12 @@ func TestValidateSRVDomainName(t *testing.T) {
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
+		name:      "bad_idna",
+		in:        "xn---.com",
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad service domain name "xn---.com": ` +
+			`idna: invalid label "-"`,
+	}, {
 		name:       "success_one",
 		in:         "_u",
 		wantErrAs:  nil,
@@ -364,6 +376,10 @@ func TestValidateSRVDomainName(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			if tc.name == "bad_label_empty" {
+				assert.True(t, true)
+			}
+
 			err := netutil.ValidateSRVDomainName(tc.in)
 			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 
@@ -375,17 +391,41 @@ func TestValidateSRVDomainName(t *testing.T) {
 			}
 		})
 	}
+}
 
-	t.Run("bad_service_label", func(t *testing.T) {
-		t.Parallel()
+func TestValidateServiceNameLabel_errors(t *testing.T) {
+	t.Parallel()
 
-		wantErrMsg := `bad service name label "non-service.com": ` +
-			`bad service name label rune 'n'`
+	testCases := []struct {
+		wantErrAs  interface{}
+		wantErrMsg string
+		in         string
+		name       string
+	}{{
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad service name label "non-service.com": ` +
+			`bad service name label rune 'n'`,
+		in:   "non-service.com",
+		name: "bad_rune",
+	}, {
+		wantErrAs:  new(*netutil.AddrError),
+		wantErrMsg: `bad service name label "": label is empty`,
+		in:         "",
+		name:       "empty",
+	}}
 
-		err := netutil.ValidateServiceNameLabel("non-service.com")
-		testutil.AssertErrorMsg(t, wantErrMsg, err)
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		assert.ErrorAs(t, err, new(*netutil.AddrError))
-		assert.ErrorAs(t, err, new(*netutil.RuneError))
-	})
+			err := netutil.ValidateServiceNameLabel(tc.in)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			assert.ErrorAs(t, err, new(*netutil.AddrError))
+			if tc.wantErrAs != nil {
+				assert.ErrorAs(t, err, tc.wantErrAs)
+			}
+		})
+	}
 }

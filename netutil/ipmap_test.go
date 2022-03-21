@@ -38,6 +38,18 @@ func TestIPMap_allocs(t *testing.T) {
 
 		assert.Equal(t, float64(0), allocs)
 	})
+
+	t.Run("clear", func(t *testing.T) {
+		m := netutil.NewIPMap(1)
+		m.Set(testIPv4, struct{}{})
+
+		allocs := testing.AllocsPerRun(100, func() {
+			m.Clear()
+			m.Set(testIPv4, struct{}{})
+		})
+
+		assert.Equal(t, float64(0), allocs)
+	})
 }
 
 func TestIPMap(t *testing.T) {
@@ -93,6 +105,10 @@ func TestIPMap(t *testing.T) {
 		assert.NotPanics(t, func() {
 			sclone := m.ShallowClone()
 			assert.Nil(t, sclone)
+		})
+
+		assert.NotPanics(t, func() {
+			assert.Equal(t, "<nil>", m.String())
 		})
 	})
 

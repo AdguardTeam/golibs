@@ -13,6 +13,9 @@ import (
 
 // fromHexByte converts a single hexadecimal ASCII digit character into an
 // integer from 0 to 15.  For all other characters it returns 0xff.
+//
+// TODO(e.burkov):  This should be covered with tests after adding HasSuffixFold
+// into stringutil.
 func fromHexByte(c byte) (n byte) {
 	switch {
 	case c >= '0' && c <= '9':

@@ -17,13 +17,12 @@ func TestCloneIP(t *testing.T) {
 	assert.Equal(t, net.IP(nil), netutil.CloneIP(nil))
 	assert.Equal(t, net.IP{}, netutil.CloneIP(net.IP{}))
 
-	ip := testIPv4
-	clone := netutil.CloneIP(ip)
-	assert.Equal(t, ip, clone)
+	clone := netutil.CloneIP(testIPv4)
+	assert.Equal(t, testIPv4, clone)
 
-	require.Len(t, clone, len(ip))
+	require.Len(t, clone, len(testIPv4))
 
-	assert.NotSame(t, &ip[0], &clone[0])
+	assert.NotSame(t, &testIPv4[0], &clone[0])
 }
 
 func TestCloneIPs(t *testing.T) {
@@ -138,33 +137,30 @@ func TestCloneIPNet(t *testing.T) {
 	t.Parallel()
 
 	var (
-		ip4   = net.IP{1, 2, 3, 4}
-		mask4 = net.IPMask{0xff, 0xff, 0x0, 0x0}
-
-		ip6   = net.IP{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-		mask6 = net.IPMask{0xff, 0xff, 0xff, 0xff, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+		mask4 = net.CIDRMask(16, netutil.IPv4BitLen)
+		mask6 = net.CIDRMask(32, netutil.IPv6BitLen)
 	)
 
 	testCases := []struct {
 		n    *net.IPNet
 		name string
 	}{{
-		n:    &net.IPNet{IP: ip4, Mask: mask4},
+		n:    &net.IPNet{IP: testIPv4, Mask: mask4},
 		name: "common_v4",
 	}, {
 		n:    &net.IPNet{IP: nil, Mask: mask4},
 		name: "nil_ip_v4",
 	}, {
-		n:    &net.IPNet{IP: ip4, Mask: nil},
+		n:    &net.IPNet{IP: testIPv4, Mask: nil},
 		name: "nil_mask_v4",
 	}, {
-		n:    &net.IPNet{IP: ip6, Mask: mask6},
+		n:    &net.IPNet{IP: testIPv6, Mask: mask6},
 		name: "common_v6",
 	}, {
 		n:    &net.IPNet{IP: nil, Mask: mask6},
 		name: "nil_ip_v6",
 	}, {
-		n:    &net.IPNet{IP: ip6, Mask: nil},
+		n:    &net.IPNet{IP: testIPv6, Mask: nil},
 		name: "nil_mask_v6",
 	}, {
 		n:    &net.IPNet{IP: nil, Mask: nil},
@@ -219,6 +215,11 @@ func TestParseSubnet(t *testing.T) {
 		name:       "success_ipv6",
 		in:         "1234::cdef",
 	}, {
+		want:       &net.IPNet{IP: testIPv6, Mask: net.CIDRMask(16, netutil.IPv6BitLen)},
+		wantErrMsg: "",
+		name:       "success_ipv6",
+		in:         "1234::cdef/16",
+	}, {
 		want:       nil,
 		wantErrMsg: `bad cidr address "1.2.3.4.5": bad ip address "1.2.3.4.5"`,
 		name:       "bad_ipv4",
@@ -233,6 +234,16 @@ func TestParseSubnet(t *testing.T) {
 		wantErrMsg: `bad cidr address "1.2.3.4//16"`,
 		name:       "bad_cidr",
 		in:         "1.2.3.4//16",
+	}, {
+		want:       &net.IPNet{IP: testIPv4, Mask: net.CIDRMask(0, netutil.IPv4BitLen)},
+		wantErrMsg: "",
+		name:       "success_4_to_6",
+		in:         "::ffff:1.2.3.4/96",
+	}, {
+		want:       &net.IPNet{IP: testIPv4, Mask: net.CIDRMask(16, netutil.IPv6BitLen)},
+		wantErrMsg: "",
+		name:       "success_not_4_to_6",
+		in:         "::ffff:1.2.3.4/16",
 	}}
 
 	for _, tc := range testCases {
@@ -247,6 +258,61 @@ func TestParseSubnet(t *testing.T) {
 			if err != nil {
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 			}
+		})
+	}
+}
+
+func TestParseSubnet_equivalence(t *testing.T) {
+	t.Parallel()
+
+	const netStr = "::ffff:1.2.3.4/16"
+
+	parsedIP, netN, err := net.ParseCIDR(netStr)
+	require.NoError(t, err)
+
+	netutilN, err := netutil.ParseSubnet(netStr)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		want assert.ComparisonAssertionFunc
+		name string
+		ip   net.IP
+	}{{
+		want: assert.NotEqual,
+		name: "ip4",
+		ip:   testIPv4,
+	}, {
+		want: assert.Equal,
+		name: "ip6",
+		ip:   testIPv6,
+	}, {
+		want: assert.NotEqual,
+		name: "ip4_zero",
+		ip:   netutil.IPv4Zero(),
+	}, {
+		want: assert.NotEqual,
+		name: "ip6_zero",
+		ip:   netutil.IPv6Zero(),
+	}, {
+		want: assert.NotEqual,
+		name: "ip_from_str",
+		ip:   parsedIP,
+	}, {
+		want: assert.Equal,
+		name: "invalid",
+		ip:   net.IP{1, 2, 3, 4, 5},
+	}, {
+		want: assert.Equal,
+		name: "nil",
+		ip:   nil,
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, netN.Contains(tc.ip), netutilN.Contains(tc.ip))
 		})
 	}
 }
@@ -306,43 +372,64 @@ func TestValidateIP(t *testing.T) {
 }
 
 func BenchmarkParseSubnet(b *testing.B) {
-	b.Run("good_cidr", func(b *testing.B) {
-		b.ReportAllocs()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			ipNetSink, errSink = netutil.ParseSubnet("1.2.3.4/16")
-		}
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "good_cidr4",
+		in:   "1.2.3.4/16",
+	}, {
+		name: "good_ip4",
+		in:   "1.2.3.4",
+	}, {
+		name: "good_cidr6",
+		in:   "abcd::1234/96",
+	}, {
+		name: "good_ip6",
+		in:   "abcd::1234",
+	}, {
+		name: "good_cidr4to6",
+		in:   "::ffff:1.2.3.4/97",
+	}, {
+		name: "good_ip4to6",
+		in:   "::ffff:1.2.3.4",
+	}, {
+		name: "good_cidr_not4to6",
+		in:   "::ffff:1.2.3.4/16",
+	}}
 
-		require.NotNil(b, ipNetSink)
-		require.NoError(b, errSink)
-	})
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				ipNetSink, errSink = netutil.ParseSubnet(bc.in)
+			}
 
-	b.Run("good_ip", func(b *testing.B) {
-		b.ReportAllocs()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			ipNetSink, errSink = netutil.ParseSubnet("1.2.3.4")
-		}
+			require.NotNil(b, ipNetSink)
+			require.NoError(b, errSink)
+		})
+	}
 
-		require.NotNil(b, ipNetSink)
-		require.NoError(b, errSink)
-	})
+	benchErrCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "bad_cidr",
+		in:   "1.2.3.4//567",
+	}, {
+		name: "bad_ip",
+		in:   "1.2.3.4.5",
+	}}
 
-	b.Run("bad_cidr", func(b *testing.B) {
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_, errSink = netutil.ParseSubnet("1.2.3.4//567")
-		}
+	for _, bc := range benchErrCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				_, errSink = netutil.ParseSubnet(bc.in)
+			}
 
-		require.Error(b, errSink)
-	})
-
-	b.Run("bad_ip", func(b *testing.B) {
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_, errSink = netutil.ParseSubnet("1.2.3.4.5")
-		}
-
-		require.Error(b, errSink)
-	})
+			require.Error(b, errSink)
+		})
+	}
 }

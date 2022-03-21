@@ -9,23 +9,35 @@ import (
 )
 
 func ExamplePanicT() {
-	panicChan := make(chan interface{})
-	requireConcurrently := func() {
-		defer func() { panicChan <- recover() }()
+	sigChan := make(chan struct{})
+	catchf := func(substr, msg string) {
+		catched := fmt.Sprintf("%v", recover())
 
-		t := testutil.PanicT{}
-		require.True(t, false)
+		// Check against the OS-independent part of the test failure
+		// message.
+		fmt.Printf("%s: %t\n", msg, strings.Contains(catched, substr))
+
+		sigChan <- struct{}{}
 	}
 
-	go requireConcurrently()
+	t := testutil.PanicT{}
 
-	catched := <-panicChan
-	catchedStr := fmt.Sprintf("%v", catched)
+	go func() {
+		defer catchf("Should be true", "contains meaningful message")
 
-	// Check against the OS-independent part of the test failure message.
-	fmt.Printf("contains a test failure: %t", strings.Contains(catchedStr, "Should be true"))
+		require.True(t, false)
+	}()
+	<-sigChan
+
+	go func() {
+		defer catchf("test failed", "contains a test failure")
+
+		t.FailNow()
+	}()
+	<-sigChan
 
 	// Output:
 	//
+	// contains meaningful message: true
 	// contains a test failure: true
 }
