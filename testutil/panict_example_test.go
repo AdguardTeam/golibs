@@ -13,8 +13,7 @@ func ExamplePanicT() {
 	catchf := func(substr, msg string) {
 		catched := fmt.Sprintf("%v", recover())
 
-		// Check against the OS-independent part of the test failure
-		// message.
+		// Check against the OS-independent part of the test failure message.
 		fmt.Printf("%s: %t\n", msg, strings.Contains(catched, substr))
 
 		sigChan <- struct{}{}
