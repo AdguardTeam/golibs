@@ -54,3 +54,31 @@ func ExampleOnCloserError() {
 	//
 	// [error] github.com/AdguardTeam/golibs/log_test.ExampleOnCloserError.func1(): error occurred in a Close call: EOF
 }
+
+func ExamplePanic() {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(0)
+
+	defer log.OnPanic("")
+
+	log.Panic("fail")
+
+	// Output:
+	//
+	// [panic] fail
+	// [error] recovered from panic: fail
+}
+
+func ExamplePanicf() {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(0)
+
+	defer log.OnPanic("")
+
+	log.Panicf("fail, some number: %d", 123)
+
+	// Output:
+	//
+	// [panic] fail, some number: 123
+	// [error] recovered from panic: fail, some number: 123
+}

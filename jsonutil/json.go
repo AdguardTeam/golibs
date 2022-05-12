@@ -4,7 +4,6 @@ package jsonutil
 import (
 	ejson "encoding/json"
 	"io"
-	"io/ioutil"
 	"strings"
 )
 
@@ -26,7 +25,7 @@ func (j *JSON) Exists(key string) bool {
 // obj: target object
 // r: input data (reader object)
 func DecodeObject(obj interface{}, r io.ReadCloser) (*JSON, error) {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

@@ -11,10 +11,10 @@ import (
 func ExamplePanicT() {
 	sigChan := make(chan struct{})
 	catchf := func(substr, msg string) {
-		catched := fmt.Sprintf("%v", recover())
+		caught := fmt.Sprintf("%v", recover())
 
 		// Check against the OS-independent part of the test failure message.
-		fmt.Printf("%s: %t\n", msg, strings.Contains(catched, substr))
+		fmt.Printf("%s: %t\n", msg, strings.Contains(caught, substr))
 
 		sigChan <- struct{}{}
 	}

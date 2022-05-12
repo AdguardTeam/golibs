@@ -1,0 +1,62 @@
+---
+'version': 2
+'plan':
+    'project-key': 'AGH'
+    'key': 'GOLIBSSPECS'
+    'name': 'golibs'
+'variables':
+    'dockerGo': 'adguard/golang-ubuntu:4.3'
+
+'stages':
+-
+    'Test':
+        'manual': false
+        'final': false
+        'jobs':
+        - 'Test'
+
+'Test':
+    'docker':
+        'image': '${bamboo.dockerGo}'
+    'volumes':
+        '${system.YARN_DIR}': '${bamboo.cacheYarn}'
+        '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
+        '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
+  'key': 'TEST'
+  'tasks':
+  -
+      'checkout':
+          'force-clean-build': true
+  -
+      'script':
+          'interpreter': 'SHELL'
+          'scripts':
+          - |-
+            set -e -f -u -x
+
+            make VERBOSE=1 test
+  'final-tasks':
+  - 'clean'
+  'requirements':
+  - 'adg-docker': true
+
+'branches':
+    'create': 'for-pull-request'
+    'delete':
+        'after-deleted-days': 1
+        'after-inactive-days': 5
+    'link-to-jira': true
+
+'notifications':
+-
+    'events':
+    - 'plan-status-changed'
+    'recipients':
+    -
+        'webhook':
+            'name': 'Build webhook'
+            'url': 'http://prod.jirahub.service.eu.consul/v1/webhook/bamboo'
+
+'labels': []
+'other':
+  'concurrent-build-plugin': 'system-default'

@@ -171,7 +171,7 @@ func ParseSubnet(s string) (n *net.IPNet, err error) {
 
 		if ones, bits := n.Mask.Size(); ones >= 96 && bits == IPv6BitLen {
 			// Copy the IPv4-length tail of the underlying slice to it's
-			// begining to avoid allocations in case of subsequent appending.
+			// beginning to avoid allocations in case of subsequent appending.
 			copy(n.Mask, n.Mask[net.IPv6len-net.IPv4len:])
 			n.Mask = n.Mask[:net.IPv4len]
 		}

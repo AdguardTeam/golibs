@@ -200,7 +200,7 @@ func IPToReversedAddr(ip net.IP) (arpa string, err error) {
 }
 
 // ipv4NetFromReversed parses an IPv4 reverse network.  It assumes that arpa is
-// a valid domain name and is not a doman name with a full IPv4 address.
+// a valid domain name and is not a domain name with a full IPv4 address.
 func ipv4NetFromReversed(arpa string) (subnet *net.IPNet, err error) {
 	var octet64 uint64
 	var octetIdx int
@@ -243,7 +243,7 @@ func ipv4NetFromReversed(arpa string) (subnet *net.IPNet, err error) {
 }
 
 // ipv6NetFromReversed parses an IPv6 reverse network.  It assumes that arpa is
-// a valid domain name and is not a doman name with a full IPv6 address.
+// a valid domain name and is not a domain name with a full IPv6 address.
 func ipv6NetFromReversed(arpa string) (subnet *net.IPNet, err error) {
 	const nibbleLen = len("0.")
 
