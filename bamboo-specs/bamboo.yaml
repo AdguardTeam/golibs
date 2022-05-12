@@ -18,9 +18,9 @@
 'Test':
     'docker':
         'image': '${bamboo.dockerGo}'
-    'volumes':
-        '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
-        '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
+        'volumes':
+            '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
+            '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
     'key': 'TEST'
     'tasks':
     -
