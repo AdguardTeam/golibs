@@ -19,26 +19,25 @@
     'docker':
         'image': '${bamboo.dockerGo}'
     'volumes':
-        '${system.YARN_DIR}': '${bamboo.cacheYarn}'
         '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
         '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
-  'key': 'TEST'
-  'tasks':
-  -
-      'checkout':
-          'force-clean-build': true
-  -
-      'script':
-          'interpreter': 'SHELL'
-          'scripts':
-          - |-
-            set -e -f -u -x
+    'key': 'TEST'
+    'tasks':
+    -
+        'checkout':
+            'force-clean-build': true
+    -
+        'script':
+            'interpreter': 'SHELL'
+            'scripts':
+            - |-
+              set -e -f -u -x
 
-            make VERBOSE=1 test
-  'final-tasks':
-  - 'clean'
-  'requirements':
-  - 'adg-docker': true
+              make VERBOSE=1 test
+    'final-tasks':
+    - 'clean'
+    'requirements':
+    - 'adg-docker': true
 
 'branches':
     'create': 'for-pull-request'
@@ -59,4 +58,4 @@
 
 'labels': []
 'other':
-  'concurrent-build-plugin': 'system-default'
+    'concurrent-build-plugin': 'system-default'
