@@ -65,19 +65,19 @@ func newStringCodecChecker(s string) (c *stringCodecChecker) {
 // newGenericCodecChecker constructs a pointer to value of a type similar to the
 // following:
 //
-//   type checker struct {
-//       PtrMap   map[string]*T `json:"ptr_map"`
-//       Map      map[string]T  `json:"map"`
+//	type checker struct {
+//		PtrMap   map[string]*T `json:"ptr_map"`
+//		Map      map[string]T  `json:"map"`
 //
-//       PtrValue *T            `json:"ptr_value"`
-//       Value    T             `json:"value"`
+//		PtrValue *T            `json:"ptr_value"`
+//		Value    T             `json:"value"`
 //
-//       PtrArray [1]*T         `json:"ptr_array"`
-//       Array    [1]T          `json:"array"`
+//		PtrArray [1]*T         `json:"ptr_array"`
+//		Array    [1]T          `json:"array"`
 //
-//       PtrSlice []*T          `json:"ptr_slice"`
-//       Slice    []T           `json:"slice"`
-//   }
+//		PtrSlice []*T          `json:"ptr_slice"`
+//		Slice    []T           `json:"slice"`
+//	}
 //
 // where T is the type v points to.  The slice and pointer fields are properly
 // initialized.

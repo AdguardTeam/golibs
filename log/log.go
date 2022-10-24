@@ -86,10 +86,7 @@ func GetLevel() (l Level) {
 
 // These constants are the same as in the standard package "log".
 //
-// See the output of:
-//
-//   go doc log.Ldate
-//
+// See the documentation for [log.Ldate], etc.
 const (
 	Ldate = 1 << iota
 	Ltime
@@ -297,11 +294,11 @@ func OnPanicAndExit(prefix string, exitCode int) {
 //
 // Instead of:
 //
-//   defer f.Close()
+//	defer f.Close()
 //
 // You can now write:
 //
-//   defer log.OnCloserError(f, log.DEBUG)
+//	defer log.OnCloserError(f, log.DEBUG)
 //
 // Note that if closer is nil, it is simply ignored.
 func OnCloserError(closer io.Closer, l Level) {

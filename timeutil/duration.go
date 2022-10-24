@@ -22,10 +22,9 @@ type Duration struct {
 // of minutes and seconds.  Some values which are differ between the
 // implementations:
 //
-//   Duration:   "1m", time.Duration:   "1m0s"
-//   Duration:   "1h", time.Duration: "1h0m0s"
-//   Duration: "1h1m", time.Duration: "1h1m0s"
-//
+//	Duration:   "1m", time.Duration:   "1m0s"
+//	Duration:   "1h", time.Duration: "1h0m0s"
+//	Duration: "1h1m", time.Duration: "1h1m0s"
 func (d Duration) String() (str string) {
 	str = d.Duration.String()
 

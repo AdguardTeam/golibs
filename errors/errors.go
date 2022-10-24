@@ -82,9 +82,9 @@ func Unwrap(err error) (unwrapped error) {
 // dynamically.  Users of this API must check it's return value as well as the
 // result errors.As.
 //
-//   if derr := errors.Deferred(nil); errors.As(err, &derr) && derr.Deferred() {
-//           // …
-//   }
+//	if derr := errors.Deferred(nil); errors.As(err, &derr) && derr.Deferred() {
+//	        // …
+//	}
 //
 // See https://dave.cheney.net/2014/12/24/inspecting-errors.
 type Deferred interface {
@@ -137,22 +137,22 @@ func (err *Pair) Unwrap() (unwrapped error) {
 // WithDeferred is a helper function for deferred errors.  For example, to
 // preserve errors from the Close method, replace this:
 //
-//   defer f.Close()
+//	defer f.Close()
 //
 // With this:
 //
-//   defer func() { err = errors.WithDeferred(err, f.Close()) }
+//	defer func() { err = errors.WithDeferred(err, f.Close()) }
 //
 // If returned is nil and deferred is non-nil, the returned error implements the
 // Deferred interface.  If both returned and deferred are non-nil, result has
 // the underlying type of *Pair.
 //
-// Warning
+// # Warning
 //
 // This function requires that there be only ONE error named "err" in the
 // function and that it is always the one that is returned.  Example (Bad)
 // provides an example of the incorrect usage of WithDeferred.
-func WithDeferred(returned error, deferred error) (result error) {
+func WithDeferred(returned, deferred error) (result error) {
 	if deferred == nil {
 		return returned
 	}
@@ -219,51 +219,51 @@ func (err *listError) Unwrap() (unwrapped error) {
 // Annotate annotates the error with the message, unless the error is nil.  The
 // last verb in format must be a verb compatible with errors, for example "%w".
 //
-// In Defers
+// # In Defers
 //
 // The primary use case for this function is to simplify code like this:
 //
-//   func (f *foo) doStuff(s string) (err error) {
-//           defer func() {
-//                   if err != nil {
-//                           err = fmt.Errorf("bad foo %q: %w", s, err)
-//                   }
-//           }()
+//	func (f *foo) doStuff(s string) (err error) {
+//		defer func() {
+//			if err != nil {
+//				err = fmt.Errorf("bad foo %q: %w", s, err)
+//			}
+//		}()
 //
-//           // …
-//   }
+//		// …
+//	}
 //
 // Instead, write:
 //
-//   func (f *foo) doStuff(s string) (err error) {
-//           defer func() { err = errors.Annotate(err, "bad foo %q: %w", s) }()
+//	func (f *foo) doStuff(s string) (err error) {
+//		defer func() { err = errors.Annotate(err, "bad foo %q: %w", s) }()
 //
-//           // …
-//   }
+//		// …
+//	}
 //
-// At The End Of Functions
+// # At The End Of Functions
 //
 // Another possible use case is to simplify final checks like this:
 //
-//   func (f *foo) doStuff(s string) (err error) {
-//           // …
+//	func (f *foo) doStuff(s string) (err error) {
+//		// …
 //
-//           if err != nil {
-//                   return fmt.Errorf("doing stuff with %s: %w", s, err)
-//           }
+//		if err != nil {
+//			return fmt.Errorf("doing stuff with %s: %w", s, err)
+//		}
 //
-//           return nil
-//   }
+//		return nil
+//	}
 //
 // Instead, you could write:
 //
-//   func (f *foo) doStuff(s string) (err error) {
-//           // …
+//	func (f *foo) doStuff(s string) (err error) {
+//		// …
 //
-//           return errors.Annotate(err, "doing stuff with %s: %w", s)
-//   }
+//		return errors.Annotate(err, "doing stuff with %s: %w", s)
+//	}
 //
-// Warning
+// # Warning
 //
 // This function requires that there be only ONE error named "err" in the
 // function and that it is always the one that is returned.  Example (Bad)

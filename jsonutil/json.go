@@ -19,8 +19,8 @@ func (j *JSON) Exists(key string) bool {
 }
 
 // DecodeObject JSON data into a Go object and map-object
-// A Go object has no method to check if the property was actually specified in JSON or not,
-//  but a map-object provides this functionality.
+// A Go object has no method to check if the property was actually specified in
+// JSON or not, but a map-object provides this functionality.
 // Note: not suitable for a large data
 // obj: target object
 // r: input data (reader object)
