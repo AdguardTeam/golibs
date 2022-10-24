@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 // IP Address Constants And Utilities
@@ -16,12 +18,10 @@ const (
 
 // CloneIP returns a clone of an IP address that doesn't share the same
 // underlying array with it.
+//
+// Deprecated: use slices.Clone.
 func CloneIP(ip net.IP) (clone net.IP) {
-	if ip != nil && len(ip) == 0 {
-		return net.IP{}
-	}
-
-	return append(clone, ip...)
+	return slices.Clone(ip)
 }
 
 // CloneIPs returns a deep clone of ips.
@@ -32,7 +32,7 @@ func CloneIPs(ips []net.IP) (clone []net.IP) {
 
 	clone = make([]net.IP, len(ips))
 	for i, ip := range ips {
-		clone[i] = CloneIP(ip)
+		clone[i] = slices.Clone(ip)
 	}
 
 	return clone
@@ -121,9 +121,9 @@ func CloneIPNet(n *net.IPNet) (clone *net.IPNet) {
 	}
 
 	return &net.IPNet{
-		IP: CloneIP(n.IP),
+		IP: slices.Clone(n.IP),
 		// TODO(e.burkov):  Consider adding CloneIPMask.
-		Mask: net.IPMask(CloneIP(net.IP(n.Mask))),
+		Mask: net.IPMask(slices.Clone(net.IP(n.Mask))),
 	}
 }
 

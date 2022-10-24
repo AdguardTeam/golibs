@@ -5,7 +5,7 @@
     'key': 'GOLIBSSPECS'
     'name': 'golibs'
 'variables':
-    'dockerGo': 'adguard/golang-ubuntu:4.3'
+    'dockerGo': 'adguard/golang-ubuntu:5.2'
 
 'stages':
 -

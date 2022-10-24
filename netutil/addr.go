@@ -10,18 +10,17 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/exp/slices"
 	"golang.org/x/net/idna"
 )
 
 // Various Network Address Utilities
 
 // CloneMAC returns a clone of a MAC address.
+//
+// Deprecated: use slices.Clone.
 func CloneMAC(mac net.HardwareAddr) (clone net.HardwareAddr) {
-	if mac != nil && len(mac) == 0 {
-		return net.HardwareAddr{}
-	}
-
-	return append(clone, mac...)
+	return slices.Clone(mac)
 }
 
 // CloneURL returns a deep clone of u.  The User pointer of clone is the same,
@@ -266,7 +265,7 @@ func ValidateServiceNameLabel(label string) (err error) {
 
 	// TODO(e.burkov):  Validate adjacent hyphens since service labels can't be
 	// internationalized.  See RFC 6336 Section 5.1.
-	if err := ValidateDomainNameLabel(label[1:]); err != nil {
+	if err = ValidateDomainNameLabel(label[1:]); err != nil {
 		err = errors.Unwrap(err)
 		if rerr, ok := err.(*RuneError); ok {
 			rerr.Kind = AddrKindSRVLabel

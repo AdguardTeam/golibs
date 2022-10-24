@@ -40,12 +40,12 @@ func TestIPMap_allocs(t *testing.T) {
 	})
 
 	t.Run("clear", func(t *testing.T) {
-		m := netutil.NewIPMap(1)
-		m.Set(testIPv4, struct{}{})
+		clearMap := netutil.NewIPMap(1)
+		clearMap.Set(testIPv4, struct{}{})
 
 		allocs := testing.AllocsPerRun(100, func() {
-			m.Clear()
-			m.Set(testIPv4, struct{}{})
+			clearMap.Clear()
+			clearMap.Set(testIPv4, struct{}{})
 		})
 
 		assert.Equal(t, float64(0), allocs)

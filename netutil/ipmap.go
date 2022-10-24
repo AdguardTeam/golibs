@@ -25,6 +25,8 @@ func ipToArr(ip net.IP) (a ipArr) {
 }
 
 // IPMap is a map of IP addresses.
+//
+// Deprecated: Use map[netip.Addr]T instead.
 type IPMap struct {
 	m map[ipArr]interface{}
 }
