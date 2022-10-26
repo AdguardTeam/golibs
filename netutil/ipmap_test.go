@@ -16,7 +16,7 @@ func TestIPMap_allocs(t *testing.T) {
 	m.Set(testIPv4, 42)
 
 	t.Run("get", func(t *testing.T) {
-		var v interface{}
+		var v any
 		var ok bool
 		allocs := testing.AllocsPerRun(100, func() {
 			v, ok = m.Get(testIPv4)
@@ -85,7 +85,7 @@ func TestIPMap(t *testing.T) {
 
 		assert.NotPanics(t, func() {
 			n := 0
-			m.Range(func(_ net.IP, _ interface{}) (cont bool) {
+			m.Range(func(_ net.IP, _ any) (cont bool) {
 				n++
 
 				return true
@@ -126,7 +126,7 @@ func TestIPMap(t *testing.T) {
 		assert.True(t, ok)
 
 		n := 0
-		m.Range(func(ipKey net.IP, v interface{}) (cont bool) {
+		m.Range(func(ipKey net.IP, v any) (cont bool) {
 			assert.Equal(t, ip.To16(), ipKey)
 			assert.Equal(t, val, v)
 

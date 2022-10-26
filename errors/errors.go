@@ -29,14 +29,14 @@ type Wrapper interface {
 //
 // It calls errors.As from the Go standard library.  See go doc errors.As for
 // the full documentation.
-func As(err error, target interface{}) (ok bool) {
+func As(err error, target any) (ok bool) {
 	return stderrors.As(err, target)
 }
 
 // Aser is a copy of the hidden aser interface from the Go standard library.  It
 // is added here for tests, linting, etc.
 type Aser interface {
-	As(target interface{}) (ok bool)
+	As(target any) (ok bool)
 }
 
 // Is reports whether any error in err's chain matches target.
@@ -268,7 +268,7 @@ func (err *listError) Unwrap() (unwrapped error) {
 // This function requires that there be only ONE error named "err" in the
 // function and that it is always the one that is returned.  Example (Bad)
 // provides an example of the incorrect usage of WithDeferred.
-func Annotate(err error, format string, args ...interface{}) (annotated error) {
+func Annotate(err error, format string, args ...any) (annotated error) {
 	if err == nil {
 		return nil
 	}

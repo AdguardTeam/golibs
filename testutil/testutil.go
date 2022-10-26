@@ -83,7 +83,7 @@ func newStringCodecChecker(s string) (c *stringCodecChecker) {
 // initialized.
 //
 // TODO(a.garipov): Redo this with type parameters in Go 1.18.
-func newGenericCodecChecker(v interface{}) (checkerVal reflect.Value) {
+func newGenericCodecChecker(v any) (checkerVal reflect.Value) {
 	strTyp := reflect.TypeOf("")
 
 	ptrTyp := reflect.TypeOf(v)
@@ -142,7 +142,7 @@ func newGenericCodecChecker(v interface{}) (checkerVal reflect.Value) {
 }
 
 // assignGenericCodecChecker assigns all fields to v or the value v points to.
-func assignGenericCodecChecker(checkerVal reflect.Value, v interface{}) {
+func assignGenericCodecChecker(checkerVal reflect.Value, v any) {
 	keyVal := reflect.ValueOf("1")
 	valPtr := reflect.ValueOf(v)
 	val := valPtr.Elem()

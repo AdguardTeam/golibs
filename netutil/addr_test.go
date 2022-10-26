@@ -48,7 +48,7 @@ func TestValidateMAC(t *testing.T) {
 	testCases := []struct {
 		name       string
 		wantErrMsg string
-		wantErrAs  interface{}
+		wantErrAs  any
 		in         net.HardwareAddr
 	}{{
 		name:       "success_eui_48",
@@ -192,7 +192,7 @@ func TestValidateDomainName(t *testing.T) {
 	testCases := []struct {
 		name       string
 		in         string
-		wantErrAs  interface{}
+		wantErrAs  any
 		wantErrMsg string
 	}{{
 		name:       "success",
@@ -292,7 +292,7 @@ func TestValidateSRVDomainName(t *testing.T) {
 	testCases := []struct {
 		name       string
 		in         string
-		wantErrAs  interface{}
+		wantErrAs  any
 		wantErrMsg string
 	}{{
 		name:       "success",
@@ -397,7 +397,7 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		wantErrAs  interface{}
+		wantErrAs  any
 		wantErrMsg string
 		in         string
 		name       string

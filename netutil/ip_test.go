@@ -323,7 +323,7 @@ func TestValidateIP(t *testing.T) {
 	testCases := []struct {
 		name       string
 		wantErrMsg string
-		wantErrAs  interface{}
+		wantErrAs  any
 		in         net.IP
 	}{{
 		name:       "success_ipv4",

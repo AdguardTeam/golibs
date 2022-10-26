@@ -55,7 +55,7 @@ func TestIPFromReversedAddr(t *testing.T) {
 		name       string
 		in         string
 		wantErrMsg string
-		wantErrAs  interface{}
+		wantErrAs  any
 		want       net.IP
 	}{{
 		name:       "good_ipv4",
@@ -191,7 +191,7 @@ func TestIPToReversedAddr(t *testing.T) {
 		name       string
 		want       string
 		wantErrMsg string
-		wantErrAs  interface{}
+		wantErrAs  any
 		in         net.IP
 	}{{
 		name:       "good_ipv4",
@@ -270,7 +270,7 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 
 	testCases := []struct {
 		want       *net.IPNet
-		wantErrAs  interface{}
+		wantErrAs  any
 		wantErrMsg string
 		in         string
 		name       string
