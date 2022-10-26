@@ -217,3 +217,13 @@ func CleanupAndRequireSuccess(t testing.TB, f func() (err error)) {
 		require.NoError(t, err)
 	})
 }
+
+// RequireTypeAssert is a helper that first requires the desired type and then,
+// if the type is correct, converts and returns the value.
+func RequireTypeAssert[T any](t testing.TB, v any) (res T) {
+	t.Helper()
+
+	require.IsType(t, res, v)
+
+	return v.(T)
+}

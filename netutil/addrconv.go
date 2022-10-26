@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+
+	"github.com/AdguardTeam/golibs/errors"
 )
 
 // IPv4Localhost returns the IPv4 localhost address "127.0.0.1".
@@ -32,11 +34,15 @@ func badAddrFam(fn string, fam AddrFamily) (err error) {
 }
 
 // IPToAddr converts a [net.IP] into a [netip.Addr] of the given family and
-// returns a meaningful error.  fam must be either [AddrFamilyIPv4] or
-// [AddrFamilyIPv6].
+// returns a meaningful error.  ip should not be nil.  fam must be either
+// [AddrFamilyIPv4] or [AddrFamilyIPv6].
 //
 // See also [IPToAddrNoMapped].
 func IPToAddr(ip net.IP, fam AddrFamily) (addr netip.Addr, err error) {
+	if ip == nil {
+		return netip.Addr{}, errors.Error("nil ip")
+	}
+
 	switch fam {
 	case AddrFamilyIPv4:
 		// Make sure that we use the IPv4 form of the address to make sure that
@@ -76,13 +82,13 @@ func IPToAddrNoMapped(ip net.IP) (addr netip.Addr, err error) {
 }
 
 // IPNetToPrefix is a helper that converts a [*net.IPNet] into a [netip.Prefix].
-// If subnet is nil, it returns netip.Prefix{}.  fam must be either
-// [AddrFamilyIPv4] or [AddrFamilyIPv6].
+// subnet should not be nil.  fam must be either [AddrFamilyIPv4] or
+// [AddrFamilyIPv6].
 //
 // See also [IPNetToPrefixNoMapped].
 func IPNetToPrefix(subnet *net.IPNet, fam AddrFamily) (p netip.Prefix, err error) {
 	if subnet == nil {
-		return netip.Prefix{}, nil
+		return netip.Prefix{}, errors.Error("nil subnet")
 	}
 
 	addr, err := IPToAddr(subnet.IP, fam)
@@ -105,7 +111,7 @@ func IPNetToPrefix(subnet *net.IPNet, fam AddrFamily) (p netip.Prefix, err error
 // assumption isn't safe.
 func IPNetToPrefixNoMapped(subnet *net.IPNet) (p netip.Prefix, err error) {
 	if subnet == nil {
-		return netip.Prefix{}, nil
+		return netip.Prefix{}, errors.Error("nil subnet")
 	}
 
 	if ip4 := subnet.IP.To4(); ip4 != nil {

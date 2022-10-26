@@ -23,27 +23,33 @@ type testTB struct {
 	testing.TB
 
 	onCleanup func(f func())
-	onErrorf  func(format string, args ...interface{})
+	onErrorf  func(format string, args ...any)
+	onFailNow func()
 	onHelper  func()
 	onName    func() (name string)
 }
 
-// Cleanup implements the testing.TB interface for *testTB.
+// Cleanup implements the [testing.TB] interface for *testTB.
 func (t *testTB) Cleanup(f func()) {
 	t.onCleanup(f)
 }
 
-// Errorf implements the testing.TB interface for *testTB.
-func (t *testTB) Errorf(format string, args ...interface{}) {
+// Errorf implements the [testing.TB] interface for *testTB.
+func (t *testTB) Errorf(format string, args ...any) {
 	t.onErrorf(format, args...)
 }
 
-// Helper implements the testing.TB interface for *testTB.
+// FailNow implements the [testing.TB] interface for *testTB.
+func (t *testTB) FailNow() {
+	t.onFailNow()
+}
+
+// Helper implements the [testing.TB] interface for *testTB.
 func (t *testTB) Helper() {
 	t.onHelper()
 }
 
-// Name implements the testing.TB interface for *testTB.
+// Name implements the [testing.TB] interface for *testTB.
 func (t *testTB) Name() (name string) {
 	return t.onName()
 }
@@ -54,15 +60,16 @@ func TestAssertErrorMsg(t *testing.T) {
 	t.Run("msg", func(t *testing.T) {
 		numHelper := 0
 		gotFormat := ""
-		var gotArgs []interface{}
+		var gotArgs []any
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf: func(format string, args ...interface{}) {
+			onErrorf: func(format string, args ...any) {
 				gotFormat = format
 				gotArgs = args
 			},
-			onHelper: func() { numHelper++ },
-			onName:   func() (name string) { return testName },
+			onFailNow: func() { panic("not implemented") },
+			onHelper:  func() { numHelper++ },
+			onName:    func() (name string) { return testName },
 		}
 
 		testutil.AssertErrorMsg(tt, testErrMsg, errors.Error(testErrMsg))
@@ -75,15 +82,16 @@ func TestAssertErrorMsg(t *testing.T) {
 	t.Run("msg_mismatch", func(t *testing.T) {
 		numHelper := 0
 		gotFormat := ""
-		var gotArgs []interface{}
+		var gotArgs []any
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf: func(format string, args ...interface{}) {
+			onErrorf: func(format string, args ...any) {
 				gotFormat = format
 				gotArgs = args
 			},
-			onHelper: func() { numHelper++ },
-			onName:   func() (name string) { return testName },
+			onFailNow: func() { panic("not implemented") },
+			onHelper:  func() { numHelper++ },
+			onName:    func() (name string) { return testName },
 		}
 
 		testutil.AssertErrorMsg(tt, testErrMsg, errors.Error("wrong test error"))
@@ -101,7 +109,8 @@ func TestAssertErrorMsg(t *testing.T) {
 		numHelper := 0
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...interface{}) { panic("not implemented") },
+			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
+			onFailNow: func() { panic("not implemented") },
 			onHelper:  func() { numHelper++ },
 			onName:    func() (name string) { panic("not implemented") },
 		}
@@ -158,7 +167,8 @@ func TestAssertMarshalText(t *testing.T) {
 		numHelper := 0
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...interface{}) { panic("not implemented") },
+			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
+			onFailNow: func() { panic("not implemented") },
 			onHelper:  func() { numHelper++ },
 			onName:    func() (name string) { panic("not implemented") },
 		}
@@ -174,7 +184,8 @@ func TestAssertMarshalText(t *testing.T) {
 		numErrorf := 0
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...interface{}) { numErrorf++ },
+			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
+			onFailNow: func() { panic("not implemented") },
 			onHelper:  func() { numHelper++ },
 			onName:    func() (name string) { return testName },
 		}
@@ -194,7 +205,8 @@ func TestAssertUnmarshalText(t *testing.T) {
 		numHelper := 0
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...interface{}) { panic("not implemented") },
+			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
+			onFailNow: func() { panic("not implemented") },
 			onHelper:  func() { numHelper++ },
 			onName:    func() (name string) { panic("not implemented") },
 		}
@@ -210,7 +222,8 @@ func TestAssertUnmarshalText(t *testing.T) {
 		numErrorf := 0
 		tt := &testTB{
 			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...interface{}) { numErrorf++ },
+			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
+			onFailNow: func() { panic("not implemented") },
 			onHelper:  func() { numHelper++ },
 			onName:    func() (name string) { return testName },
 		}
@@ -239,7 +252,7 @@ func TestCleanupAndRequireSuccess(t *testing.T) {
 		onCleanup: func(f func()) {
 			gotFunc = f
 		},
-		onErrorf: func(_ string, _ ...interface{}) { panic("not implemented") },
+		onErrorf: func(_ string, _ ...any) { panic("not implemented") },
 		onHelper: func() { numHelper++ },
 		onName:   func() (name string) { return testName },
 	}
