@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -28,7 +27,7 @@ func RequireSend[T any](t require.TestingT, ch chan<- T, v T, timeout time.Durat
 
 // RequireReceive waits until res is received from ch or until the timeout is
 // exceeded.  If the timeout is exceeded, the test is failed.
-func RequireReceive[T any](t testing.TB, ch <-chan T, timeout time.Duration) (res T, ok bool) {
+func RequireReceive[T any](t require.TestingT, ch <-chan T, timeout time.Duration) (res T, ok bool) {
 	if h, isHelper := t.(interface{ Helper() }); isHelper {
 		h.Helper()
 	}
