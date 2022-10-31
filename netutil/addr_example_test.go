@@ -67,3 +67,57 @@ func ExampleSubdomains() {
 	//
 	// []string(nil)
 }
+
+func ExampleIsSubdomain() {
+	printResult := func(name string, isImmSub bool) {
+		fmt.Printf("%-14s: %5t\n", name, isImmSub)
+	}
+
+	printResult("same domain", netutil.IsSubdomain("sub.example.com", "example.com"))
+	printResult("not immediate", netutil.IsSubdomain("sub.sub.example.com", "example.com"))
+	printResult("empty", netutil.IsSubdomain("", ""))
+	printResult("same", netutil.IsSubdomain("example.com", "example.com"))
+	printResult("dot only", netutil.IsSubdomain(".example.com", "example.com"))
+	printResult("backwards", netutil.IsSubdomain("example.com", "sub.example.com"))
+	printResult("other domain", netutil.IsSubdomain("sub.example.com", "example.org"))
+	printResult("similar 1", netutil.IsSubdomain("sub.myexample.com", "example.org"))
+	printResult("similar 2", netutil.IsSubdomain("sub.example.com", "myexample.org"))
+
+	// Output:
+	// same domain   :  true
+	// not immediate :  true
+	// empty         : false
+	// same          : false
+	// dot only      : false
+	// backwards     : false
+	// other domain  : false
+	// similar 1     : false
+	// similar 2     : false
+}
+
+func ExampleIsImmediateSubdomain() {
+	printResult := func(name string, isImmSub bool) {
+		fmt.Printf("%-14s: %5t\n", name, isImmSub)
+	}
+
+	printResult("same domain", netutil.IsImmediateSubdomain("sub.example.com", "example.com"))
+	printResult("empty", netutil.IsImmediateSubdomain("", ""))
+	printResult("same", netutil.IsImmediateSubdomain("example.com", "example.com"))
+	printResult("dot only", netutil.IsImmediateSubdomain(".example.com", "example.com"))
+	printResult("backwards", netutil.IsImmediateSubdomain("example.com", "sub.example.com"))
+	printResult("other domain", netutil.IsImmediateSubdomain("sub.example.com", "example.org"))
+	printResult("not immediate", netutil.IsImmediateSubdomain("sub.sub.example.com", "example.com"))
+	printResult("similar 1", netutil.IsImmediateSubdomain("sub.myexample.com", "example.org"))
+	printResult("similar 2", netutil.IsImmediateSubdomain("sub.example.com", "myexample.org"))
+
+	// Output:
+	// same domain   :  true
+	// empty         : false
+	// same          : false
+	// dot only      : false
+	// backwards     : false
+	// other domain  : false
+	// not immediate : false
+	// similar 1     : false
+	// similar 2     : false
+}

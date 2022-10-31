@@ -1,13 +1,15 @@
-// Package jsonutil provides some helper functions for working with JSON objects
+// Package jsonutil provides some helper functions for working with JSON.
 package jsonutil
 
 import (
-	ejson "encoding/json"
+	"encoding/json"
 	"io"
 	"strings"
 )
 
 // JSON object
+//
+// Deprecated: This type is deprecated and will be removed in a future release.
 type JSON struct {
 	m map[string]any
 }
@@ -38,7 +40,7 @@ func DecodeObject(obj any, r io.ReadCloser) (*JSON, error) {
 // data: input data
 func DecodeObjectBuffer(obj any, data []byte) (*JSON, error) {
 	reader := strings.NewReader(string(data))
-	err := ejson.NewDecoder(reader).Decode(obj)
+	err := json.NewDecoder(reader).Decode(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +53,10 @@ func DecodeObjectBuffer(obj any, data []byte) (*JSON, error) {
 func DecodeBuffer(data []byte) (*JSON, error) {
 	j := JSON{}
 	j.m = make(map[string]any)
-	err := ejson.Unmarshal(data, &j.m)
+	err := json.Unmarshal(data, &j.m)
 	if err != nil {
 		return nil, err
 	}
+
 	return &j, nil
 }
