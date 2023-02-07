@@ -1,7 +1,6 @@
 package testutil_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/errors"
@@ -9,6 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestMain(m *testing.M) {
+	testutil.DiscardLogOutput(m)
+}
 
 // Common test constants.
 const (
@@ -100,9 +103,9 @@ func TestAssertErrorMsg(t *testing.T) {
 		assert.NotEmpty(t, gotFormat)
 		require.Len(t, gotArgs, 1)
 
-		argStr := fmt.Sprint(gotArgs[0])
-		assert.Contains(t, argStr, testName)
-		assert.Contains(t, argStr, testErrMsg)
+		arg := gotArgs[0]
+		assert.Contains(t, arg, testName)
+		assert.Contains(t, arg, testErrMsg)
 	})
 
 	t.Run("empty_msg", func(t *testing.T) {
@@ -119,15 +122,39 @@ func TestAssertErrorMsg(t *testing.T) {
 
 		assert.Greater(t, numHelper, 0)
 	})
+
+	t.Run("unexpected_success", func(t *testing.T) {
+		numHelper := 0
+		gotFormat := ""
+		var gotArgs []any
+		tt := &testTB{
+			onCleanup: func(_ func()) { panic("not implemented") },
+			onErrorf: func(format string, args ...any) {
+				gotFormat = format
+				gotArgs = args
+			},
+			onFailNow: func() { panic("not implemented") },
+			onHelper:  func() { numHelper++ },
+			onName:    func() (name string) { return testName },
+		}
+
+		testutil.AssertErrorMsg(tt, testErrMsg, nil)
+
+		assert.Greater(t, numHelper, 0)
+		assert.NotEmpty(t, gotFormat)
+		require.Len(t, gotArgs, 1)
+
+		assert.Contains(t, gotArgs[0], testName)
+	})
 }
 
-// goodCodec is a good encoding.TextMarshaler and encoding.TextUnmarshaler
+// goodCodec is a good [encoding.TextMarshaler] and [encoding.TextUnmarshaler]
 // implementation.
 type goodCodec struct {
 	value []byte
 }
 
-// MarshalText implements encoding.TextMarshaler for goodCodec.
+// MarshalText implements [encoding.TextMarshaler] for goodCodec.
 func (c goodCodec) MarshalText() (b []byte, err error) {
 	return c.value, nil
 }
@@ -139,14 +166,14 @@ func (c *goodCodec) UnmarshalText(b []byte) (err error) {
 	return nil
 }
 
-// badCodec is a bad encoding.TextMarshaler and encoding.TextUnmarshaler
+// badCodec is a bad [encoding.TextMarshaler] and [encoding.TextUnmarshaler]
 // implementation.
 type badCodec struct {
 	value []byte
 }
 
-// MarshalText implements encoding.TextMarshaler for badCodec.  It implements it
-// badly, because it uses a pointer receiver.
+// MarshalText implements [encoding.TextMarshaler] for badCodec.  It implements
+// it badly, because it uses a pointer receiver.
 func (c *badCodec) MarshalText() (b []byte, err error) {
 	return c.value, nil
 }
@@ -263,4 +290,42 @@ func TestCleanupAndRequireSuccess(t *testing.T) {
 
 	gotFunc()
 	assert.True(t, cleanupFuncCalled)
+}
+
+func TestRequireTypeAssert(t *testing.T) {
+	numHelper := 0
+	numErrorf := 0
+	numFailNow := 0
+	tt := &testTB{
+		onCleanup: func(_ func()) { panic("not implemented") },
+		onErrorf:  func(_ string, _ ...any) { numErrorf++ },
+		onFailNow: func() { numFailNow++ },
+		onHelper:  func() { numHelper++ },
+		onName:    func() (name string) { return testName },
+	}
+
+	t.Run("success", func(t *testing.T) {
+		t.Cleanup(func() { numHelper = 0 })
+
+		_ = testutil.RequireTypeAssert[string](tt, "foo")
+		_ = testutil.RequireTypeAssert[int](tt, 42)
+		_ = testutil.RequireTypeAssert[bool](tt, true)
+		_ = testutil.RequireTypeAssert[func()](tt, func() {})
+
+		assert.Greater(t, numHelper, 3)
+		assert.Zero(t, numErrorf)
+		assert.Zero(t, numFailNow)
+	})
+
+	t.Run("interfaces", func(t *testing.T) {
+		t.Cleanup(func() { numHelper = 0 })
+
+		_ = testutil.RequireTypeAssert[interface{}](tt, nil)
+		_ = testutil.RequireTypeAssert[interface{}](tt, t)
+		_ = testutil.RequireTypeAssert[testing.TB](tt, tt)
+
+		assert.Greater(t, numHelper, 2)
+		assert.Zero(t, numErrorf)
+		assert.Zero(t, numFailNow)
+	})
 }

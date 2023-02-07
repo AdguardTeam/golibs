@@ -223,7 +223,12 @@ func CleanupAndRequireSuccess(t testing.TB, f func() (err error)) {
 func RequireTypeAssert[T any](t testing.TB, v any) (res T) {
 	t.Helper()
 
-	require.IsType(t, res, v)
+	switch v := v.(type) {
+	case T:
+		return v
+	default:
+		require.IsType(t, res, v)
 
-	return v.(T)
+		return res
+	}
 }
