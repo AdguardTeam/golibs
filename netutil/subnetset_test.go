@@ -2,6 +2,7 @@ package netutil_test
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil"
@@ -219,6 +220,212 @@ func TestSubnetSet_optimized(t *testing.T) {
 			t.Parallel()
 
 			tc.wantLocallyServed(t, locSrvSet.Contains(tc.ip))
+		})
+	}
+}
+
+func TestSubnetSet_optimizedAddr(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		wantSpecialPurpose assert.BoolAssertionFunc
+		wantLocallyServed  assert.BoolAssertionFunc
+		name               string
+		ip                 netip.Addr
+	}{{
+		wantSpecialPurpose: assert.False,
+		wantLocallyServed:  assert.False,
+		name:               "public",
+		ip:                 netip.MustParseAddr("8.8.8.8"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "unspecified_v4",
+		ip:                 netip.IPv4Unspecified(),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "private-use",
+		ip:                 netip.MustParseAddr("10.0.0.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "shared_address_space",
+		ip:                 netip.MustParseAddr("100.64.0.1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "loopback",
+		ip:                 netip.MustParseAddr("127.0.0.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "link_local",
+		ip:                 netip.MustParseAddr("169.254.0.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "private-use",
+		ip:                 netip.MustParseAddr("172.16.0.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "documentation_(test-net-1)",
+		ip:                 netip.MustParseAddr("192.0.2.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "reserved",
+		ip:                 netip.MustParseAddr("192.88.99.1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "private-use",
+		ip:                 netip.MustParseAddr("192.168.0.0"),
+	}, {
+		wantSpecialPurpose: assert.False,
+		wantLocallyServed:  assert.False,
+		name:               "non-local_v4",
+		ip:                 netip.MustParseAddr("192.169.0.1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "documentation_(test-net-2)",
+		ip:                 netip.MustParseAddr("198.51.100.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "documentation_(test-net-3)",
+		ip:                 netip.MustParseAddr("203.0.113.0"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "limited_broadcast",
+		ip:                 netip.MustParseAddr("255.255.255.255"),
+	}, {
+		wantSpecialPurpose: assert.False,
+		wantLocallyServed:  assert.False,
+		name:               "public_v6",
+		ip:                 netip.MustParseAddr("::2"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "loopback_address",
+		ip:                 netip.MustParseAddr("::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "unspecified_v6",
+		ip:                 netip.MustParseAddr("::"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		// "translat" stands for "translation" as per RFC 6890.
+		name: "v4-v6_translat",
+		ip:   netip.MustParseAddr("64:ff9b::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "v4-v6_translat",
+		ip:                 netip.MustParseAddr("64:ff9b:1::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "discard-only",
+		ip:                 netip.MustParseAddr("100::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "ietf_protocol_assignments",
+		ip:                 netip.MustParseAddr("2001::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "teredo",
+		ip:                 netip.MustParseAddr("2001::2"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "port_control_protocol_anycast",
+		ip:                 netip.MustParseAddr("2001:1::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "traversal_using_relays_around_nat_anycast",
+		ip:                 netip.MustParseAddr("2001:1::2"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "benchmarking",
+		ip:                 netip.MustParseAddr("2001:2::10"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "amt",
+		ip:                 netip.MustParseAddr("2001:3::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "as112-v6",
+		ip:                 netip.MustParseAddr("2001:4:112::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "orchid",
+		ip:                 netip.MustParseAddr("2001:10::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "orchid_v2",
+		ip:                 netip.MustParseAddr("2001:20::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "documentation",
+		ip:                 netip.MustParseAddr("2001:db8::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "6to4",
+		ip:                 netip.MustParseAddr("2002::1"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "direct_delegation_as112_service",
+		ip:                 netip.MustParseAddr("2620:4f:8000::"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "link-local",
+		ip:                 netip.MustParseAddr("fd00::"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.False,
+		name:               "unique-local",
+		ip:                 netip.MustParseAddr("fc00::"),
+	}, {
+		wantSpecialPurpose: assert.True,
+		wantLocallyServed:  assert.True,
+		name:               "linked-scoped_unicast",
+		ip:                 netip.MustParseAddr("fe80::12"),
+	}, {
+		wantSpecialPurpose: assert.False,
+		wantLocallyServed:  assert.False,
+		name:               "invalid",
+		ip:                 netip.Addr{},
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name+"_is_special-purpose", func(t *testing.T) {
+			t.Parallel()
+
+			tc.wantSpecialPurpose(t, netutil.IsSpecialPurposeAddr(tc.ip))
+		})
+		t.Run(tc.name+"_is_locally-served", func(t *testing.T) {
+			t.Parallel()
+
+			tc.wantLocallyServed(t, netutil.IsLocallyServedAddr(tc.ip))
 		})
 	}
 }

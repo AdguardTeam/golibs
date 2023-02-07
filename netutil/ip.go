@@ -77,7 +77,7 @@ func IPv6Zero() (ip net.IP) {
 	return net.IP{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 }
 
-// ParseIP is a wrapper around net.ParseIP that returns a useful error.
+// ParseIP is a wrapper around [net.ParseIP] that returns a useful error.
 //
 // Any error returned will have the underlying type of [*AddrError].
 func ParseIP(s string) (ip net.IP, err error) {
@@ -92,8 +92,8 @@ func ParseIP(s string) (ip net.IP, err error) {
 	return ip, nil
 }
 
-// ParseIPv4 is a wrapper around net.ParseIP that makes sure that the parsed IP
-// is an IPv4 address and returns a useful error.
+// ParseIPv4 is a wrapper around [net.ParseIP] that makes sure that the parsed
+// IP is an IPv4 address and returns a useful error.
 //
 // Any error returned will have the underlying type of either [*AddrError].
 func ParseIPv4(s string) (ip net.IP, err error) {
@@ -165,7 +165,7 @@ func ParseSubnet(s string) (n *net.IPNet, err error) {
 
 	if ip4 := ip.To4(); ip4 != nil {
 		// Reduce the length of IP and mask if possible so that
-		// IPNet.Contains doesn't waste time converting between 16- and
+		// [IPNet.Contains] doesn't waste time converting between 16- and
 		// 4-byte versions.
 		ip = ip4
 
@@ -200,7 +200,7 @@ func SingleIPSubnet(ip net.IP) (n *net.IPNet) {
 	return nil
 }
 
-// ParseSubnets returns the slice of *net.IPNet parsed from ss.
+// ParseSubnets returns the slice of [*net.IPNet] parsed from ss.
 func ParseSubnets(ss ...string) (ns []*net.IPNet, err error) {
 	l := len(ss)
 	if l == 0 {

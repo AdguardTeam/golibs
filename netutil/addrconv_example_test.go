@@ -1,10 +1,13 @@
 package netutil_test
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 
 	"github.com/AdguardTeam/golibs/netutil"
+	"github.com/AdguardTeam/golibs/testutil"
+	"github.com/stretchr/testify/require"
 )
 
 func ExampleIPv4Localhost() {
@@ -53,11 +56,26 @@ func ExampleIPToAddr() {
 	addr, err = netutil.IPToAddr(ip, netutil.AddrFamilyIPv6)
 	fmt.Printf("%q, error: %v\n", addr, err)
 
+	ip = nil
+	addr, err = netutil.IPToAddr(ip, netutil.AddrFamilyIPv4)
+	fmt.Printf("%q, error: %v\n", addr, err)
+
+	ip = net.IP{1, 2, 3, 4, 5}
+	addr, err = netutil.IPToAddr(ip, netutil.AddrFamilyIPv6)
+	fmt.Printf("%q, error: %v\n", addr, err)
+
+	pt := testutil.PanicT{}
+	require.Panics(pt, func() {
+		_, _ = netutil.IPToAddr(ip, 42)
+	})
+
 	// Output:
 	// "1.2.3.4", error: <nil>
 	// "::ffff:1.2.3.4", error: <nil>
 	// "invalid IP", error: bad ipv4 net.IP 1234::5678
 	// "1234::5678", error: <nil>
+	// "invalid IP", error: nil ip
+	// "invalid IP", error: bad net.IP value <nil>
 }
 
 func ExampleIPToAddrNoMapped() {
@@ -94,11 +112,21 @@ func ExampleIPNetToPrefix() {
 	pref, err = netutil.IPNetToPrefix(n, netutil.AddrFamilyIPv6)
 	fmt.Printf("%q, error: %v\n", pref, err)
 
+	n.Mask = bytes.Repeat([]byte{0xff}, 17)
+	pref, err = netutil.IPNetToPrefix(n, netutil.AddrFamilyIPv6)
+	fmt.Printf("%q, error: %v\n", pref, err)
+
+	n = nil
+	pref, err = netutil.IPNetToPrefix(n, netutil.AddrFamilyIPv6)
+	fmt.Printf("%q, error: %v\n", pref, err)
+
 	// Output:
 	// "1.2.3.0/24", error: <nil>
 	// "::ffff:1.2.3.0/24", error: <nil>
 	// "invalid Prefix", error: bad ip for subnet 1234::/72: bad ipv4 net.IP 1234::
 	// "1234::/72", error: <nil>
+	// "invalid Prefix", error: bad subnet <nil>
+	// "invalid Prefix", error: nil subnet
 }
 
 func ExampleIPNetToPrefixNoMapped() {
@@ -117,10 +145,15 @@ func ExampleIPNetToPrefixNoMapped() {
 	pref, err = netutil.IPNetToPrefixNoMapped(n)
 	fmt.Printf("%q, error: %v\n", pref, err)
 
+	n = nil
+	pref, err = netutil.IPNetToPrefixNoMapped(n)
+	fmt.Printf("%q, error: %v\n", pref, err)
+
 	// Output:
 	// "1.2.3.0/24", error: <nil>
 	// "1.2.3.0/24", error: <nil>
 	// "1234::/72", error: <nil>
+	// "invalid Prefix", error: nil subnet
 }
 
 func ExampleNetAddrToAddrPort() {

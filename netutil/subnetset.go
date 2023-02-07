@@ -72,20 +72,28 @@ func (f SubnetSetFunc) Contains(ip net.IP) (ok bool) { return f(ip) }
 func IsLocallyServed(ip net.IP) (ok bool) {
 	if ip == nil {
 		return false
-	} else if ip4 := ip.To4(); ip4 == nil {
+	}
+
+	ip4 := ip.To4()
+	if ip4 == nil {
 		if len(ip) != net.IPv6len {
 			return false
 		}
 
 		return isLocallyServedV6(ip)
-	} else {
-		return isLocallyServedV4(ip4)
 	}
+
+	return isLocallyServedV4(ip4)
 }
 
 // IsLocallyServedAddr is like [IsLocallyServed] but for [netip.Addr].  Since
-// the argument's type is different, it cannot be used as a [SubnetSetFunc].
+// the argument's type is different, it cannot be used as a [SubnetSetFunc].  It
+// returns false for invalid addresses, just like [IsLocallyServed] does.
 func IsLocallyServedAddr(ip netip.Addr) (ok bool) {
+	if !ip.IsValid() {
+		return false
+	}
+
 	if ip.Is4() {
 		return isLocallyServedV4(ip.AsSlice())
 	}
@@ -185,20 +193,28 @@ func isLocallyServedV4(ip net.IP) (ok bool) {
 func IsSpecialPurpose(ip net.IP) (ok bool) {
 	if ip == nil {
 		return false
-	} else if ip4 := ip.To4(); ip4 == nil {
+	}
+
+	ip4 := ip.To4()
+	if ip4 == nil {
 		if len(ip) != net.IPv6len {
 			return false
 		}
 
 		return isSpecialPurposeV6(ip)
-	} else {
-		return isSpecialPurposeV4(ip4)
 	}
+
+	return isSpecialPurposeV4(ip4)
 }
 
 // IsSpecialPurposeAddr is like [IsSpecialPurpose] but for [netip.Addr].  Since
-// the argument's type is different, it cannot be used as a [SubnetSetFunc].
+// the argument's type is different, it cannot be used as a [SubnetSetFunc].  It
+// returns false for invalid addresses, just like [IsSpecialPurpose] does.
 func IsSpecialPurposeAddr(ip netip.Addr) (ok bool) {
+	if !ip.IsValid() {
+		return false
+	}
+
 	if ip.Is4() {
 		return isSpecialPurposeV4(ip.AsSlice())
 	}

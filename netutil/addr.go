@@ -24,7 +24,7 @@ func CloneMAC(mac net.HardwareAddr) (clone net.HardwareAddr) {
 }
 
 // CloneURL returns a deep clone of u.  The User pointer of clone is the same,
-// since a *url.Userinfo is effectively an immutable value.
+// since a [*url.Userinfo] is effectively an immutable value.
 func CloneURL(u *url.URL) (clone *url.URL) {
 	if u == nil {
 		return nil
@@ -51,7 +51,7 @@ func IsValidHostOuterRune(r rune) (ok bool) {
 
 // JoinHostPort is a convenient wrapper for net.JoinHostPort with port of type
 // int.  As opposed to net.JoinHostPort it also trims the host from square
-// brackets if any.  This may be useful when passing url.URL.Host field
+// brackets if any.  This may be useful when passing [url.URL.Host] field
 // containing an IPv6 address.
 func JoinHostPort(host string, port int) (hostport string) {
 	return net.JoinHostPort(strings.Trim(host, "[]"), strconv.Itoa(port))
@@ -137,10 +137,14 @@ func IsImmediateSubdomain(domain, top string) (ok bool) {
 	return IsSubdomain(domain, top) && strings.Count(domain, ".") == strings.Count(top, ".")+1
 }
 
-// ValidateMAC returns an error if mac is not a valid EUI-48, EUI-64, or
-// 20-octet InfiniBand link-layer address.
+// ValidateMAC returns an error if mac is not a valid [EUI-48], [EUI-64], or
+// [20-octet InfiniBand] link-layer address.
 //
 // Any error returned will have the underlying type of [*AddrError].
+//
+// [EUI-48]: https://datatracker.ietf.org/doc/html/rfc7042#section-2.1.1
+// [EUI-64]: https://datatracker.ietf.org/doc/html/rfc7042#section-2.2.1
+// [20-octet InfiniBand]: https://datatracker.ietf.org/doc/html/rfc4391.html#section-6
 func ValidateMAC(mac net.HardwareAddr) (err error) {
 	defer makeAddrError(&err, mac.String(), AddrKindMAC)
 
