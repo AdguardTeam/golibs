@@ -307,25 +307,50 @@ func TestRequireTypeAssert(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Cleanup(func() { numHelper = 0 })
 
-		_ = testutil.RequireTypeAssert[string](tt, "foo")
-		_ = testutil.RequireTypeAssert[int](tt, 42)
-		_ = testutil.RequireTypeAssert[bool](tt, true)
-		_ = testutil.RequireTypeAssert[func()](tt, func() {})
+		assert.Equal(t, "foo", testutil.RequireTypeAssert[string](tt, "foo"))
+		assert.Equal(t, 42, testutil.RequireTypeAssert[int](tt, 42))
+		assert.Equal(t, true, testutil.RequireTypeAssert[bool](tt, true))
+		assert.Equal(t, struct{}{}, testutil.RequireTypeAssert[struct{}](tt, struct{}{}))
+		assert.Equal(t, []int{1, 2, 3}, testutil.RequireTypeAssert[[]int](tt, []int{1, 2, 3}))
 
-		assert.Greater(t, numHelper, 3)
+		assert.Greater(t, numHelper, 5)
 		assert.Zero(t, numErrorf)
 		assert.Zero(t, numFailNow)
 	})
 
-	t.Run("interfaces", func(t *testing.T) {
+	t.Run("func", func(t *testing.T) {
 		t.Cleanup(func() { numHelper = 0 })
 
-		_ = testutil.RequireTypeAssert[interface{}](tt, nil)
-		_ = testutil.RequireTypeAssert[interface{}](tt, t)
-		_ = testutil.RequireTypeAssert[testing.TB](tt, tt)
+		called := false
+		f := func() {
+			called = true
+		}
+
+		ff := testutil.RequireTypeAssert[func()](tt, f)
+		ff()
+
+		assert.True(t, called)
+	})
+
+	// TODO(e.burkov):  !! remove this??
+	t.Run("interfaces", func(t *testing.T) {
+		t.Cleanup(func() {
+			numHelper = 0
+			numErrorf = 0
+			numFailNow = 0
+		})
+
+		require.Panics(t, func() {
+			testutil.RequireTypeAssert[interface{}](tt, nil)
+		})
+
+		require.NotPanics(t, func() {
+			testutil.RequireTypeAssert[interface{}](tt, t)
+			testutil.RequireTypeAssert[testing.TB](tt, t)
+		})
 
 		assert.Greater(t, numHelper, 2)
-		assert.Zero(t, numErrorf)
-		assert.Zero(t, numFailNow)
+		assert.Greater(t, numErrorf, 1)
+		assert.Greater(t, numFailNow, 1)
 	})
 }

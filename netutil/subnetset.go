@@ -10,7 +10,8 @@ import (
 // SubnetSet contains the set of IP networks to match the IP address.
 type SubnetSet interface {
 	// Contains returns true if ip is contained by any of networks the set
-	// contains.  ip must be only accessed for reading.
+	// contains.  ip must be only accessed for reading.  It should return false
+	// for invalid addresses, just like [net.IPNet.Contains] does.
 	Contains(ip net.IP) (ok bool)
 }
 
@@ -66,7 +67,8 @@ func (f SubnetSetFunc) Contains(ip net.IP) (ok bool) { return f(ip) }
 //	fd00::/8
 //	fe80::/10
 //
-// It may also be used as a [SubnetSetFunc].
+// It returns false for invalid addresses as per the [SubnetSet] interface and
+// may also be used as a [SubnetSetFunc].
 //
 // [RFC 6303]: https://datatracker.ietf.org/doc/html/rfc6303
 func IsLocallyServed(ip net.IP) (ok bool) {
@@ -147,7 +149,7 @@ func isLocallyServedV4(ip net.IP) (ok bool) {
 }
 
 // IsSpecialPurpose checks if ip belongs to any network defined by IANA
-// Special-Purpose Address Registry:
+// Special-Purpose Address Registries ([IPv4], [IPv6]):
 //
 //	0.0.0.0/8          "This host on this network".
 //	10.0.0.0/8         Private-Use.
@@ -186,10 +188,11 @@ func isLocallyServedV4(ip net.IP) (ok bool) {
 //	fc00::/7          Unique-Local.
 //	fe80::/10         Linked-Scoped Unicast.
 //
-// See https://www.iana.org/assignments/iana-ipv4-special-registry and
-// https://www.iana.org/assignments/iana-ipv6-special-registry.
+// It returns false for invalid addresses as per the [SubnetSet] interface and
+// may also be used as a [SubnetSetFunc].
 //
-// It may also be used as a [SubnetSetFunc].
+// [IPv4]: https://www.iana.org/assignments/iana-ipv4-special-registry
+// [IPv6]: https://www.iana.org/assignments/iana-ipv6-special-registry
 func IsSpecialPurpose(ip net.IP) (ok bool) {
 	if ip == nil {
 		return false

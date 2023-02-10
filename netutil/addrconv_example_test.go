@@ -6,8 +6,6 @@ import (
 	"net"
 
 	"github.com/AdguardTeam/golibs/netutil"
-	"github.com/AdguardTeam/golibs/testutil"
-	"github.com/stretchr/testify/require"
 )
 
 func ExampleIPv4Localhost() {
@@ -64,10 +62,11 @@ func ExampleIPToAddr() {
 	addr, err = netutil.IPToAddr(ip, netutil.AddrFamilyIPv6)
 	fmt.Printf("%q, error: %v\n", addr, err)
 
-	pt := testutil.PanicT{}
-	require.Panics(pt, func() {
+	func() {
+		defer func() { fmt.Printf("panic: %v\n", recover()) }()
+
 		_, _ = netutil.IPToAddr(ip, 42)
-	})
+	}()
 
 	// Output:
 	// "1.2.3.4", error: <nil>
@@ -76,6 +75,7 @@ func ExampleIPToAddr() {
 	// "1234::5678", error: <nil>
 	// "invalid IP", error: nil ip
 	// "invalid IP", error: bad net.IP value <nil>
+	// panic: netutil.IPToAddr: bad address family 42
 }
 
 func ExampleIPToAddrNoMapped() {

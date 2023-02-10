@@ -216,6 +216,7 @@ func TestSubnetSet_optimized(t *testing.T) {
 
 			tc.wantSpecialPurpose(t, spPurpSet.Contains(tc.ip))
 		})
+
 		t.Run(tc.name+"_is_locally-served", func(t *testing.T) {
 			t.Parallel()
 
@@ -422,6 +423,7 @@ func TestSubnetSet_optimizedAddr(t *testing.T) {
 
 			tc.wantSpecialPurpose(t, netutil.IsSpecialPurposeAddr(tc.ip))
 		})
+
 		t.Run(tc.name+"_is_locally-served", func(t *testing.T) {
 			t.Parallel()
 
