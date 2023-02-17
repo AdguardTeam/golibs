@@ -153,14 +153,14 @@ func TestIPFromReversedAddr(t *testing.T) {
 		name: "bad_ipv6_space",
 		in:   ipv6RevSpace,
 		wantErrMsg: `bad arpa domain name "` + ipv6RevSpace + `": ` +
-			`bad domain name label " ": bad domain name label rune ' '`,
+			`bad arpa domain name rune ' '`,
 		wantErrAs: new(*netutil.RuneError),
 		want:      nil,
 	}, {
 		name: "not_a_reversed_ip",
 		in:   testIPv4.String(),
 		wantErrMsg: `bad arpa domain name "` + testIPv4.String() + `": ` +
-			`not a full reversed ip address`,
+			`bad top-level domain name label "4": all octets are numeric`,
 		wantErrAs: new(errors.Error),
 		want:      nil,
 	}}
@@ -435,7 +435,7 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 		want:      nil,
 		wantErrAs: new(*netutil.RuneError),
 		wantErrMsg: `bad arpa domain name "` + ipv6RevSpace + `": ` +
-			`bad domain name label " ": bad domain name label rune ' '`,
+			`bad arpa domain name rune ' '`,
 		in:   ipv6RevSpace,
 		name: "bad_ipv6_space",
 	}, {
@@ -449,7 +449,7 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 		want:      nil,
 		wantErrAs: new(errors.Error),
 		wantErrMsg: `bad arpa domain name "` + testIPv4.String() + `": ` +
-			`not a reversed ip network`,
+			`bad top-level domain name label "4": all octets are numeric`,
 		in:   testIPv4.String(),
 		name: "not_a_reversed_subnet",
 	}, {

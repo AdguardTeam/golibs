@@ -205,26 +205,47 @@ func TestValidateDomainName(t *testing.T) {
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
+		name:       "success_domain_name",
+		in:         "_non-ldh-domain_.tld",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
 		name:       "bad_idna",
 		in:         "xn---.com",
 		wantErrAs:  nil,
 		wantErrMsg: `bad domain name "xn---.com": idna: invalid label "-"`,
 	}, {
-		name:       "success_one",
-		in:         "e",
-		wantErrAs:  nil,
-		wantErrMsg: "",
+		name:      "bad_tld",
+		in:        "example.com-",
+		wantErrAs: nil,
+		wantErrMsg: `bad domain name "example.com-": ` +
+			`bad top-level domain name label "com-": ` +
+			`bad top-level domain name label rune '-'`,
+	}, {
+		name:      "tld_too_long",
+		in:        "example." + longLabel,
+		wantErrAs: nil,
+		wantErrMsg: `bad domain name "example.` + longLabel + `": ` +
+			`bad top-level domain name label "` + longLabel + `": ` +
+			`top-level domain name label is too long: got 64, max 63`,
+	}, {
+		name:      "numeric_tld",
+		in:        "example.123",
+		wantErrAs: new(*netutil.LabelError),
+		wantErrMsg: `bad domain name "example.123": ` +
+			`bad top-level domain name label "123": all octets are numeric`,
 	}, {
 		name:       "empty",
 		in:         "",
 		wantErrAs:  new(errors.Error),
 		wantErrMsg: `bad domain name "": address is empty`,
 	}, {
-		name:      "bad_symbol",
+		name:      "tld_only",
 		in:        "!!!",
 		wantErrAs: new(*netutil.RuneError),
 		wantErrMsg: `bad domain name "!!!": ` +
-			`bad domain name label "!!!": bad domain name label rune '!'`,
+			`bad top-level domain name label "!!!": ` +
+			`bad top-level domain name label rune '!'`,
 	}, {
 		name:      "bad_length",
 		in:        longDomainName,
@@ -244,24 +265,6 @@ func TestValidateDomainName(t *testing.T) {
 		wantErrAs: new(errors.Error),
 		wantErrMsg: `bad domain name "example..com": ` +
 			`bad domain name label "": label is empty`,
-	}, {
-		name:      "bad_label_first_symbol",
-		in:        "example.-aa.com",
-		wantErrAs: new(*netutil.RuneError),
-		wantErrMsg: `bad domain name "example.-aa.com": ` +
-			`bad domain name label "-aa": bad domain name label rune '-'`,
-	}, {
-		name:      "bad_label_last_symbol",
-		in:        "example-.aa.com",
-		wantErrAs: new(*netutil.RuneError),
-		wantErrMsg: `bad domain name "example-.aa.com": ` +
-			`bad domain name label "example-": bad domain name label rune '-'`,
-	}, {
-		name:      "bad_label_symbol",
-		in:        "example.a!!!.com",
-		wantErrAs: new(*netutil.RuneError),
-		wantErrMsg: `bad domain name "example.a!!!.com": ` +
-			`bad domain name label "a!!!": bad domain name label rune '!'`,
 	}}
 
 	for _, tc := range testCases {
@@ -270,6 +273,113 @@ func TestValidateDomainName(t *testing.T) {
 			t.Parallel()
 
 			err := netutil.ValidateDomainName(tc.in)
+			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
+
+			if tc.wantErrAs != nil {
+				require.Error(t, err)
+
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
+				assert.ErrorAs(t, err, tc.wantErrAs)
+			}
+		})
+	}
+}
+
+func TestValidateHostname(t *testing.T) {
+	t.Parallel()
+
+	longDomainName := strings.Repeat("a", 255)
+	longLabel := strings.Repeat("a", 64)
+	longLabelDomainName := longLabel + ".com"
+
+	testCases := []struct {
+		name       string
+		in         string
+		wantErrAs  any
+		wantErrMsg string
+	}{{
+		name:       "success",
+		in:         "example.com",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "success_idna",
+		in:         "пример.рф",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "bad_idna",
+		in:         "xn---.com",
+		wantErrAs:  nil,
+		wantErrMsg: `bad hostname "xn---.com": idna: invalid label "-"`,
+	}, {
+		name:       "success_one",
+		in:         "e",
+		wantErrAs:  nil,
+		wantErrMsg: "",
+	}, {
+		name:       "empty",
+		in:         "",
+		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad hostname "": address is empty`,
+	}, {
+		name:      "bad_symbol",
+		in:        "!!!",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad hostname "!!!": ` +
+			`bad top-level domain name label "!!!": ` +
+			`bad top-level domain name label rune '!'`,
+	}, {
+		name:      "bad_length",
+		in:        longDomainName,
+		wantErrAs: new(*netutil.LengthError),
+		wantErrMsg: `bad hostname "` + longDomainName + `": ` +
+			`hostname is too long: got 255, max 253`,
+	}, {
+		name:      "bad_label_length",
+		in:        longLabelDomainName,
+		wantErrAs: new(*netutil.LengthError),
+		wantErrMsg: `bad hostname "` + longLabelDomainName + `": ` +
+			`bad hostname label "` + longLabel + `": ` +
+			`hostname label is too long: got 64, max 63`,
+	}, {
+		name:      "bad_label_empty",
+		in:        "example..com",
+		wantErrAs: new(errors.Error),
+		wantErrMsg: `bad hostname "example..com": ` +
+			`bad hostname label "": label is empty`,
+	}, {
+		name:      "bad_label_first_symbol",
+		in:        "example.-aa.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad hostname "example.-aa.com": ` +
+			`bad hostname label "-aa": bad hostname label rune '-'`,
+	}, {
+		name:      "bad_label_last_symbol",
+		in:        "example-.aa.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad hostname "example-.aa.com": ` +
+			`bad hostname label "example-": bad hostname label rune '-'`,
+	}, {
+		name:      "bad_label_symbol",
+		in:        "example.a!!!.com",
+		wantErrAs: new(*netutil.RuneError),
+		wantErrMsg: `bad hostname "example.a!!!.com": ` +
+			`bad hostname label "a!!!": bad hostname label rune '!'`,
+	}, {
+		name:      "numeric_tld",
+		in:        "example.123",
+		wantErrAs: new(*netutil.LabelError),
+		wantErrMsg: `bad hostname "example.123": ` +
+			`bad top-level domain name label "123": all octets are numeric`,
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := netutil.ValidateHostname(tc.in)
 			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 
 			if tc.wantErrAs != nil {
@@ -312,7 +422,7 @@ func TestValidateSRVDomainName(t *testing.T) {
 			`idna: invalid label "-"`,
 	}, {
 		name:       "success_one",
-		in:         "_u",
+		in:         "_u.tld",
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
@@ -325,7 +435,8 @@ func TestValidateSRVDomainName(t *testing.T) {
 		in:        "_!",
 		wantErrAs: new(*netutil.RuneError),
 		wantErrMsg: `bad service domain name "_!": ` +
-			`bad service name label "_!": bad service name label rune '!'`,
+			`bad top-level domain name label "_!": ` +
+			`bad top-level domain name label rune '_'`,
 	}, {
 		name:      "bad_length",
 		in:        longDomainName,
@@ -344,7 +455,7 @@ func TestValidateSRVDomainName(t *testing.T) {
 		in:        "example..com",
 		wantErrAs: new(errors.Error),
 		wantErrMsg: `bad service domain name "example..com": ` +
-			`bad domain name label "": label is empty`,
+			`bad hostname label "": label is empty`,
 	}, {
 		name:      "bad_label_first_symbol",
 		in:        "example._-a.com",
@@ -369,16 +480,18 @@ func TestValidateSRVDomainName(t *testing.T) {
 		wantErrAs: new(*netutil.AddrError),
 		wantErrMsg: `bad service domain name "example._.com": ` +
 			`bad service name label "_": label is empty`,
+	}, {
+		name:      "bad_hostname_label",
+		in:        "-srv.com",
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad service domain name "-srv.com": ` +
+			`bad hostname label "-srv": bad hostname label rune '-'`,
 	}}
 
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-
-			if tc.name == "bad_label_empty" {
-				assert.True(t, true)
-			}
 
 			err := netutil.ValidateSRVDomainName(tc.in)
 			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
@@ -408,7 +521,7 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 		in:   "non-service.com",
 		name: "bad_rune",
 	}, {
-		wantErrAs:  new(*netutil.AddrError),
+		wantErrAs:  new(*netutil.LabelError),
 		wantErrMsg: `bad service name label "": label is empty`,
 		in:         "",
 		name:       "empty",
@@ -422,10 +535,8 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 			err := netutil.ValidateServiceNameLabel(tc.in)
 			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 
-			assert.ErrorAs(t, err, new(*netutil.AddrError))
-			if tc.wantErrAs != nil {
-				assert.ErrorAs(t, err, tc.wantErrAs)
-			}
+			assert.ErrorAs(t, err, new(*netutil.LabelError))
+			assert.ErrorAs(t, err, tc.wantErrAs)
 		})
 	}
 }
