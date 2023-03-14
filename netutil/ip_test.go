@@ -4,26 +4,11 @@ import (
 	"net"
 	"testing"
 
-	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestCloneIP(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, net.IP(nil), netutil.CloneIP(nil))
-	assert.Equal(t, net.IP{}, netutil.CloneIP(net.IP{}))
-
-	clone := netutil.CloneIP(testIPv4)
-	assert.Equal(t, testIPv4, clone)
-
-	require.Len(t, clone, len(testIPv4))
-
-	assert.NotSame(t, &testIPv4[0], &clone[0])
-}
 
 func TestCloneIPs(t *testing.T) {
 	t.Parallel()
@@ -337,13 +322,13 @@ func TestValidateIP(t *testing.T) {
 		in:         testIPv6,
 	}, {
 		name:       "error_nil",
-		wantErrMsg: `bad ip address "<nil>": address is empty`,
-		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad ip address "<nil>": ip address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
 		in:         nil,
 	}, {
 		name:       "error_empty",
-		wantErrMsg: `bad ip address "<nil>": address is empty`,
-		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad ip address "<nil>": ip address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
 		in:         net.IP{},
 	}, {
 		name: "error_bad",

@@ -6,27 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestCloneMAC(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, net.HardwareAddr(nil), netutil.CloneMAC(nil))
-	assert.Equal(t, net.HardwareAddr{}, netutil.CloneMAC(net.HardwareAddr{}))
-
-	mac := net.HardwareAddr{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC}
-	clone := netutil.CloneMAC(mac)
-	assert.Equal(t, mac, clone)
-
-	require.Len(t, clone, len(mac))
-
-	assert.NotSame(t, &mac[0], &clone[0])
-}
 
 func TestCloneURL(t *testing.T) {
 	t.Parallel()
@@ -71,13 +55,13 @@ func TestValidateMAC(t *testing.T) {
 		},
 	}, {
 		name:       "error_nil",
-		wantErrMsg: `bad mac address "": address is empty`,
-		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad mac address "": mac address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
 		in:         nil,
 	}, {
 		name:       "error_empty",
-		wantErrMsg: `bad mac address "": address is empty`,
-		wantErrAs:  new(errors.Error),
+		wantErrMsg: `bad mac address "": mac address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
 		in:         net.HardwareAddr{},
 	}, {
 		name: "error_bad",
@@ -237,8 +221,8 @@ func TestValidateDomainName(t *testing.T) {
 	}, {
 		name:       "empty",
 		in:         "",
-		wantErrAs:  new(errors.Error),
-		wantErrMsg: `bad domain name "": address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
+		wantErrMsg: `bad domain name "": domain name is empty`,
 	}, {
 		name:      "tld_only",
 		in:        "!!!",
@@ -262,9 +246,9 @@ func TestValidateDomainName(t *testing.T) {
 	}, {
 		name:      "bad_label_empty",
 		in:        "example..com",
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad domain name "example..com": ` +
-			`bad domain name label "": label is empty`,
+			`bad domain name label "": domain name label is empty`,
 	}}
 
 	for _, tc := range testCases {
@@ -320,8 +304,8 @@ func TestValidateHostname(t *testing.T) {
 	}, {
 		name:       "empty",
 		in:         "",
-		wantErrAs:  new(errors.Error),
-		wantErrMsg: `bad hostname "": address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
+		wantErrMsg: `bad hostname "": hostname is empty`,
 	}, {
 		name:      "bad_symbol",
 		in:        "!!!",
@@ -345,9 +329,9 @@ func TestValidateHostname(t *testing.T) {
 	}, {
 		name:      "bad_label_empty",
 		in:        "example..com",
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad hostname "example..com": ` +
-			`bad hostname label "": label is empty`,
+			`bad hostname label "": hostname label is empty`,
 	}, {
 		name:      "bad_label_first_symbol",
 		in:        "example.-aa.com",
@@ -372,6 +356,27 @@ func TestValidateHostname(t *testing.T) {
 		wantErrAs: new(*netutil.LabelError),
 		wantErrMsg: `bad hostname "example.123": ` +
 			`bad top-level domain name label "123": all octets are numeric`,
+	}, {
+		name:      "bad_tld",
+		in:        "example._bad",
+		wantErrAs: new(*netutil.LabelError),
+		wantErrMsg: `bad hostname "example._bad": ` +
+			`bad top-level domain name label "_bad": ` +
+			`bad top-level domain name label rune '_'`,
+	}, {
+		name:      "too_long_tld",
+		in:        "example." + longLabel,
+		wantErrAs: new(*netutil.LabelError),
+		wantErrMsg: `bad hostname "example.` + longLabel + `": ` +
+			`bad top-level domain name label "` + longLabel + `": ` +
+			`top-level domain name label is too long: got 64, max 63`,
+	}, {
+		name:      "empty_tld",
+		in:        "example.",
+		wantErrAs: new(*netutil.LabelError),
+		wantErrMsg: `bad hostname "example.": ` +
+			`bad top-level domain name label "": ` +
+			`top-level domain name label is empty`,
 	}}
 
 	for _, tc := range testCases {
@@ -428,8 +433,8 @@ func TestValidateSRVDomainName(t *testing.T) {
 	}, {
 		name:       "empty",
 		in:         "",
-		wantErrAs:  new(errors.Error),
-		wantErrMsg: `bad service domain name "": address is empty`,
+		wantErrAs:  new(*netutil.LengthError),
+		wantErrMsg: `bad service domain name "": service domain name is empty`,
 	}, {
 		name:      "bad_symbol",
 		in:        "_!",
@@ -453,9 +458,9 @@ func TestValidateSRVDomainName(t *testing.T) {
 	}, {
 		name:      "bad_label_empty",
 		in:        "example..com",
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad service domain name "example..com": ` +
-			`bad hostname label "": label is empty`,
+			`bad hostname label "": hostname label is empty`,
 	}, {
 		name:      "bad_label_first_symbol",
 		in:        "example._-a.com",
@@ -477,9 +482,9 @@ func TestValidateSRVDomainName(t *testing.T) {
 	}, {
 		name:      "bad_service_label_empty",
 		in:        "example._.com",
-		wantErrAs: new(*netutil.AddrError),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad service domain name "example._.com": ` +
-			`bad service name label "_": label is empty`,
+			`bad service name label "_": service name label is empty`,
 	}, {
 		name:      "bad_hostname_label",
 		in:        "-srv.com",
@@ -522,7 +527,7 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 		name: "bad_rune",
 	}, {
 		wantErrAs:  new(*netutil.LabelError),
-		wantErrMsg: `bad service name label "": label is empty`,
+		wantErrMsg: `bad service name label "": service name label is empty`,
 		in:         "",
 		name:       "empty",
 	}}

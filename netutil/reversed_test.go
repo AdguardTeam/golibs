@@ -79,8 +79,8 @@ func TestIPFromReversedAddr(t *testing.T) {
 		name: "bad_ipv4_missing",
 		in:   ipv4Missing,
 		wantErrMsg: `bad arpa domain name "` + ipv4Missing + `": ` +
-			`bad domain name label "": label is empty`,
-		wantErrAs: new(errors.Error),
+			`bad domain name label "": domain name label is empty`,
+		wantErrAs: new(*netutil.LengthError),
 		want:      nil,
 	}, {
 		name: "bad_ipv4_char",
@@ -118,8 +118,8 @@ func TestIPFromReversedAddr(t *testing.T) {
 		name: "bad_ipv6_missing",
 		in:   ipv6RevMissing,
 		wantErrMsg: `bad arpa domain name "` + ipv6RevMissing + `": ` +
-			`bad domain name label "": label is empty`,
-		wantErrAs: new(errors.Error),
+			`bad domain name label "": domain name label is empty`,
+		wantErrAs: new(*netutil.LengthError),
 		want:      nil,
 	}, {
 		name: "bad_ipv6_char_lo",
@@ -139,8 +139,8 @@ func TestIPFromReversedAddr(t *testing.T) {
 		name: "bad_ipv6_dots",
 		in:   ipv6RevDots,
 		wantErrMsg: `bad arpa domain name "` + ipv6RevDots + `": ` +
-			`bad domain name label "": label is empty`,
-		wantErrAs: new(errors.Error),
+			`bad domain name label "": domain name label is empty`,
+		wantErrAs: new(*netutil.LengthError),
 		want:      nil,
 	}, {
 		name: "bad_ipv6_len",
@@ -312,9 +312,9 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 		name:       "good_ipv4_subnet",
 	}, {
 		want:      nil,
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad arpa domain name "` + ipv4Missing + `": ` +
-			`bad domain name label "": label is empty`,
+			`bad domain name label "": domain name label is empty`,
 		in:   ipv4Missing,
 		name: "bad_ipv4_missing",
 	}, {
@@ -391,9 +391,9 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 		name: "bad_ipv6_many",
 	}, {
 		want:      nil,
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad arpa domain name "` + ipv6RevMissing + `": ` +
-			`bad domain name label "": label is empty`,
+			`bad domain name label "": domain name label is empty`,
 		in:   ipv6RevMissing,
 		name: "bad_ipv6_missing",
 	}, {
@@ -419,9 +419,9 @@ func TestSubnetFromReversedAddr(t *testing.T) {
 		name: "bad_ipv6_char",
 	}, {
 		want:      nil,
-		wantErrAs: new(errors.Error),
+		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad arpa domain name "` + ipv6RevDots + `": ` +
-			`bad domain name label "": label is empty`,
+			`bad domain name label "": domain name label is empty`,
 		in:   ipv6RevDots,
 		name: "bad_ipv6_dots",
 	}, {
