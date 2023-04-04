@@ -49,6 +49,23 @@ func ExampleSet() {
 	// ["a"] has length 1
 }
 
+func ExampleSet_Clone() {
+	var set *stringutil.Set
+	fmt.Printf("nil:   %#v\n", set.Clone())
+
+	set = stringutil.NewSet("a")
+	clone := set.Clone()
+	clone.Add("b")
+
+	fmt.Printf("orig:  %t %t\n", set.Has("a"), set.Has("b"))
+	fmt.Printf("clone: %t %t\n", clone.Has("a"), clone.Has("b"))
+
+	// Output:
+	// nil:   (*stringutil.Set)(nil)
+	// orig:  true false
+	// clone: true true
+}
+
 func ExampleSet_Equal() {
 	set := stringutil.NewSet("a")
 
