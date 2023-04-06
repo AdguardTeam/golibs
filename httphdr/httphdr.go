@@ -3,11 +3,20 @@
 // Please keep the values in their canonical form.
 package httphdr
 
+// Common standard headers for authentication.
+//
+// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication.
+const (
+	Authorization = "Authorization"
+)
+
 // Common standard headers for caching.
 //
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#caching.
 const (
 	CacheControl = "Cache-Control"
+	Expires      = "Expires"
+	Pragma       = "Pragma"
 )
 
 // Common standard headers for cookie management.
@@ -69,6 +78,20 @@ const (
 	ContentEncoding = "Content-Encoding"
 	ContentLength   = "Content-Length"
 	ContentType     = "Content-Type"
+)
+
+// Common standard headers for proxies.
+//
+// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#proxies.
+const (
+	Forwarded = "Forwarded"
+)
+
+// Common standard headers for redirects.
+//
+// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#redirects
+const (
+	Location = "Location"
 )
 
 // Common standard headers for request contexts.
