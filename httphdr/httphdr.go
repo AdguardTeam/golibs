@@ -19,6 +19,13 @@ const (
 	Pragma       = "Pragma"
 )
 
+// Common standard headers for client hints.
+//
+// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#client_hints.
+const (
+	SecGPC = "Sec-Gpc"
+)
+
 // Common standard headers for cookie management.
 //
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#cookies.
@@ -134,6 +141,11 @@ const (
 	AltSvc     = "Alt-Svc"
 	Date       = "Date"
 	RetryAfter = "Retry-After"
+)
+
+// Common deprecated headers.
+const (
+	DNT = "Dnt"
 )
 
 // Common extension headers.
