@@ -1,19 +1,18 @@
 ---
 'version': 2
 'plan':
-    'project-key': 'AGH'
-    'key': 'GOLIBSSPECS'
+    'project-key': 'GO'
+    'key': 'LIBS'
     'name': 'golibs'
 'variables':
-    'dockerGo': 'adguard/golang-ubuntu:5.2'
+    'dockerGo': 'adguard/golang-ubuntu:6.7'
 
 'stages':
--
-    'Test':
+  - 'Test':
         'manual': false
         'final': false
         'jobs':
-        - 'Test'
+          - 'Test'
 
 'Test':
     'docker':
@@ -23,21 +22,19 @@
             '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
     'key': 'TEST'
     'tasks':
-    -
-        'checkout':
+      - 'checkout':
             'force-clean-build': true
-    -
-        'script':
+      - 'script':
             'interpreter': 'SHELL'
             'scripts':
-            - |-
-              set -e -f -u -x
+              - |
+                set -e -f -u -x
 
-              make VERBOSE=1 test
+                make VERBOSE=1 test
     'final-tasks':
-    - 'clean'
+      - 'clean'
     'requirements':
-    - 'adg-docker': true
+      - 'adg-docker': true
 
 'branches':
     'create': 'for-pull-request'
@@ -47,12 +44,10 @@
     'link-to-jira': true
 
 'notifications':
--
-    'events':
-    - 'plan-status-changed'
+  - 'events':
+      - 'plan-status-changed'
     'recipients':
-    -
-        'webhook':
+      - 'webhook':
             'name': 'Build webhook'
             'url': 'http://prod.jirahub.service.eu.consul/v1/webhook/bamboo'
 
