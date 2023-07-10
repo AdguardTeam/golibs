@@ -4,6 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"unsafe"
+
+	"golang.org/x/exp/slices"
 )
 
 type onDeleteType func(key []byte, val []byte)
@@ -57,10 +59,11 @@ func newCache(conf Config) *cache {
 
 func (c *cache) Clear() {
 	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	c.items = make(map[string]*item)
 	listInit(&c.usage)
 	c.size = 0
-	c.lock.Unlock()
 	atomic.StoreInt32(&c.hit, 0)
 	atomic.StoreInt32(&c.miss, 0)
 }
@@ -77,6 +80,7 @@ func (c *cache) Set(key []byte, val []byte) bool {
 	it.value = val
 
 	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	if !c.conf.EnableLRU &&
 		(c.size+addSize > c.conf.MaxSize || uint(len(c.items)) == c.conf.MaxCount) {
@@ -92,9 +96,7 @@ func (c *cache) Set(key []byte, val []byte) bool {
 		delete(c.items, string(it.key))
 
 		if c.conf.OnDelete != nil {
-			c.lock.Unlock()
-			c.conf.OnDelete(it.key, it.value)
-			c.lock.Lock()
+			go c.conf.OnDelete(slices.Clone(it.key), slices.Clone(it.value))
 		}
 	}
 
@@ -109,7 +111,6 @@ func (c *cache) Set(key []byte, val []byte) bool {
 	}
 	c.items[string(key)] = &it
 	c.size += addSize
-	c.lock.Unlock()
 
 	return exists
 }
@@ -117,32 +118,38 @@ func (c *cache) Set(key []byte, val []byte) bool {
 // Get value
 func (c *cache) Get(key []byte) []byte {
 	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	val, ok := c.items[string(key)]
 	if ok && c.conf.EnableLRU {
 		listUnlink(&val.used)
 		listAppend(&val.used, listLast(&c.usage))
 	}
-	c.lock.Unlock()
+
 	if !ok {
 		atomic.AddInt32(&c.miss, 1)
+
 		return nil
 	}
+
 	atomic.AddInt32(&c.hit, 1)
+
 	return val.value
 }
 
 // Del - delete element
 func (c *cache) Del(key []byte) {
 	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	it, ok := c.items[string(key)]
 	if !ok {
-		c.lock.Unlock()
 		return
 	}
+
 	listUnlink(&it.used)
 	c.size -= uint(len(it.key) + len(it.value))
 	delete(c.items, string(key))
-	c.lock.Unlock()
 }
 
 // GetStats - get counters

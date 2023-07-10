@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,11 +15,12 @@ func TestCache(t *testing.T) {
 	t.Parallel()
 
 	conf := Config{}
-	var rmKey, rmVal []byte
+	var rmKey, rmVal atomic.Value
 	conf.OnDelete = func(key []byte, val []byte) {
-		rmKey = key
-		rmVal = val
+		rmKey.Store(key)
+		rmVal.Store(val)
 	}
+
 	conf.MaxSize = 12
 	conf.MaxElementSize = 12
 	conf.MaxCount = 3
@@ -54,19 +57,28 @@ func TestCache(t *testing.T) {
 	assert.True(t, !c.Set([]byte("k1"), []byte("v1")))
 	assert.True(t, !c.Set([]byte("k2"), []byte("v2")))
 	assert.True(t, !c.Set([]byte("k3"), []byte("v3")))
-	rmKey = nil
-	rmVal = nil
+
+	rmKey.Store([]byte(nil))
+	rmVal.Store([]byte(nil))
 	assert.True(t, !c.Set([]byte("k4"), []byte("v4"))) // "k1" is removed
-	assert.True(t, bytes.Equal(rmKey, []byte("k1")))
-	assert.True(t, bytes.Equal(rmVal, []byte("v1")))
+
+	assert.Eventually(t, func() (ok bool) {
+		return bytes.Equal(rmKey.Load().([]byte), []byte("k1")) &&
+			bytes.Equal(rmVal.Load().([]byte), []byte("v1"))
+	}, 1*time.Second, 100*time.Millisecond)
+
 	c.Clear()
 
 	// MaxSize limit
 	assert.True(t, !c.Set([]byte("k1"), []byte("v1")))
-	rmKey = nil
-	rmVal = nil
+
+	rmKey.Store([]byte(nil))
+	rmVal.Store([]byte(nil))
 	assert.True(t, !c.Set([]byte("k2"), []byte("1234567"))) // "k1" is removed
-	assert.True(t, bytes.Equal(rmKey, []byte("k1")))
+	assert.Eventually(t, func() (ok bool) {
+		return bytes.Equal(rmKey.Load().([]byte), []byte("k1"))
+	}, 1*time.Second, 100*time.Millisecond)
+
 	c.Clear()
 
 	// MaxElementSize limit

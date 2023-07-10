@@ -14,7 +14,11 @@ type Config struct {
 	// When cache is full, the least recently used element is deleted automatically
 	EnableLRU bool
 
-	// User callback function which is called after an element has been deleted automatically
+	// User callback function which is called after an element has been deleted
+	// automatically.
+	//
+	// Deprecated: This parameter is deprecated and will be removed in a future
+	// release.
 	OnDelete onDeleteType
 }
 
