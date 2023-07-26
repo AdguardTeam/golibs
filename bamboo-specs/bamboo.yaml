@@ -30,7 +30,7 @@
               - |
                 set -e -f -u -x
 
-                make VERBOSE=1 test
+                make VERBOSE=1 go-deps go-test
     'final-tasks':
       - 'clean'
     'requirements':

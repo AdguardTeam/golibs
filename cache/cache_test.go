@@ -14,7 +14,7 @@ func TestCache(t *testing.T) {
 
 	conf := Config{}
 	var rmKey, rmVal []byte
-	conf.OnDelete = func(key []byte, val []byte) {
+	conf.OnDelete = func(key, val []byte) {
 		rmKey = key
 		rmVal = val
 	}

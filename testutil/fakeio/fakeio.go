@@ -1,4 +1,4 @@
-// Package fakenet contains fake implementations of interfaces from package i
+// Package fakeio contains fake implementations of interfaces from package io
 // from the standard library.
 //
 // It is recommended to fill all methods that shouldn't be called with:
