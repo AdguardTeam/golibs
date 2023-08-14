@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("1.2.3.4 abc.host alias.host\n1.2.3.4 another.alias\n1.1.1.1 good.host # with comment\n# Just a comment\n    1.2.1.2 tabulated.host alias.tabulated.host\n5.5.5.5 host.with.spaces     \n")

@@ -203,6 +203,7 @@ run_linter gocognit --over 15 ./netutil/
 run_linter gocognit --over 11 ./stringutil/
 run_linter gocognit --over 10\
 	./errors/\
+	./hostsfile/\
 	./httphdr/\
 	./log/\
 	./mapsutil/\
@@ -229,6 +230,7 @@ run_linter nilness ./...
 # TODO(e.burkov):  Add cache package.
 run_linter fieldalignment\
 	./errors/\
+	./hostsfile/\
 	./httphdr/\
 	./log/\
 	./mapsutil/\
@@ -244,6 +246,7 @@ run_linter -e shadow --strict ./...
 # TODO(e.burkov):  Add cache package.
 run_linter gosec --quiet\
 	./errors/\
+	./hostsfile/\
 	./httphdr/\
 	./log/\
 	./mapsutil/\

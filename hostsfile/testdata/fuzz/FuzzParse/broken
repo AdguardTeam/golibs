@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("256.0.0.1 host1 host2 # bad ip\n0.0.0.0 _tldinvalid\n# comment\n   # comment tabulated\n\n# comment about the above empty line\n1.2.3.4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaa # too long label\n:::1 bad.addr\n")

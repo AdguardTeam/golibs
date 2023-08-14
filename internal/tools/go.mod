@@ -1,6 +1,6 @@
 module github.com/AdguardTeam/golibs/internal/tools
 
-go 1.19
+go 1.20
 
 require (
 	github.com/fzipp/gocyclo v0.6.0
@@ -12,7 +12,7 @@ require (
 	github.com/uudashr/gocognit v1.0.7
 	golang.org/x/tools v0.11.0
 	golang.org/x/vuln v1.0.0
-	honnef.co/go/tools v0.4.3
+	honnef.co/go/tools v0.5.0-0.dev.0.20230709092525-bc759185c5ee
 	mvdan.cc/gofumpt v0.5.0
 	mvdan.cc/unparam v0.0.0-20230610194454-9ea02bef9868
 )
