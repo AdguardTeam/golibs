@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const exampleDomain = "example.com"
+
 func TestCloneURL(t *testing.T) {
 	t.Parallel()
 
@@ -129,19 +131,19 @@ func TestSplitHostPort(t *testing.T) {
 		wantPort:   12345,
 	}, {
 		name:       "success_host",
-		in:         "example.com:12345",
+		in:         exampleDomain + ":12345",
 		wantErrMsg: "",
-		wantHost:   "example.com",
+		wantHost:   exampleDomain,
 		wantPort:   12345,
 	}, {
 		name:       "bad_port",
-		in:         "example.com:!!!",
+		in:         exampleDomain + ":!!!",
 		wantErrMsg: "parsing port: strconv.ParseUint: parsing \"!!!\": invalid syntax",
 		wantHost:   "",
 		wantPort:   0,
 	}, {
 		name:       "port_too_big",
-		in:         "example.com:99999",
+		in:         exampleDomain + ":99999",
 		wantErrMsg: "parsing port: strconv.ParseUint: parsing \"99999\": value out of range",
 		wantHost:   "",
 		wantPort:   0,
@@ -180,7 +182,7 @@ func TestValidateDomainName(t *testing.T) {
 		wantErrMsg string
 	}{{
 		name:       "success",
-		in:         "example.com",
+		in:         exampleDomain,
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
@@ -200,9 +202,9 @@ func TestValidateDomainName(t *testing.T) {
 		wantErrMsg: `bad domain name "xn---.com": idna: invalid label "-"`,
 	}, {
 		name:      "bad_tld",
-		in:        "example.com-",
+		in:        exampleDomain + "-",
 		wantErrAs: nil,
-		wantErrMsg: `bad domain name "example.com-": ` +
+		wantErrMsg: `bad domain name "` + exampleDomain + `-": ` +
 			`bad top-level domain name label "com-": ` +
 			`bad top-level domain name label rune '-'`,
 	}, {
@@ -283,7 +285,7 @@ func TestValidateHostname(t *testing.T) {
 		wantErrMsg string
 	}{{
 		name:       "success",
-		in:         "example.com",
+		in:         exampleDomain,
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
@@ -411,7 +413,7 @@ func TestValidateSRVDomainName(t *testing.T) {
 		wantErrMsg string
 	}{{
 		name:       "success",
-		in:         "_http.example.com",
+		in:         "_http." + exampleDomain,
 		wantErrAs:  nil,
 		wantErrMsg: "",
 	}, {
@@ -544,4 +546,121 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 			assert.ErrorAs(t, err, tc.wantErrAs)
 		})
 	}
+}
+
+// Common long test cases for benchmarking.
+var (
+	testLongValidLabel = strings.Repeat("a", 63)
+	testLongValidName  = strings.Repeat(testLongValidLabel+".", 3) + "com"
+)
+
+func BenchmarkValidateDomainName(b *testing.B) {
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "common",
+		in:   exampleDomain,
+	}, {
+		name: "long_names",
+		in:   testLongValidLabel,
+	}, {
+		name: "long_labels",
+		in:   testLongValidName,
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				errSink = netutil.ValidateDomainName(bc.in)
+			}
+
+			require.NoError(b, errSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkValidateDomainName/common-12		10058613	109.4 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateDomainName/long_names-12	4830151		246.2 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateDomainName/long_labels-12	4775589		246.7 ns/op		0 B/op	0 allocs/op
+}
+
+func BenchmarkValidateSRVDomainName(b *testing.B) {
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "common",
+		in:   exampleDomain,
+	}, {
+		name: "long_names",
+		in:   testLongValidLabel,
+	}, {
+		name: "long_labels",
+		in:   "_" + strings.Repeat("a", 15) + strings.Repeat("."+testLongValidLabel, 3),
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				errSink = netutil.ValidateSRVDomainName(bc.in)
+			}
+
+			require.NoError(b, errSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkValidateSRVDomainName/common-12			8900175		132.9 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateSRVDomainName/long_names-12		5012017		236.0 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateSRVDomainName/long_labels-12	1534950		757.6 ns/op		0 B/op	0 allocs/op
+}
+
+func BenchmarkValidateHostname(b *testing.B) {
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "common",
+		in:   exampleDomain,
+	}, {
+		name: "long_names",
+		in:   testLongValidLabel,
+	}, {
+		name: "long_labels",
+		in:   testLongValidName,
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				errSink = netutil.ValidateHostname(bc.in)
+			}
+
+			require.NoError(b, errSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkValidateHostname/common-12			9037418		134.2 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateHostname/long_names-12		5069252		239.9 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateHostname/long_labels-12		1581854		765.9 ns/op		0 B/op	0 allocs/op
 }

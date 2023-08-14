@@ -227,17 +227,16 @@ func ValidateDomainName(name string) (err error) {
 		}
 	}
 
-	labels := strings.Split(name, ".")
-	tldIdx := len(labels) - 1
-	for _, l := range labels[:tldIdx] {
-		err = ValidateDomainNameLabel(l)
+	label, tail, found := strings.Cut(name, ".")
+	for ; found; label, tail, found = strings.Cut(tail, ".") {
+		err = ValidateDomainNameLabel(label)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Use stricter rules for the TLD.
-	return ValidateTLDLabel(labels[tldIdx])
+	return ValidateTLDLabel(label)
 }
 
 // ValidateDomainNameLabel returns an error if label is not a valid label of a
@@ -345,16 +344,15 @@ func ValidateHostname(name string) (err error) {
 		}
 	}
 
-	labels := strings.Split(name, ".")
-	tldIdx := len(labels) - 1
-	for _, l := range labels[:tldIdx] {
-		err = ValidateHostnameLabel(l)
+	label, tail, found := strings.Cut(name, ".")
+	for ; found; label, tail, found = strings.Cut(tail, ".") {
+		err = ValidateHostnameLabel(label)
 		if err != nil {
 			return err
 		}
 	}
 
-	return ValidateTLDLabel(labels[tldIdx])
+	return ValidateTLDLabel(label)
 }
 
 // MaxServiceLabelLen is the maximum allowed length of a service name label
@@ -433,18 +431,17 @@ func ValidateSRVDomainName(name string) (err error) {
 		}
 	}
 
-	labels := strings.Split(name, ".")
-	tldIdx := len(labels) - 1
-	for _, l := range labels[:tldIdx] {
-		if strings.HasPrefix(l, "_") {
-			err = ValidateServiceNameLabel(l)
+	label, tail, found := strings.Cut(name, ".")
+	for ; found; label, tail, found = strings.Cut(tail, ".") {
+		if strings.HasPrefix(label, "_") {
+			err = ValidateServiceNameLabel(label)
 		} else {
-			err = ValidateHostnameLabel(l)
+			err = ValidateHostnameLabel(label)
 		}
 		if err != nil {
 			return err
 		}
 	}
 
-	return ValidateTLDLabel(labels[tldIdx])
+	return ValidateTLDLabel(label)
 }
