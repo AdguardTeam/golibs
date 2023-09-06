@@ -35,4 +35,4 @@ func (e *LineError) Error() (msg string) {
 var _ errors.Wrapper = (*LineError)(nil)
 
 // Unwrap implements the [errors.Wrapper] interface for *LineErr.
-func (e *LineError) Unwrap() (unwraped error) { return e.err }
+func (e *LineError) Unwrap() (unwrapped error) { return e.err }

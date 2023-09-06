@@ -11,7 +11,7 @@ import (
 // a port, like "example.com:12345", "1.2.3.4:56789", or "[1234::cdef]:12345".
 type HostPort struct {
 	Host string
-	Port int
+	Port uint16
 }
 
 // ParseHostPort parses a HostPort from addr.  Any error returned will have the
@@ -20,7 +20,7 @@ func ParseHostPort(addr string) (hp *HostPort, err error) {
 	defer makeAddrError(&err, addr, AddrKindHostPort)
 
 	var host string
-	var port int
+	var port uint16
 	host, port, err = SplitHostPort(addr)
 	if err != nil {
 		return nil, err

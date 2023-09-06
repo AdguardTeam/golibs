@@ -102,7 +102,7 @@ blocklist_imports() {
 		-n\
 		-- '*.go'\
 		':!errors/errors.go'\
-		':!errors/errors_go1.20.go'\
+		':!errors/errors_go1.21.go'\
 		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
 		|| exit 0
 
@@ -162,7 +162,7 @@ underscores() {
 			-e '_test.go'\
 			-e '_unix.go'\
 			-e '_windows.go'\
-			-e '_go1.20.go'\
+			-e '_go1.21.go'\
 			-v\
 			| sed -e 's/./\t\0/'
 	)"
@@ -197,23 +197,7 @@ run_linter govulncheck ./...
 
 run_linter gocyclo --over 10 .
 
-# TODO(e.burkov):  Decrease cognitive complexity down to 10 for all packages.
-run_linter gocognit --over 16 ./cache/
-run_linter gocognit --over 15 ./netutil/
-run_linter gocognit --over 11 ./stringutil/
-run_linter gocognit --over 10\
-	./errors/\
-	./hostsfile/\
-	./httphdr/\
-	./log/\
-	./mapsutil/\
-	./mathutil/\
-	./pprofutil/\
-	./testutil/\
-	./testutil/fakefs/\
-	./testutil/fakeio/\
-	./testutil/fakenet/\
-	./timeutil/
+run_linter gocognit --over 10 .
 
 run_linter ineffassign ./...
 

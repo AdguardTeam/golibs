@@ -32,12 +32,12 @@ func CloneIPs(ips []net.IP) (clone []net.IP) {
 
 // IPAndPortFromAddr returns the IP address and the port from addr.  If addr is
 // neither a [*net.TCPAddr] nor a [*net.UDPAddr], it returns nil and 0.
-func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port int) {
+func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port uint16) {
 	switch addr := addr.(type) {
 	case *net.TCPAddr:
-		return addr.IP, addr.Port
+		return addr.IP, uint16(addr.Port)
 	case *net.UDPAddr:
-		return addr.IP, addr.Port
+		return addr.IP, uint16(addr.Port)
 	}
 
 	return nil, 0

@@ -26,7 +26,7 @@ func ExampleSplitHostPort() {
 	// Output:
 	//
 	// string(example.com)
-	// int(12345)
+	// uint16(12345)
 }
 
 func ExampleSplitHost() {

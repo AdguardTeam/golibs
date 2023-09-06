@@ -83,7 +83,7 @@ func TestIPAndPortFromAddr(t *testing.T) {
 		name     string
 		in       net.Addr
 		wantIP   net.IP
-		wantPort int
+		wantPort uint16
 	}{{
 		name:     "nil",
 		in:       nil,

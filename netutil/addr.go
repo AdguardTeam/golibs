@@ -36,22 +36,28 @@ func IsValidHostInnerRune(r rune) (ok bool) {
 // IsValidHostOuterRune returns true if r is a valid initial or final rune for
 // a hostname label.
 func IsValidHostOuterRune(r rune) (ok bool) {
-	return (r >= 'a' && r <= 'z') ||
-		(r >= 'A' && r <= 'Z') ||
-		(r >= '0' && r <= '9')
+	switch {
+	case
+		r >= 'a' && r <= 'z',
+		r >= 'A' && r <= 'Z',
+		r >= '0' && r <= '9':
+		return true
+	default:
+		return false
+	}
 }
 
 // JoinHostPort is a convenient wrapper for net.JoinHostPort with port of type
-// int.  As opposed to net.JoinHostPort it also trims the host from square
+// uint16.  As opposed to net.JoinHostPort it also trims the host from square
 // brackets if any.  This may be useful when passing url.URL.Host field
 // containing an IPv6 address.
-func JoinHostPort(host string, port int) (hostport string) {
-	return net.JoinHostPort(strings.Trim(host, "[]"), strconv.Itoa(port))
+func JoinHostPort(host string, port uint16) (hostport string) {
+	return net.JoinHostPort(strings.Trim(host, "[]"), strconv.FormatUint(uint64(port), 10))
 }
 
 // SplitHostPort is a convenient wrapper for [net.SplitHostPort] with port of
-// type int.
-func SplitHostPort(hostport string) (host string, port int, err error) {
+// type uint16.
+func SplitHostPort(hostport string) (host string, port uint16, err error) {
 	var portStr string
 	host, portStr, err = net.SplitHostPort(hostport)
 	if err != nil {
@@ -64,7 +70,7 @@ func SplitHostPort(hostport string) (host string, port int, err error) {
 		return "", 0, fmt.Errorf("parsing port: %w", err)
 	}
 
-	return host, int(portUint), nil
+	return host, uint16(portUint), nil
 }
 
 // SplitHost is a wrapper for [net.SplitHostPort] for cases when the hostport

@@ -110,7 +110,7 @@ func TestSplitHostPort(t *testing.T) {
 		in         string
 		wantErrMsg string
 		wantHost   string
-		wantPort   int
+		wantPort   uint16
 	}{{
 		name:       "success_ipv4",
 		in:         "1.2.3.4:12345",

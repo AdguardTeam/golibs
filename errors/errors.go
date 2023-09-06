@@ -24,6 +24,22 @@ type Wrapper interface {
 	Unwrap() error
 }
 
+// WrapperSlice is a copy of the hidden wrapper interface added to the Go standard
+// library in Go 1.20.  It is added here for tests, linting, etc.
+type WrapperSlice interface {
+	Unwrap() []error
+}
+
+// Join returns an error that wraps the given errors.  Any nil error values are
+// discarded.  Join returns nil if errs contains no non-nil values.  The error
+// formats as the concatenation of the strings obtained by calling the Error
+// method of each element of errs, with a newline between each string.
+//
+// It calls [errors.Join] from the Go standard library.
+func Join(errs ...error) error {
+	return stderrors.Join(errs...)
+}
+
 // As finds the first error in err's chain that matches target, and if so, sets
 // target to that error value and returns true.  Otherwise, it returns false.
 //

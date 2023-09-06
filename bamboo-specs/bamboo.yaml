@@ -5,7 +5,7 @@
     'key': 'LIBS'
     'name': 'golibs'
 'variables':
-    'dockerGo': 'adguard/golang-ubuntu:6.7'
+    'dockerGo': 'adguard/golang-ubuntu:7.0'
 
 'stages':
   - 'Test':

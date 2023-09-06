@@ -112,10 +112,10 @@ func ExampleHostPort_UnmarshalText() {
 
 	// Output:
 	//
-	// netutil.HostPort{Host:"example.com", Port:12345}
-	// netutil.HostPort{Host:"example.org", Port:23456}
-	// &netutil.HostPort{Host:"example.com", Port:12345}
-	// &netutil.HostPort{Host:"example.org", Port:23456}
+	// netutil.HostPort{Host:"example.com", Port:0x3039}
+	// netutil.HostPort{Host:"example.org", Port:0x5ba0}
+	// &netutil.HostPort{Host:"example.com", Port:0x3039}
+	// &netutil.HostPort{Host:"example.org", Port:0x5ba0}
 	//
 	// got the expected error: true
 }
