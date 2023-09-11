@@ -7,12 +7,12 @@ import (
 	"github.com/AdguardTeam/golibs/netutil"
 )
 
-// UmarshalTextEachSunblice is only exists in purposes of benchmarking.
+// UmarshalTextEachSublice is only exists in purposes of benchmarking.
 // Currently it demonstrates that premature conversion to string shows better
 // performance than conversion to string of every subslice.
 //
 // See [BenchmarkRecord_UnmarshalText].
-func (rec *Record) UnmarshalTextEachSunblice(data []byte) (err error) {
+func (rec *Record) UnmarshalTextEachSublice(data []byte) (err error) {
 	if commIdx := bytes.IndexByte(data, '#'); commIdx >= 0 {
 		// Trim comment.
 		data = data[:commIdx]

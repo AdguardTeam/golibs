@@ -162,6 +162,7 @@ underscores() {
 			-e '_test.go'\
 			-e '_unix.go'\
 			-e '_windows.go'\
+			-e '_others.go'\
 			-e '_go1.21.go'\
 			-v\
 			| sed -e 's/./\t\0/'

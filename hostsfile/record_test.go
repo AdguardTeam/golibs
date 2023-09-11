@@ -289,7 +289,7 @@ func BenchmarkRecord_UnmarshalText(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				errSink = rec.UnmarshalTextEachSunblice(input)
+				errSink = rec.UnmarshalTextEachSublice(input)
 			}
 
 			require.NoError(b, errSink)
