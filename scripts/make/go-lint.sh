@@ -35,7 +35,7 @@ set -f -u
 go_version="$( "${GO:-go}" version )"
 readonly go_version
 
-go_min_version='go1.20.7'
+go_min_version='go1.20.8'
 go_version_msg="
 warning: your go version (${go_version}) is different from the recommended minimal one (${go_min_version}).
 if you have the version installed, please set the GO environment variable.
@@ -220,7 +220,7 @@ run_linter fieldalignment\
 	./log/\
 	./mapsutil/\
 	./mathutil/\
-	./netutil/\
+	./netutil/...\
 	./pprofutil/\
 	./stringutil/\
 	./testutil/...\
@@ -236,7 +236,7 @@ run_linter gosec --quiet\
 	./log/\
 	./mapsutil/\
 	./mathutil/\
-	./netutil/\
+	./netutil/...\
 	./pprofutil/\
 	./stringutil/\
 	./testutil/...\
