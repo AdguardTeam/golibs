@@ -1,6 +1,7 @@
 package sysresolv_test
 
 import (
+	"net/netip"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil/sysresolv"
@@ -9,9 +10,12 @@ import (
 )
 
 func TestSystemResolvers_Addrs(t *testing.T) {
-	r := sysresolv.NewTestResolvers(t, nil)
+	t.Parallel()
 
-	var addrs []string
+	r, err := sysresolv.NewSystemResolvers(nil, 53)
+	require.NoError(t, err)
+
+	var addrs []netip.AddrPort
 	require.NotPanics(t, func() {
 		addrs = r.Addrs()
 	})
