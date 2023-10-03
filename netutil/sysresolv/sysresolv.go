@@ -16,7 +16,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// unit is a convenient alias for empty struct.
+// unit is a convenient type alias for empty struct.
 type unit = struct{}
 
 // HostGenFunc is a function used for generating hostnames to check the system
@@ -26,7 +26,7 @@ type HostGenFunc func() (hostname string)
 
 // SystemResolvers is a default implementation of the Resolvers interface.
 type SystemResolvers struct {
-	// lastUpd is the time when the last update started.
+	// lastUpd is the moment when the last update started.
 	lastUpd time.Time
 
 	// updMu protects addresses and lastUpd.
@@ -36,7 +36,6 @@ type SystemResolvers struct {
 	generateHost HostGenFunc
 
 	// addresses is the most recent set of cached local resolvers' addresses.
-	// The value is used to remove previousy cached addresses from the cache.
 	addresses []netip.AddrPort
 
 	// defaultPort is the default port to use when parsing an address without
@@ -45,15 +44,16 @@ type SystemResolvers struct {
 }
 
 // NewSystemResolvers returns a SystemResolvers instance that uses genHost to
-// generate fake hosts for dialing.  The default generator is used, if genHost
-// is nil.  The default port is used when resolvers are provided without a port
-// number.
+// generate fake hosts for dialing, see [HostGenFunc].  The default generator is
+// used, if genHost is nil.  The defaultPort is used when resolvers are provided
+// without a port number.
 func NewSystemResolvers(genHost HostGenFunc, defaultPort uint16) (sr *SystemResolvers, err error) {
 	if genHost == nil {
 		genHost = defaultHostGenFunc
 	}
 
 	sr = &SystemResolvers{
+		// TODO(e.burkov):  Probably we should use Unix epoch here.
 		lastUpd:      time.Now(),
 		updMu:        &sync.RWMutex{},
 		addresses:    []netip.AddrPort{},
@@ -97,14 +97,17 @@ func (sr *SystemResolvers) Refresh() (err error) {
 	sr.updMu.Lock()
 	defer sr.updMu.Unlock()
 
-	if sr.lastUpd.Before(startTime) {
+	// Don't use [time.Before] here, since on Windows the values returned by
+	// [time.Now] has a much lower precision than on Unix, which may omit the
+	// initial update.
+	if !sr.lastUpd.After(startTime) {
 		sr.addresses = addrs
 	}
 
 	return nil
 }
 
-// compareAddrPorts compares two [netip.AddrPort]s.
+// compareAddrPorts compares two [netip.AddrPort]s.  It's used for sorting.
 func compareAddrPorts(a, b netip.AddrPort) (res int) {
 	res = a.Addr().Compare(b.Addr())
 	if res != 0 {
@@ -147,9 +150,9 @@ func (sr *SystemResolvers) collectResolvers() (set map[netip.AddrPort]unit, err 
 	return set, nil
 }
 
-// parse returns the [netip.AddrPort] from the passed address, using the
-// preconfigured default port, if address doesn't contain one.  It also returns
-// [errFakeDial] if the address is valid, but useless.
+// parse returns the [netip.AddrPort] parsed from the passed address, using the
+// preconfigured default port, if address doesn't contain one.  It also
+// immediately returns [errFakeDial] if the address is valid, but useless.
 func (sr *SystemResolvers) parse(address string) (addrPort netip.AddrPort, err error) {
 	err = validateAddress(address)
 	if err != nil {
@@ -183,7 +186,8 @@ func defaultHostGenFunc() (hostname string) {
 	// always returns nil errors and only panics on OOM.
 	_, _ = b.WriteString("host")
 
-	// Format the integer manually to avoid allocations.
+	// Format the integer manually to avoid allocations.  The order of digits
+	// doesn't really matter.
 	for n := time.Now().UnixNano(); n > 0; n /= 10 {
 		_ = b.WriteByte(byte(n%10) + '0')
 	}
