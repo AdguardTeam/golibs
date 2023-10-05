@@ -2,6 +2,7 @@ package fakenet_test
 
 import (
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/AdguardTeam/golibs/testutil/fakenet"
@@ -34,7 +35,7 @@ func Example() {
 
 	// The function that is expected to call Write.
 	testedFunction := func(c net.Conn) (err error) {
-		_, err = c.Write([]byte("test message"))
+		_, err = io.WriteString(c, "test message")
 		if err != nil {
 			return fmt.Errorf("writing: %w", err)
 		}

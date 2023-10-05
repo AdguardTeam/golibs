@@ -111,6 +111,7 @@ blocklist_imports() {
 		-n\
 		-- '*.go'\
 		':!testutil/testutil.go'\
+		':!netutil/urlutil/url.go'\
 		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
 		|| exit 0
 
@@ -217,12 +218,14 @@ run_linter fieldalignment\
 	./errors/\
 	./hostsfile/\
 	./httphdr/\
+	./ioutil/\
 	./log/\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
 	./pprofutil/\
 	./stringutil/\
+	./syncutil/\
 	./testutil/...\
 	./timeutil/
 
@@ -233,12 +236,14 @@ run_linter gosec --quiet\
 	./errors/\
 	./hostsfile/\
 	./httphdr/\
+	./ioutil/\
 	./log/\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
 	./pprofutil/\
 	./stringutil/\
+	./syncutil/\
 	./testutil/...\
 	./timeutil/
 
