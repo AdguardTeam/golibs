@@ -1,4 +1,7 @@
 // Package log contains necessary logging functions
+//
+// TODO(a.garipov): Move code using this to log/slog then deprecate and remove
+// this package.
 package log
 
 import (

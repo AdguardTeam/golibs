@@ -120,6 +120,7 @@ blocklist_imports() {
 		-n\
 		-- '*.go'\
 		':!log/log.go'\
+		':!logutil/slogutil/slogutil.go'\
 		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
 		|| exit 0
 
@@ -220,6 +221,7 @@ run_linter fieldalignment\
 	./httphdr/\
 	./ioutil/\
 	./log/\
+	./logutil/...\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
@@ -238,6 +240,7 @@ run_linter gosec --quiet\
 	./httphdr/\
 	./ioutil/\
 	./log/\
+	./logutil/...\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
