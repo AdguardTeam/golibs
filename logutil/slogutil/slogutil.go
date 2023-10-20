@@ -5,9 +5,18 @@
 package slogutil
 
 import (
+	"bytes"
+	"context"
 	"io"
 	"log"
 	"log/slog"
+	"runtime/debug"
+)
+
+// Additional key constants.
+const (
+	KeyPrefix = "prefix"
+	KeyError  = "err"
 )
 
 // Config contains the configuration for a logger.
@@ -89,4 +98,31 @@ func RemoveTime(groups []string, a slog.Attr) (res slog.Attr) {
 	}
 
 	return a
+}
+
+// PrintStack logs the stacktrace into l on the given level.
+func PrintStack(ctx context.Context, l *slog.Logger, lvl slog.Level) {
+	stack := bytes.Split(debug.Stack(), []byte{'\n'})
+	for i, line := range stack {
+		line = bytes.TrimSpace(line)
+		if len(line) > 0 {
+			l.Log(ctx, lvl, "stack", "i", i, "line", line)
+		}
+	}
+}
+
+// RecoverAndLog recovers from a panic and logs the panic value into l along
+// with the stacktrace.
+func RecoverAndLog(ctx context.Context, l *slog.Logger) {
+	if v := recover(); v != nil {
+		var args []any
+		if err, ok := v.(error); ok {
+			args = []any{KeyError, err}
+		} else {
+			args = []any{"value", v}
+		}
+
+		l.ErrorContext(ctx, "recovered from panic", args...)
+		PrintStack(ctx, l, slog.LevelError)
+	}
 }
