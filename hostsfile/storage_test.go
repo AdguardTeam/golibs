@@ -1,9 +1,9 @@
 package hostsfile_test
 
 import (
-	"io/fs"
 	"net/netip"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/hostsfile"
@@ -15,22 +15,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func TestNewDefaultStorage(t *testing.T) {
+func TestDefaultStorage_lookup(t *testing.T) {
 	t.Parallel()
-
-	var ds *hostsfile.DefaultStorage
-	var err error
-
-	t.Run("good_file", func(t *testing.T) {
-		var f fs.File
-
-		f, err = testdata.Open(path.Join(t.Name(), "hosts"))
-		require.NoError(t, err)
-		testutil.CleanupAndRequireSuccess(t, f.Close)
-
-		ds, err = hostsfile.NewDefaultStorage(f)
-	})
-	require.NoError(t, err)
 
 	// Variables mirroring the testdata/TestDefaultStorage/*/hosts file.
 	var (
@@ -60,6 +46,13 @@ func TestNewDefaultStorage(t *testing.T) {
 		}
 	)
 
+	f, err := testdata.Open(path.Join(t.Name(), "hosts"))
+	require.NoError(t, err)
+	testutil.CleanupAndRequireSuccess(t, f.Close)
+
+	ds, err := hostsfile.NewDefaultStorage(f)
+	require.NoError(t, err)
+
 	t.Run("ByAddr", func(t *testing.T) {
 		t.Parallel()
 
@@ -76,14 +69,6 @@ func TestNewDefaultStorage(t *testing.T) {
 				assert.Equal(t, wantAddrs[addr], ds.ByAddr(addr))
 			})
 		}
-	})
-
-	t.Run("RangeNames", func(t *testing.T) {
-		t.Parallel()
-
-		ds.RangeNames(func(addr netip.Addr, names []string) {
-			assert.Equal(t, wantAddrs[addr], names)
-		})
 	})
 
 	t.Run("ByHost", func(t *testing.T) {
@@ -103,14 +88,6 @@ func TestNewDefaultStorage(t *testing.T) {
 			})
 		}
 	})
-
-	t.Run("RangeAddrs", func(t *testing.T) {
-		t.Parallel()
-
-		ds.RangeAddrs(func(name string, addrs []netip.Addr) {
-			assert.Equal(t, wantHosts[name], addrs)
-		})
-	})
 }
 
 func TestNewDefaultStorage_bad(t *testing.T) {
@@ -127,8 +104,10 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, ds)
 
-		ds.RangeAddrs(func(_ string, _ []netip.Addr) {
+		ds.RangeAddrs(func(_ string, _ []netip.Addr) (ok bool) {
 			require.Fail(t, "should not be called")
+
+			return false
 		})
 	})
 
@@ -173,6 +152,157 @@ func TestDefaultStorage_HandleInvalid(t *testing.T) {
 
 		assert.NotPanics(t, func() {
 			ds.HandleInvalid(tc.name, nil, tc.err)
+		})
+	}
+}
+
+func TestDefaultStorage_range(t *testing.T) {
+	t.Parallel()
+
+	const hostsStr = `` +
+		"1.2.3.4 host.example another.example\n" +
+		"4.3.2.1 yet.another.example\n"
+
+	var (
+		v4Addr1 = netip.MustParseAddr("1.2.3.4")
+		v4Addr2 = netip.MustParseAddr("4.3.2.1")
+
+		wantHosts = map[string][]netip.Addr{
+			"host.example":        {v4Addr1},
+			"another.example":     {v4Addr1},
+			"yet.another.example": {v4Addr2},
+		}
+
+		wantAddrs = map[netip.Addr][]string{
+			v4Addr1: {"host.example", "another.example"},
+			v4Addr2: {"yet.another.example"},
+		}
+	)
+
+	ds, err := hostsfile.NewDefaultStorage(strings.NewReader(hostsStr))
+	require.NoError(t, err)
+
+	empty, err := hostsfile.NewDefaultStorage()
+	require.NoError(t, err)
+
+	t.Run("RangeAddrs", func(t *testing.T) {
+		t.Parallel()
+
+		names := maps.Clone(wantHosts)
+
+		ds.RangeAddrs(func(name string, addrs []netip.Addr) (ok bool) {
+			got, ok := names[name]
+			require.True(t, ok)
+			require.Equal(t, got, addrs)
+
+			delete(names, name)
+
+			return len(names) > 0
+		})
+
+		require.Empty(t, names)
+	})
+
+	t.Run("RangeNames", func(t *testing.T) {
+		t.Parallel()
+
+		addrs := maps.Clone(wantAddrs)
+
+		ds.RangeNames(func(addr netip.Addr, names []string) (ok bool) {
+			got, ok := addrs[addr]
+			require.True(t, ok)
+			require.Equal(t, got, names)
+
+			delete(addrs, addr)
+
+			return len(addrs) > 0
+		})
+
+		require.Empty(t, addrs)
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		t.Parallel()
+
+		empty.RangeAddrs(func(_ string, _ []netip.Addr) (ok bool) {
+			return assert.Fail(t, "should not be called")
+		})
+
+		empty.RangeNames(func(_ netip.Addr, _ []string) (ok bool) {
+			return assert.Fail(t, "should not be called")
+		})
+	})
+}
+
+func TestDefaultStorage_Equal(t *testing.T) {
+	t.Parallel()
+
+	const hosts1 = `` +
+		"1.2.3.4 host.example another.example\n" +
+		"4.3.2.1 yet.another.example\n"
+
+	const hosts2 = `` +
+		"5.6.7.8 host.example another.example\n" +
+		"8.7.6.5 yet.another.example\n"
+
+	hs1, err := hostsfile.NewDefaultStorage(strings.NewReader(hosts1))
+	require.NoError(t, err)
+
+	hs2, err := hostsfile.NewDefaultStorage(strings.NewReader(hosts2))
+	require.NoError(t, err)
+
+	empty, err := hostsfile.NewDefaultStorage()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		a    *hostsfile.DefaultStorage
+		b    *hostsfile.DefaultStorage
+		want assert.BoolAssertionFunc
+		name string
+	}{{
+		name: "equal",
+		a:    hs1,
+		b:    hs1,
+		want: assert.True,
+	}, {
+		name: "not_equal",
+		a:    hs1,
+		b:    hs2,
+		want: assert.False,
+	}, {
+		name: "nils",
+		a:    nil,
+		b:    nil,
+		want: assert.True,
+	}, {
+		name: "nil_receiver",
+		a:    nil,
+		b:    empty,
+		want: assert.False,
+	}, {
+		name: "nil_argument",
+		a:    empty,
+		b:    nil,
+		want: assert.False,
+	}, {
+		name: "empty",
+		a:    empty,
+		b:    empty,
+		want: assert.True,
+	}, {
+		name: "one_empty",
+		a:    empty,
+		b:    hs1,
+		want: assert.False,
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, tc.a.Equal(tc.b))
 		})
 	}
 }

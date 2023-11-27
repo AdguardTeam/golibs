@@ -8,6 +8,7 @@ import (
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/log"
+	"golang.org/x/exp/slices"
 )
 
 // Storage indexes the hosts file records.
@@ -154,17 +155,46 @@ func (s *DefaultStorage) ByName(host string) (addrs []netip.Addr) {
 // RangeNames ranges through all addresses in s and calls f with all the
 // corresponding names for each one.  The order of range is undefined.  names
 // must not be modified.
-func (s *DefaultStorage) RangeNames(f func(addr netip.Addr, names []string)) {
+func (s *DefaultStorage) RangeNames(f func(addr netip.Addr, names []string) (cont bool)) {
 	for addr, names := range s.names {
-		f(addr, names.vals)
+		if !f(addr, names.vals) {
+			return
+		}
 	}
 }
 
 // RangeAddrs ranges through all hostnames in s and calls f with all the
 // corresponding addresses for each one.  The order of range is undefined.
 // addrs must not be modified.
-func (s *DefaultStorage) RangeAddrs(f func(host string, addrs []netip.Addr)) {
+func (s *DefaultStorage) RangeAddrs(f func(host string, addrs []netip.Addr) (cont bool)) {
 	for host, addrs := range s.addrs {
-		f(host, addrs.vals)
+		if !f(host, addrs.vals) {
+			return
+		}
 	}
+}
+
+// Equal returns true if s and other contain the same addresses mapped to the
+// same hostnames.
+func (s *DefaultStorage) Equal(other *DefaultStorage) (ok bool) {
+	if s == nil || other == nil {
+		return s == other
+	} else if len(s.names) != len(other.names) || len(s.addrs) != len(other.addrs) {
+		return false
+	}
+
+	// Don't use [maps.Equal] here, since we're only interested in comparing the
+	// fields of values, not the values itself.
+	for addr, names := range s.names {
+		var otherNames *namesSet
+		switch otherNames, ok = other.names[addr]; {
+		case
+			!ok,
+			len(names.vals) != len(otherNames.vals),
+			!slices.Equal(names.vals, otherNames.vals):
+			return false
+		}
+	}
+
+	return true
 }
