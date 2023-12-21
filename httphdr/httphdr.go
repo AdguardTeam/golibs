@@ -7,7 +7,8 @@ package httphdr
 //
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication.
 const (
-	Authorization = "Authorization"
+	Authorization   = "Authorization"
+	WWWAuthenticate = "Www-Authenticate"
 )
 
 // Common standard headers for caching.

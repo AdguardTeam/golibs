@@ -59,6 +59,11 @@ func New(c *Config) (l *slog.Logger) {
 			Level:       lvl,
 			ReplaceAttr: replaceAttr,
 		})
+	case FormatJSONHybrid:
+		h = NewJSONHybridHandler(c.Output, &slog.HandlerOptions{
+			Level:       lvl,
+			ReplaceAttr: replaceAttr,
+		})
 	case FormatText:
 		h = slog.NewTextHandler(c.Output, &slog.HandlerOptions{
 			Level:       lvl,
@@ -111,18 +116,21 @@ func PrintStack(ctx context.Context, l *slog.Logger, lvl slog.Level) {
 	}
 }
 
-// RecoverAndLog recovers from a panic and logs the panic value into l along
-// with the stacktrace.
+// RecoverAndLog is a deferred helper that recovers from a panic and logs the
+// panic value into l along with the stacktrace.
 func RecoverAndLog(ctx context.Context, l *slog.Logger) {
-	if v := recover(); v != nil {
-		var args []any
-		if err, ok := v.(error); ok {
-			args = []any{KeyError, err}
-		} else {
-			args = []any{"value", v}
-		}
-
-		l.ErrorContext(ctx, "recovered from panic", args...)
-		PrintStack(ctx, l, slog.LevelError)
+	v := recover()
+	if v == nil {
+		return
 	}
+
+	var args []any
+	if err, ok := v.(error); ok {
+		args = []any{KeyError, err}
+	} else {
+		args = []any{"value", v}
+	}
+
+	l.ErrorContext(ctx, "recovered from panic", args...)
+	PrintStack(ctx, l, slog.LevelError)
 }
