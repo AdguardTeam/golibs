@@ -1,9 +1,7 @@
 package netutil
 
 import (
-	"fmt"
 	"net"
-	"strings"
 
 	"golang.org/x/exp/slices"
 )
@@ -104,110 +102,6 @@ func ParseIPv4(s string) (ip net.IP, err error) {
 	}
 
 	return ip, nil
-}
-
-// CloneIPNet returns a deep clone of n.
-func CloneIPNet(n *net.IPNet) (clone *net.IPNet) {
-	if n == nil {
-		return nil
-	}
-
-	return &net.IPNet{
-		IP: slices.Clone(n.IP),
-		// TODO(e.burkov):  Consider adding CloneIPMask.
-		Mask: net.IPMask(slices.Clone(net.IP(n.Mask))),
-	}
-}
-
-// ParseSubnet parses a subnet which can be either a CIDR or a single IP.  In
-// the latter case, n is a single-IP subnet.  It also keeps the original parsed
-// IP address inside n.
-//
-// If s contains a CIDR with an IP address that is an IPv4-mapped IPv6 address,
-// the behavior is undefined.
-//
-// Any error returned will have the underlying type of either [*AddrError].
-func ParseSubnet(s string) (n *net.IPNet, err error) {
-	var ip net.IP
-
-	// Detect if this is a CIDR or an IP early, so that the path to returning an
-	// error is shorter.
-	if !strings.Contains(s, "/") {
-		ip, err = ParseIP(s)
-		if err != nil {
-			return nil, &AddrError{
-				Err:  err,
-				Kind: AddrKindCIDR,
-				Addr: s,
-			}
-		}
-
-		return SingleIPSubnet(ip), nil
-	}
-
-	ip, n, err = net.ParseCIDR(s)
-	if err != nil {
-		// Don't include the original error here, because it is basically
-		// the same as ours but worse and has no additional information.
-		return nil, &AddrError{
-			Kind: AddrKindCIDR,
-			Addr: s,
-		}
-	}
-
-	if ip4 := ip.To4(); ip4 != nil {
-		// Reduce the length of IP and mask if possible so that
-		// IPNet.Contains doesn't waste time converting between 16- and
-		// 4-byte versions.
-		ip = ip4
-
-		if ones, bits := n.Mask.Size(); ones >= 96 && bits == IPv6BitLen {
-			// Copy the IPv4-length tail of the underlying slice to it's
-			// beginning to avoid allocations in case of subsequent appending.
-			copy(n.Mask, n.Mask[net.IPv6len-net.IPv4len:])
-			n.Mask = n.Mask[:net.IPv4len]
-		}
-	}
-
-	n.IP = ip
-
-	return n, nil
-}
-
-// SingleIPSubnet returns an IP network that only contains ip.  If ip is not
-// a valid IPv4 or IPv6 address, n is nil.
-func SingleIPSubnet(ip net.IP) (n *net.IPNet) {
-	if ip4 := ip.To4(); ip4 != nil {
-		return &net.IPNet{
-			IP:   ip4,
-			Mask: net.CIDRMask(IPv4BitLen, IPv4BitLen),
-		}
-	} else if len(ip) == net.IPv6len {
-		return &net.IPNet{
-			IP:   ip,
-			Mask: net.CIDRMask(IPv6BitLen, IPv6BitLen),
-		}
-	}
-
-	return nil
-}
-
-// ParseSubnets returns the slice of *net.IPNet parsed from ss.
-func ParseSubnets(ss ...string) (ns []*net.IPNet, err error) {
-	l := len(ss)
-	if l == 0 {
-		return nil, nil
-	}
-
-	ns = make([]*net.IPNet, l)
-	for i, s := range ss {
-		ns[i], err = ParseSubnet(s)
-		if err != nil {
-			return nil, fmt.Errorf("parsing network at index %d: %w", i, err)
-		}
-	}
-
-	return ns, nil
 }
 
 // ValidateIP returns an error if ip is not a valid IPv4 or IPv6 address.

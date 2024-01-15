@@ -2,7 +2,6 @@ package netutil_test
 
 import (
 	"fmt"
-	"net"
 
 	"github.com/AdguardTeam/golibs/netutil"
 )
@@ -55,80 +54,4 @@ func ExampleParseIPv4() {
 	// 1.2.3.4 <nil>
 	// <nil> bad ipv4 address "1234::cdef"
 	// <nil> bad ipv4 address "!!!"
-}
-
-func ExampleParseSubnet() {
-	ip := net.IP{1, 2, 3, 4}
-	otherIP := net.IP{1, 2, 3, 5}
-
-	n, err := netutil.ParseSubnet("1.2.3.4")
-	fmt.Println(n, err)
-	fmt.Printf("%s is in %s: %t\n", ip, n, n.Contains(ip))
-	fmt.Printf("%s is in %s: %t\n", otherIP, n, n.Contains(otherIP))
-
-	n, err = netutil.ParseSubnet("1.2.3.4/16")
-	fmt.Println(n, err)
-	fmt.Printf("%s is in %s: %t\n", ip, n, n.Contains(ip))
-	fmt.Printf("%s is in %s: %t\n", otherIP, n, n.Contains(otherIP))
-
-	// Output:
-	//
-	// 1.2.3.4/32 <nil>
-	// 1.2.3.4 is in 1.2.3.4/32: true
-	// 1.2.3.5 is in 1.2.3.4/32: false
-	// 1.2.3.4/16 <nil>
-	// 1.2.3.4 is in 1.2.3.4/16: true
-	// 1.2.3.5 is in 1.2.3.4/16: true
-}
-
-func ExampleParseSubnets() {
-	ns, err := netutil.ParseSubnets("1.2.3.4", "1.2.3.4/16")
-	fmt.Println("error:   ", err)
-	fmt.Println("networks:", ns)
-
-	fmt.Println()
-
-	ns, err = netutil.ParseSubnets()
-	fmt.Println("error:   ", err)
-	fmt.Println("networks:", ns)
-
-	fmt.Println()
-
-	ns, err = netutil.ParseSubnets("4.3.2.1/32", "5.5.5.5/33")
-	fmt.Println("error:   ", err)
-	fmt.Println("networks:", ns)
-
-	// Output:
-	//
-	// error:    <nil>
-	// networks: [1.2.3.4/32 1.2.3.4/16]
-	//
-	// error:    <nil>
-	// networks: []
-	//
-	// error:    parsing network at index 1: bad cidr address "5.5.5.5/33"
-	// networks: []
-}
-
-func ExampleSingleIPSubnet() {
-	ip4 := net.IP{1, 2, 3, 4}
-	otherIP4 := net.IP{1, 2, 3, 5}
-
-	n := netutil.SingleIPSubnet(ip4)
-	fmt.Printf("%s is in %s: %t\n", ip4, n, n.Contains(ip4))
-	fmt.Printf("%s is in %s: %t\n", otherIP4, n, n.Contains(otherIP4))
-
-	ip6 := net.ParseIP("1234::cdef")
-	otherIP6 := net.ParseIP("1234::cdff")
-
-	n = netutil.SingleIPSubnet(ip6)
-	fmt.Printf("%s is in %s: %t\n", ip6, n, n.Contains(ip6))
-	fmt.Printf("%s is in %s: %t\n", otherIP6, n, n.Contains(otherIP6))
-
-	// Output:
-	//
-	// 1.2.3.4 is in 1.2.3.4/32: true
-	// 1.2.3.5 is in 1.2.3.4/32: false
-	// 1234::cdef is in 1234::cdef/128: true
-	// 1234::cdff is in 1234::cdef/128: false
 }

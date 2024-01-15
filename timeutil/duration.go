@@ -13,7 +13,6 @@ const Day time.Duration = 24 * time.Hour
 
 // Duration is a wrapper for time.Duration providing functionality for encoding.
 type Duration struct {
-	// time.Duration is embedded here to avoid implementing all the methods.
 	time.Duration
 }
 

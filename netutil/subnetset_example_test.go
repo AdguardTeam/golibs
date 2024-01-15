@@ -2,20 +2,16 @@ package netutil_test
 
 import (
 	"fmt"
-	"net"
+	"net/netip"
 
 	"github.com/AdguardTeam/golibs/netutil"
 )
 
-func ExampleSubnetSet_single() {
-	var s netutil.SubnetSet
-	_, s, err := net.ParseCIDR("1.2.3.4/16")
-	if err != nil {
-		panic(err)
-	}
+func ExampleSubnetSet_Contains() {
+	var s netutil.SubnetSet = netip.MustParsePrefix("1.2.3.4/16")
 
-	fmt.Println("contains 1.2.3.4:", s.Contains(net.IP{1, 2, 3, 4}))
-	fmt.Println("contains 4.3.2.1:", s.Contains(net.IP{4, 3, 2, 1}))
+	fmt.Println("contains 1.2.3.4:", s.Contains(netip.MustParseAddr("1.2.3.4")))
+	fmt.Println("contains 4.3.2.1:", s.Contains(netip.MustParseAddr("4.3.2.1")))
 
 	// Output:
 	//
@@ -23,37 +19,36 @@ func ExampleSubnetSet_single() {
 	// contains 4.3.2.1: false
 }
 
-func ExampleSubnetSet_slice() {
-	nets, err := netutil.ParseSubnets("1.2.3.0/24", "ffff:12ab::/16")
-	if err != nil {
-		panic(err)
+func ExampleSliceSubnetSet_Contains() {
+	nets := []netip.Prefix{
+		netip.MustParsePrefix("1.2.3.0/24"),
+		netip.MustParsePrefix("ffff:12ab::/16"),
 	}
 
 	s := netutil.SliceSubnetSet(nets)
 
-	fmt.Println("contains 1.2.3.4:      ", s.Contains(net.IP{1, 2, 3, 4}))
-	fmt.Println("contains 4.3.2.1:      ", s.Contains(net.IP{4, 3, 2, 1}))
-	fmt.Println("contains ffff:12ab::10:", s.Contains(net.ParseIP("ffff:12ab::10")))
-	fmt.Println("contains 12ab:ffff::10:", s.Contains(net.ParseIP("12ab:ffff::10")))
+	fmt.Println("contains 1.2.3.4:      ", s.Contains(netip.MustParseAddr("1.2.3.4")))
+	fmt.Println("contains 4.3.2.1:      ", s.Contains(netip.MustParseAddr("4.3.2.1")))
+	fmt.Println("contains ffff:12ab::10:", s.Contains(netip.MustParseAddr("ffff:12ab::10")))
+	fmt.Println("contains 12ab:ffff::10:", s.Contains(netip.MustParseAddr("12ab:ffff::10")))
 
 	fmt.Println()
 
 	s = netutil.SliceSubnetSet{}
-	fmt.Println("contains 1.2.3.4:      ", s.Contains(net.IP{1, 2, 3, 4}))
-	fmt.Println("contains ffff:12ab::10:", s.Contains(net.ParseIP("ffff:12ab::10")))
+
+	fmt.Println("contains 1.2.3.4:      ", s.Contains(netip.MustParseAddr("1.2.3.4")))
+	fmt.Println("contains ffff:12ab::10:", s.Contains(netip.MustParseAddr("ffff:12ab::10")))
 
 	fmt.Println()
 
-	s = netutil.SliceSubnetSet{{
-		IP:   make(net.IP, net.IPv4len),
-		Mask: make(net.IPMask, net.IPv4len),
-	}, {
-		IP:   make(net.IP, net.IPv6len),
-		Mask: make(net.IPMask, net.IPv6len),
-	}}
-	fmt.Println("contains 1.2.3.4:      ", s.Contains(net.IP{1, 2, 3, 4}))
-	fmt.Println("contains ffff:12ab::10:", s.Contains(net.ParseIP("ffff:12ab::10")))
-	fmt.Println("contains <nil>:        ", s.Contains(nil))
+	s = netutil.SliceSubnetSet{
+		netip.MustParsePrefix("0.0.0.0/0"),
+		netip.MustParsePrefix("::/0"),
+	}
+
+	fmt.Println("contains 1.2.3.4:      ", s.Contains(netip.MustParseAddr("1.2.3.4")))
+	fmt.Println("contains ffff:12ab::10:", s.Contains(netip.MustParseAddr("ffff:12ab::10")))
+	fmt.Println("contains zero value:   ", s.Contains(netip.Addr{}))
 
 	// Output:
 	//
@@ -67,18 +62,20 @@ func ExampleSubnetSet_slice() {
 	//
 	// contains 1.2.3.4:       true
 	// contains ffff:12ab::10: true
-	// contains <nil>:         false
+	// contains zero value:    false
 }
 
-func ExampleSubnetSet_func() {
-	s := netutil.SubnetSetFunc(func(ip net.IP) (ok bool) {
-		return len(ip) > 0 && ip[0] == 0xFF
+func ExampleSubnetSetFunc_Contains() {
+	s := netutil.SubnetSetFunc(func(ip netip.Addr) (ok bool) {
+		slice := ip.AsSlice()
+
+		return len(slice) > 0 && slice[0] == 0xFF
 	})
 
-	fmt.Println("contains 255.0.0.1:", s.Contains(net.IP{255, 0, 0, 1}))
-	fmt.Println("contains 254.0.0.1:", s.Contains(net.IP{254, 0, 0, 1}))
-	fmt.Println("contains ff00:::1: ", s.Contains(net.ParseIP("ff00::1")))
-	fmt.Println("contains ff:::1:   ", s.Contains(net.ParseIP("ff::1")))
+	fmt.Println("contains 255.0.0.1:", s.Contains(netip.MustParseAddr("255.0.0.1")))
+	fmt.Println("contains 254.0.0.1:", s.Contains(netip.MustParseAddr("254.0.0.1")))
+	fmt.Println("contains ff00:::1: ", s.Contains(netip.MustParseAddr("ff00::1")))
+	fmt.Println("contains ff:::1:   ", s.Contains(netip.MustParseAddr("ff::1")))
 
 	// Output:
 	//

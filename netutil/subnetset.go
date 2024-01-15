@@ -1,30 +1,29 @@
 package netutil
 
 import (
-	"net"
 	"net/netip"
 )
 
-// Set Of Subnets
-
-// SubnetSet contains the set of IP networks to match the IP address.
+// SubnetSet represents a set of IP networks used to determine if an IP address
+// belongs to any of them.
 type SubnetSet interface {
-	// Contains returns true if ip is contained by any of networks the set
-	// contains.  ip must be only accessed for reading.
-	Contains(ip net.IP) (ok bool)
+	// Contains returns true if the given ip is contained by any network in the
+	// set.
+	Contains(ip netip.Addr) (ok bool)
 }
 
-// Slice-based Subnet Set
+// type check
+var _ SubnetSet = netip.Prefix{}
 
-// SliceSubnetSet is the SubnetSet that checks the address through a slice of
-// *net.IPNet.
-type SliceSubnetSet []*net.IPNet
+// SliceSubnetSet is the [SubnetSet] that checks the address through a slice of
+// [netip.Prefix].
+type SliceSubnetSet []netip.Prefix
 
 // type check
 var _ SubnetSet = (SliceSubnetSet)(nil)
 
-// Contains implements the SubnetSet interface for SliceSubnetSet.
-func (s SliceSubnetSet) Contains(ip net.IP) (ok bool) {
+// Contains implements the [SubnetSet] interface for SliceSubnetSet.
+func (s SliceSubnetSet) Contains(ip netip.Addr) (ok bool) {
 	for _, n := range s {
 		if n.Contains(ip) {
 			return true
@@ -34,19 +33,16 @@ func (s SliceSubnetSet) Contains(ip net.IP) (ok bool) {
 	return false
 }
 
-// Callback-based Subnet Set
-
-// SubnetSetFunc is a function determining if ip belongs to the set of subnets.
-type SubnetSetFunc func(ip net.IP) (ok bool)
+// SubnetSetFunc is the [SubnetSet] that checks the address with the function
+// determining if the given ip belongs to the set of subnets.
+type SubnetSetFunc func(ip netip.Addr) (ok bool)
 
 // type check
 var _ SubnetSet = SubnetSetFunc(nil)
 
-// Contains implements the SubnetSet interface for SubnetSetFunc.  The ip is not
-// required to be valid or non-nil so that f is responsible for the validation.
-func (f SubnetSetFunc) Contains(ip net.IP) (ok bool) { return f(ip) }
-
-// Optimized Implementations Of Some Commonly Used Sets Of Networks
+// Contains implements the [SubnetSet] interface for SubnetSetFunc.  The ip is
+// not required to be valid so that f is responsible for validation.
+func (f SubnetSetFunc) Contains(ip netip.Addr) (ok bool) { return f(ip) }
 
 // IsLocallyServed checks if ip belongs to any network defined by [RFC 6303]:
 //
@@ -69,28 +65,16 @@ func (f SubnetSetFunc) Contains(ip net.IP) (ok bool) { return f(ip) }
 // It may also be used as a [SubnetSetFunc].
 //
 // [RFC 6303]: https://datatracker.ietf.org/doc/html/rfc6303
-func IsLocallyServed(ip net.IP) (ok bool) {
-	if ip == nil {
+func IsLocallyServed(ip netip.Addr) (ok bool) {
+	if !ip.IsValid() {
 		return false
-	} else if ip4 := ip.To4(); ip4 == nil {
-		if len(ip) != net.IPv6len {
-			return false
-		}
-
-		return isLocallyServedV6(ip)
-	} else {
-		return isLocallyServedV4(ip4)
 	}
-}
 
-// IsLocallyServedAddr is like [IsLocallyServed] but for [netip.Addr].  Since
-// the argument's type is different, it cannot be used as a [SubnetSetFunc].
-func IsLocallyServedAddr(ip netip.Addr) (ok bool) {
 	if ip.Is4() {
-		return isLocallyServedV4(ip.AsSlice())
+		return isLocallyServedV4(ip.As4())
 	}
 
-	return isLocallyServedV6(ip.AsSlice())
+	return isLocallyServedV6(ip.As16())
 }
 
 // isLocallyServedV6 returns true if ip belongs to at least one of networks
@@ -99,7 +83,7 @@ func IsLocallyServedAddr(ip netip.Addr) (ok bool) {
 // See also [IsLocallyServed].
 //
 // [RFC 6303]: https://datatracker.ietf.org/doc/html/rfc6303
-func isLocallyServedV6(ip net.IP) (ok bool) {
+func isLocallyServedV6(ip [16]byte) (ok bool) {
 	switch ip[0] {
 	case 0x00:
 		return string(ip[1:15]) == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" &&
@@ -119,7 +103,7 @@ func isLocallyServedV6(ip net.IP) (ok bool) {
 // See also [IsLocallyServed].
 //
 // [RFC 6303]: https://datatracker.ietf.org/doc/html/rfc6303
-func isLocallyServedV4(ip net.IP) (ok bool) {
+func isLocallyServedV4(ip [4]byte) (ok bool) {
 	switch ip[0] {
 	case 10, 127:
 		return true
@@ -134,7 +118,7 @@ func isLocallyServedV4(ip net.IP) (ok bool) {
 	case 203:
 		return string(ip[1:3]) == "\x00\x71"
 	default:
-		return string(ip) == "\xFF\xFF\xFF\xFF"
+		return string(ip[:]) == "\xFF\xFF\xFF\xFF"
 	}
 }
 
@@ -182,28 +166,16 @@ func isLocallyServedV4(ip net.IP) (ok bool) {
 // https://www.iana.org/assignments/iana-ipv6-special-registry.
 //
 // It may also be used as a [SubnetSetFunc].
-func IsSpecialPurpose(ip net.IP) (ok bool) {
-	if ip == nil {
+func IsSpecialPurpose(ip netip.Addr) (ok bool) {
+	if !ip.IsValid() {
 		return false
-	} else if ip4 := ip.To4(); ip4 == nil {
-		if len(ip) != net.IPv6len {
-			return false
-		}
-
-		return isSpecialPurposeV6(ip)
-	} else {
-		return isSpecialPurposeV4(ip4)
 	}
-}
 
-// IsSpecialPurposeAddr is like [IsSpecialPurpose] but for [netip.Addr].  Since
-// the argument's type is different, it cannot be used as a [SubnetSetFunc].
-func IsSpecialPurposeAddr(ip netip.Addr) (ok bool) {
 	if ip.Is4() {
-		return isSpecialPurposeV4(ip.AsSlice())
+		return isSpecialPurposeV4(ip.As4())
 	}
 
-	return isSpecialPurposeV6(ip.AsSlice())
+	return isSpecialPurposeV6(ip.As16())
 }
 
 // isSpecialPurposeV6 returns true if ip belongs to at least one of networks
@@ -211,7 +183,7 @@ func IsSpecialPurposeAddr(ip netip.Addr) (ok bool) {
 // IPv6.
 //
 // See also [IsSpecialPurpose].
-func isSpecialPurposeV6(ip net.IP) (ok bool) {
+func isSpecialPurposeV6(ip [16]byte) (ok bool) {
 	switch ip[0] {
 	case 0x00:
 		ok = string(ip[1:5]) == "\x64\xFF\x9B\x00" &&
@@ -236,7 +208,7 @@ func isSpecialPurposeV6(ip net.IP) (ok bool) {
 // IPv4.
 //
 // See also [IsSpecialPurpose].
-func isSpecialPurposeV4(ip net.IP) (ok bool) {
+func isSpecialPurposeV4(ip [4]byte) (ok bool) {
 	switch ip[0] {
 	case 0:
 		return true

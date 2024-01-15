@@ -1,12 +1,11 @@
 package netutil_test
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSubnetSet_optimized(t *testing.T) {
@@ -18,194 +17,189 @@ func TestSubnetSet_optimized(t *testing.T) {
 	testCases := []struct {
 		wantSpecialPurpose assert.BoolAssertionFunc
 		wantLocallyServed  assert.BoolAssertionFunc
+		ip                 netip.Addr
 		name               string
-		ip                 net.IP
 	}{{
 		wantSpecialPurpose: assert.False,
 		wantLocallyServed:  assert.False,
 		name:               "public",
-		ip:                 net.IP{8, 8, 8, 8},
+		ip:                 netip.MustParseAddr("8.8.8.8"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "unspecified_v4",
-		ip:                 netutil.IPv4Zero(),
+		ip:                 netip.MustParseAddr("0.0.0.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "private-use",
-		ip:                 net.IP{10, 0, 0, 0},
+		ip:                 netip.MustParseAddr("10.0.0.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "shared_address_space",
-		ip:                 net.IP{100, 64, 0, 1},
+		ip:                 netip.MustParseAddr("100.64.0.1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "loopback",
-		ip:                 net.IP{127, 0, 0, 0},
+		ip:                 netip.MustParseAddr("127.0.0.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "link_local",
-		ip:                 net.IP{169, 254, 0, 0},
+		ip:                 netip.MustParseAddr("169.254.0.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "private-use",
-		ip:                 net.IP{172, 16, 0, 0},
+		ip:                 netip.MustParseAddr("172.16.0.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "documentation_(test-net-1)",
-		ip:                 net.IP{192, 0, 2, 0},
+		ip:                 netip.MustParseAddr("192.0.2.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "reserved",
-		ip:                 net.IP{192, 88, 99, 1},
+		ip:                 netip.MustParseAddr("192.88.99.1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "private-use",
-		ip:                 net.IP{192, 168, 0, 0},
+		ip:                 netip.MustParseAddr("192.168.0.0"),
 	}, {
 		wantSpecialPurpose: assert.False,
 		wantLocallyServed:  assert.False,
 		name:               "non-local_v4",
-		ip:                 net.IP{192, 169, 0, 1},
+		ip:                 netip.MustParseAddr("192.169.0.1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "documentation_(test-net-2)",
-		ip:                 net.IP{198, 51, 100, 0},
+		ip:                 netip.MustParseAddr("198.51.100.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "documentation_(test-net-3)",
-		ip:                 net.IP{203, 0, 113, 0},
+		ip:                 netip.MustParseAddr("203.0.113.0"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "limited_broadcast",
-		ip:                 net.IP{255, 255, 255, 255},
+		ip:                 netip.MustParseAddr("255.255.255.255"),
 	}, {
 		wantSpecialPurpose: assert.False,
 		wantLocallyServed:  assert.False,
 		name:               "public_v6",
-		ip:                 net.ParseIP("::2"),
+		ip:                 netip.MustParseAddr("::2"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "loopback_address",
-		ip:                 net.ParseIP("::1"),
+		ip:                 netip.MustParseAddr("::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "unspecified_v6",
-		ip:                 net.ParseIP("::"),
+		ip:                 netip.MustParseAddr("::"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		// "translat" stands for "translation" as per RFC 6890.
 		name: "v4-v6_translat",
-		ip:   net.ParseIP("64:ff9b::1"),
+		ip:   netip.MustParseAddr("64:ff9b::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "v4-v6_translat",
-		ip:                 net.ParseIP("64:ff9b:1::1"),
+		ip:                 netip.MustParseAddr("64:ff9b:1::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "discard-only",
-		ip:                 net.ParseIP("100::1"),
+		ip:                 netip.MustParseAddr("100::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "ietf_protocol_assignments",
-		ip:                 net.ParseIP("2001::1"),
+		ip:                 netip.MustParseAddr("2001::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "teredo",
-		ip:                 net.ParseIP("2001::2"),
+		ip:                 netip.MustParseAddr("2001::2"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "port_control_protocol_anycast",
-		ip:                 net.ParseIP("2001:1::1"),
+		ip:                 netip.MustParseAddr("2001:1::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "traversal_using_relays_around_nat_anycast",
-		ip:                 net.ParseIP("2001:1::2"),
+		ip:                 netip.MustParseAddr("2001:1::2"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "benchmarking",
-		ip:                 net.ParseIP("2001:2::10"),
+		ip:                 netip.MustParseAddr("2001:2::10"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "amt",
-		ip:                 net.ParseIP("2001:3::1"),
+		ip:                 netip.MustParseAddr("2001:3::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "as112-v6",
-		ip:                 net.ParseIP("2001:4:112::1"),
+		ip:                 netip.MustParseAddr("2001:4:112::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "orchid",
-		ip:                 net.ParseIP("2001:10::1"),
+		ip:                 netip.MustParseAddr("2001:10::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "orchid_v2",
-		ip:                 net.ParseIP("2001:20::1"),
+		ip:                 netip.MustParseAddr("2001:20::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "documentation",
-		ip:                 net.ParseIP("2001:db8::1"),
+		ip:                 netip.MustParseAddr("2001:db8::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "6to4",
-		ip:                 net.ParseIP("2002::1"),
+		ip:                 netip.MustParseAddr("2002::1"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "direct_delegation_as112_service",
-		ip:                 net.ParseIP("2620:4f:8000::"),
+		ip:                 netip.MustParseAddr("2620:4f:8000::"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "link-local",
-		ip:                 net.ParseIP("fd00::"),
+		ip:                 netip.MustParseAddr("fd00::"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.False,
 		name:               "unique-local",
-		ip:                 net.ParseIP("fc00::"),
+		ip:                 netip.MustParseAddr("fc00::"),
 	}, {
 		wantSpecialPurpose: assert.True,
 		wantLocallyServed:  assert.True,
 		name:               "linked-scoped_unicast",
-		ip:                 net.ParseIP("fe80::12"),
+		ip:                 netip.MustParseAddr("fe80::12"),
 	}, {
 		wantSpecialPurpose: assert.False,
 		wantLocallyServed:  assert.False,
-		name:               "invalid",
-		ip:                 net.IP{1, 2, 3, 4, 5},
-	}, {
-		wantSpecialPurpose: assert.False,
-		wantLocallyServed:  assert.False,
-		name:               "nil",
-		ip:                 nil,
+		name:               "zero",
+		ip:                 netip.Addr{},
 	}}
 
 	for _, tc := range testCases {
@@ -224,8 +218,7 @@ func TestSubnetSet_optimized(t *testing.T) {
 }
 
 func BenchmarkSliceSubnetSet_comparison(b *testing.B) {
-	optimized := netutil.SubnetSetFunc(netutil.IsSpecialPurpose)
-	nets, err := netutil.ParseSubnets(
+	rawNets := []string{
 		"0.0.0.0/8",
 		"10.0.0.0/8",
 		"100.64.0.0/10",
@@ -254,59 +247,83 @@ func BenchmarkSliceSubnetSet_comparison(b *testing.B) {
 		"2002::/16",
 		"fc00::/7",
 		"fe80::/10",
-	)
-	require.NoError(b, err)
-	general := netutil.SliceSubnetSet(nets)
-
-	ips := []net.IP{
-		net.ParseIP("8.8.8.8"),
-		net.ParseIP("0.0.0.0"),
-		net.ParseIP("10.0.0.0"),
-		net.ParseIP("127.0.0.0"),
-		net.ParseIP("169.254.0.0"),
-		net.ParseIP("172.16.0.0"),
-		net.ParseIP("192.0.2.0"),
-		net.ParseIP("192.88.99.1"),
-		net.ParseIP("192.168.0.0"),
-		net.ParseIP("192.169.0.1"),
-		net.ParseIP("198.51.100.0"),
-		net.ParseIP("203.0.113.0"),
-		net.ParseIP("224.0.0.1"),
-		net.ParseIP("255.255.255.255"),
-		net.ParseIP("::2"),
-		net.ParseIP("::1"),
-		net.ParseIP("::"),
-		net.ParseIP("64:ff9b::1"),
-		net.ParseIP("64:ff9b:1::1"),
-		net.ParseIP("100::1"),
-		net.ParseIP("2001::1"),
-		net.ParseIP("2001::2"),
-		net.ParseIP("2001:1::1"),
-		net.ParseIP("2001:1::2"),
-		net.ParseIP("2001:2::10"),
-		net.ParseIP("2001:3::1"),
-		net.ParseIP("2001:4:112::1"),
-		net.ParseIP("2001:10::1"),
-		net.ParseIP("2001:20::1"),
-		net.ParseIP("2001:db8::1"),
-		net.ParseIP("2002::1"),
-		net.ParseIP("2620:4f:8000::"),
-		net.ParseIP("fd00::"),
-		net.ParseIP("fe80::12"),
 	}
-	ipsLen := len(ips)
+	nets := make([]netip.Prefix, 0, len(rawNets))
+	for _, s := range rawNets {
+		nets = append(nets, netip.MustParsePrefix(s))
+	}
+
+	rawIPs := []string{
+		"8.8.8.8",
+		"0.0.0.0",
+		"10.0.0.0",
+		"127.0.0.0",
+		"169.254.0.0",
+		"172.16.0.0",
+		"192.0.2.0",
+		"192.88.99.1",
+		"192.168.0.0",
+		"192.169.0.1",
+		"198.51.100.0",
+		"203.0.113.0",
+		"224.0.0.1",
+		"255.255.255.255",
+		"::2",
+		"::1",
+		"::",
+		"64:ff9b::1",
+		"64:ff9b:1::1",
+		"100::1",
+		"2001::1",
+		"2001::2",
+		"2001:1::1",
+		"2001:1::2",
+		"2001:2::10",
+		"2001:3::1",
+		"2001:4:112::1",
+		"2001:10::1",
+		"2001:20::1",
+		"2001:db8::1",
+		"2002::1",
+		"2620:4f:8000::",
+		"fd00::",
+		"fe80::12",
+	}
+	ipsLen := len(rawIPs)
+	ips := make([]netip.Addr, 0, ipsLen)
+	for _, s := range rawIPs {
+		ips = append(ips, netip.MustParseAddr(s))
+	}
+
+	general := netutil.SliceSubnetSet(nets)
+	optimized := netutil.SubnetSetFunc(netutil.IsSpecialPurpose)
 
 	b.Run("general_set", func(b *testing.B) {
+		b.ReportAllocs()
 		b.ResetTimer()
+
 		for i := 0; i < b.N; i++ {
 			boolSink = general.Contains(ips[i%ipsLen])
 		}
 	})
 
 	b.Run("optimized_set", func(b *testing.B) {
+		b.ReportAllocs()
 		b.ResetTimer()
+
 		for i := 0; i < b.N; i++ {
 			boolSink = optimized.Contains(ips[i%ipsLen])
 		}
 	})
+
+	// Most recent results, on a MBP 14 with Apple M1 Pro chip:
+	//
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	BenchmarkSliceSubnetSet_comparison
+	//	BenchmarkSliceSubnetSet_comparison/general_set
+	//	BenchmarkSliceSubnetSet_comparison/general_set-8         	12637309	        80.11 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSliceSubnetSet_comparison/optimized_set
+	//	BenchmarkSliceSubnetSet_comparison/optimized_set-8       	197142069	         6.049 ns/op	       0 B/op	       0 allocs/op
 }
