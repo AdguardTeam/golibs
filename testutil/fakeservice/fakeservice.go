@@ -1,0 +1,35 @@
+// Package fakeservice contains fake implementations of interfaces from package
+// service.
+//
+// It is recommended to fill all methods that shouldn't be called with:
+//
+//	panic("not implemented")
+//
+// in the body of the test, so that if the method is called the panic backtrace
+// points to the method definition in the test.
+package fakeservice
+
+import (
+	"context"
+
+	"github.com/AdguardTeam/golibs/service"
+)
+
+// Service is the [service.Interface] for tests.
+type Service struct {
+	OnStart    func(ctx context.Context) (err error)
+	OnShutdown func(ctx context.Context) (err error)
+}
+
+// type check
+var _ service.Interface = (*Service)(nil)
+
+// Start implements the [service.Interface] interface for *Service.
+func (s *Service) Start(ctx context.Context) (err error) {
+	return s.OnStart(ctx)
+}
+
+// Shutdown implements the [service.Interface] interface for *Service.
+func (s *Service) Shutdown(ctx context.Context) (err error) {
+	return s.OnShutdown(ctx)
+}
