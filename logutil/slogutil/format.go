@@ -7,16 +7,18 @@ type Format string
 
 // Valid formats.
 const (
-	FormatDefault    = "default"
-	FormatJSON       = "json"
-	FormatJSONHybrid = "jsonhybrid"
-	FormatText       = "text"
+	FormatAdGuardLegacy = "adguard_legacy"
+	FormatDefault       = "default"
+	FormatJSON          = "json"
+	FormatJSONHybrid    = "jsonhybrid"
+	FormatText          = "text"
 )
 
 // NewFormat returns a new valid format.
 func NewFormat(s string) (f Format, err error) {
 	switch s {
 	case
+		FormatAdGuardLegacy,
 		FormatDefault,
 		FormatJSON,
 		FormatJSONHybrid,

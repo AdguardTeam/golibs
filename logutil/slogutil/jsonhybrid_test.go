@@ -76,9 +76,6 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 	}
 }
 
-// errSink is a sink for benchmark results.
-var errSink error
-
 func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 	h := slogutil.NewJSONHybridHandler(io.Discard, nil)
 
@@ -98,9 +95,9 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 	require.NoError(b, errSink)
 
 	// Most recent results, on a ThinkPad X13 with a Ryzen Pro 7 CPU:
-	// goos: linux
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/logutil/slogutil
-	// cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	// BenchmarkJSONHybridHandler_Handle-16    	 1000000	      1281 ns/op	      48 B/op	       1 allocs/op
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkJSONHybridHandler_Handle-16       	 1035621	      1246 ns/op	      48 B/op	       1 allocs/op
 }

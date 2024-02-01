@@ -3,17 +3,12 @@
 package slogutil_test
 
 import (
-	"os"
-
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 )
 
 func ExampleNew_default() {
 	l := slogutil.New(&slogutil.Config{
-		Output:       os.Stdout,
-		Format:       slogutil.FormatDefault,
-		AddTimestamp: false,
-		Verbose:      true,
+		Verbose: true,
 	})
 
 	l.Info("test info")
@@ -26,10 +21,8 @@ func ExampleNew_default() {
 
 func ExampleNew_json() {
 	l := slogutil.New(&slogutil.Config{
-		Output:       os.Stdout,
-		Format:       slogutil.FormatJSON,
-		AddTimestamp: false,
-		Verbose:      true,
+		Format:  slogutil.FormatJSON,
+		Verbose: true,
 	})
 
 	l.Info("test info")
@@ -47,10 +40,8 @@ func ExampleNew_json() {
 
 func ExampleNew_text() {
 	l := slogutil.New(&slogutil.Config{
-		Output:       os.Stdout,
-		Format:       slogutil.FormatText,
-		AddTimestamp: false,
-		Verbose:      true,
+		Format:  slogutil.FormatText,
+		Verbose: true,
 	})
 
 	l.Info("test info")

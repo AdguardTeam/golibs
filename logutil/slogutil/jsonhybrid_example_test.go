@@ -9,22 +9,12 @@ import (
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 )
 
-// removeTime is a [slog.HandlerOptions.ReplaceAttr] function that removes the
-// "time" attribute.
-func removeTime(groups []string, a slog.Attr) (res slog.Attr) {
-	if len(groups) == 0 && a.Key == "time" {
-		return slog.Attr{}
-	}
-
-	return a
-}
-
 func ExampleJSONHybridHandler() {
 	h := slogutil.NewJSONHybridHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
 		Level:     slog.LevelDebug,
-		// Use removeTime to make the example reproducible.
-		ReplaceAttr: removeTime,
+		// Use slogutil.RemoveTime to make the example reproducible.
+		ReplaceAttr: slogutil.RemoveTime,
 	})
 	l := slog.New(h)
 
