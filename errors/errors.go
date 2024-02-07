@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+// ErrUnsupported indicates that a requested operation cannot be performed,
+// because it is unsupported.  For example, a call to os.Link when using a file
+// system that does not support hard links.
+var ErrUnsupported = stderrors.ErrUnsupported
+
 // Error is the constant error type.
 //
 // See https://dave.cheney.net/2016/04/07/constant-errors.
@@ -199,7 +204,7 @@ type listError struct {
 
 // List wraps several errors into a single error with an additional message.
 //
-// TODO(a.garipov): Deprecate once golibs switches to Go 1.20.
+// Deprecated: Use [errors.Join] instead.
 func List(msg string, errs ...error) (err error) {
 	return &listError{
 		msg:  msg,

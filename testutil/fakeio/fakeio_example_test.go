@@ -3,9 +3,9 @@ package fakeio_test
 import (
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/AdguardTeam/golibs/testutil/fakeio"
-	"golang.org/x/exp/slices"
 )
 
 func Example() {

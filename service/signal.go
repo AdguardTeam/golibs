@@ -1,4 +1,4 @@
-//go:build go1.21 && unix
+//go:build unix
 
 package service
 
@@ -14,6 +14,8 @@ import (
 )
 
 // SignalHandler processes incoming signals and shuts services down.
+//
+// TODO(a.garipov): Expand to Windows.
 type SignalHandler struct {
 	logger          *slog.Logger
 	signal          chan os.Signal

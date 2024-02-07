@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/AdguardTeam/golibs/errors"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // unit is a convenient type alias for empty struct.

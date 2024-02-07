@@ -2,8 +2,7 @@ package netutil
 
 import (
 	"net"
-
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // IP Address Constants And Utilities

@@ -3,8 +3,6 @@ package ioutil
 import (
 	"fmt"
 	"io"
-
-	"github.com/AdguardTeam/golibs/mathutil"
 )
 
 // LimitError is returned when the Limit is reached.
@@ -39,8 +37,7 @@ func (lr *limitedReader) Read(p []byte) (n int, err error) {
 		}
 	}
 
-	// TODO(a.garipov): Use the builtin in Go 1.21.
-	l := mathutil.Min(uint64(len(p)), lr.n)
+	l := min(uint64(len(p)), lr.n)
 	p = p[:l]
 
 	n, err = lr.r.Read(p)

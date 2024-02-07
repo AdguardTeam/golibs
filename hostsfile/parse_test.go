@@ -84,7 +84,7 @@ func TestParse(t *testing.T) {
 			Addr:  testIPv4,
 			Names: []string{"host1", "host2"},
 		}},
-		wantErrMsg: `parsing: 2 errors: "line 1: line is empty", "line 2: line is empty"`,
+		wantErrMsg: "parsing: line 1: line is empty\nline 2: line is empty",
 	}, {
 		name: "two_records",
 		source: strings.NewReader(`

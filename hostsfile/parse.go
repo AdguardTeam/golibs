@@ -50,10 +50,5 @@ func Parse(dst Set, src io.Reader, buf []byte) (err error) {
 		return fmt.Errorf("scanning: %w", err)
 	}
 
-	if len(errs) > 0 {
-		// Use [errors.Join] when golibs will be updated to go1.20.
-		return errors.List("parsing", errs...)
-	}
-
-	return nil
+	return errors.Annotate(errors.Join(errs...), "parsing: %w")
 }

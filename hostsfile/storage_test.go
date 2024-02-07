@@ -3,6 +3,7 @@ package hostsfile_test
 import (
 	"net/netip"
 	"path"
+	"slices"
 	"strings"
 	"testing"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 func TestDefaultStorage_lookup(t *testing.T) {

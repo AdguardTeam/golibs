@@ -1,5 +1,3 @@
-//go:build go1.21
-
 package slogutil
 
 // Format represents an acceptable format of logs.

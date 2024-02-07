@@ -5,7 +5,11 @@
     'key': 'LIBS'
     'name': 'golibs'
 'variables':
-    'dockerGo': 'adguard/golang-ubuntu:7.6'
+    # When there is a patch release of Go available, set this property to an
+    # exact patch version as opposed to a minor one to make sure that this exact
+    # version is actually used and not whatever the docker daemon on the CI has
+    # cached a few months ago.
+    'dockerGo': 'golang:1.21.7'
 
 'stages':
   - 'Test':
@@ -52,5 +56,6 @@
             'url': 'http://prod.jirahub.service.eu.consul/v1/webhook/bamboo'
 
 'labels': []
+
 'other':
     'concurrent-build-plugin': 'system-default'

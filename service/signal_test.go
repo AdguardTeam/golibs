@@ -1,4 +1,4 @@
-//go:build go1.21 && unix
+//go:build unix
 
 package service_test
 

@@ -1,6 +1,6 @@
 module github.com/AdguardTeam/golibs/internal/tools
 
-go 1.20
+go 1.21.7
 
 require (
 	github.com/fzipp/gocyclo v0.6.0
@@ -12,7 +12,7 @@ require (
 	github.com/uudashr/gocognit v1.1.2
 	golang.org/x/tools v0.17.0
 	golang.org/x/vuln v1.0.3
-	honnef.co/go/tools v0.5.0-0.dev.0.20230709092525-bc759185c5ee
+	honnef.co/go/tools v0.4.6
 	mvdan.cc/gofumpt v0.6.0
 	mvdan.cc/unparam v0.0.0-20240104100049-c549a3470d14
 )
@@ -26,8 +26,8 @@ require (
 	github.com/kyoh86/nolint v0.0.1 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/exp v0.0.0-20230307190834-24139beb5833 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20240119083558-1b970713d09a // indirect
-	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20240205201215-2c58cdc269a3 // indirect
+	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

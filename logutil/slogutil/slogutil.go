@@ -1,5 +1,3 @@
-//go:build go1.21
-
 // Package slogutil contains extensions and utilities for package log/slog from
 // the standard library.
 package slogutil

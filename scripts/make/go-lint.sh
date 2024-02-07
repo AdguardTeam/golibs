@@ -30,33 +30,6 @@ set -f -u
 
 
 
-# Warnings
-
-go_version="$( "${GO:-go}" version )"
-readonly go_version
-
-go_min_version='go1.20.13'
-go_version_msg="
-warning: your go version (${go_version}) is different from the recommended minimal one (${go_min_version}).
-if you have the version installed, please set the GO environment variable.
-for example:
-
-	export GO='${go_min_version}'
-"
-readonly go_min_version go_version_msg
-
-case "$go_version"
-in
-('go version'*"$go_min_version"*)
-	# Go on.
-	;;
-(*)
-	echo "$go_version_msg" 1>&2
-	;;
-esac
-
-
-
 # Simple analyzers
 
 # blocklist_imports is a simple check against unwanted packages.  The following
@@ -74,9 +47,11 @@ esac
 #
 #      See https://github.com/golang/go/issues/45200.
 #
-#   *  Package sort is replaced by golang.org/x/exp/slices.
+#   *  Package sort is replaced by package slices.
 #
 #   *  Package unsafe is… unsafe.
+#
+#   *  Package golang.org/x/exp/slices has been moved into stdlib.
 #
 #   *  Package golang.org/x/net/context has been moved into stdlib.
 #
@@ -84,8 +59,8 @@ esac
 # schemas, which use package reflect.  If your project needs more exceptions,
 # add and document them.
 #
-# TODO(a.garipov): Add deprecated packages golang.org/x/exp/maps and
-# golang.org/x/exp/slices once all projects switch to Go 1.21.
+# TODO(a.garipov): Add deprecated package golang.org/x/exp/maps once all
+# projects switch to Go 1.22.
 blocklist_imports() {
 	# TODO(e.burkov):  These are temporary exclusions for some packages.
 	git grep\
@@ -102,7 +77,6 @@ blocklist_imports() {
 		-n\
 		-- '*.go'\
 		':!errors/errors.go'\
-		':!errors/errors_go1.21.go'\
 		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
 		|| exit 0
 
@@ -128,6 +102,7 @@ blocklist_imports() {
 	git grep\
 		-e '[[:space:]]"io/ioutil"$'\
 		-e '[[:space:]]"sort"$'\
+		-e '[[:space:]]"golang.org/x/exp/slices"$'\
 		-e '[[:space:]]"golang.org/x/net/context"$'\
 		-n\
 		-- '*.go'\
@@ -165,7 +140,6 @@ underscores() {
 			-e '_unix.go'\
 			-e '_windows.go'\
 			-e '_others.go'\
-			-e '_go1.21.go'\
 			-v\
 			| sed -e 's/./\t\0/'
 	)"
@@ -225,7 +199,9 @@ run_linter fieldalignment\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
+	./osutil/\
 	./pprofutil/\
+	./service/\
 	./stringutil/\
 	./syncutil/\
 	./testutil/...\
@@ -244,7 +220,9 @@ run_linter gosec --quiet\
 	./mapsutil/\
 	./mathutil/\
 	./netutil/...\
+	./osutil/\
 	./pprofutil/\
+	./service/\
 	./stringutil/\
 	./syncutil/\
 	./testutil/...\

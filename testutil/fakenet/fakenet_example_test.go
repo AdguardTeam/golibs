@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"slices"
 
 	"github.com/AdguardTeam/golibs/testutil/fakenet"
-	"golang.org/x/exp/slices"
 )
 
 func Example() {

@@ -5,10 +5,10 @@ import (
 	"encoding"
 	"fmt"
 	"net/netip"
+	"slices"
 	"strings"
 
 	"github.com/AdguardTeam/golibs/netutil"
-	"golang.org/x/exp/slices"
 )
 
 // Record represents a single hosts file record.
