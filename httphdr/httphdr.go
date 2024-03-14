@@ -152,8 +152,9 @@ const (
 // Common extension headers.
 const (
 	AdminToken   = "Admin-Token"
-	TrueClientIP = "True-Client-IP"
+	TrueClientIP = "True-Client-Ip"
 
+	XConnectingIP   = "X-Connecting-Ip"
 	XError          = "X-Error"
 	XForwardedFor   = "X-Forwarded-For"
 	XForwardedHost  = "X-Forwarded-Host"
