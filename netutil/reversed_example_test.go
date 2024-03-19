@@ -85,3 +85,26 @@ func ExamplePrefixFromReversedAddr_domainOnly() {
 	//
 	// bad arpa domain name "in-addr.arpa": not a reversed ip network
 }
+
+func ExampleExtractReversedAddr() {
+	fmt.Println(netutil.ExtractReversedAddr(ipv4RevGood))
+	fmt.Println(netutil.ExtractReversedAddr(ipv4NetRevGood))
+	fmt.Println(netutil.ExtractReversedAddr("abc." + ipv4RevGood))
+	fmt.Println(netutil.PrefixFromReversedAddr(ipv4Missing))
+
+	fmt.Println(netutil.ExtractReversedAddr(ipv6RevGood))
+	fmt.Println(netutil.ExtractReversedAddr(ipv6NetRevGood))
+	fmt.Println(netutil.ExtractReversedAddr("abc." + ipv6RevGood))
+	fmt.Println(netutil.PrefixFromReversedAddr(ipv6RevCharHi))
+
+	// Output:
+	//
+	// 1.2.3.4/32 <nil>
+	// 10.0.0.0/8 <nil>
+	// 1.2.3.4/32 <nil>
+	// invalid Prefix bad arpa domain name ".0.0.127.in-addr.arpa": bad domain name label "": domain name label is empty
+	// 1234::cdef/128 <nil>
+	// 1234::1000:0:0:0/68 <nil>
+	// 1234::cdef/128 <nil>
+	// invalid Prefix bad arpa domain name "4.3.2.1.d.c.b.a.0.z.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa": bad arpa domain name rune 'z'
+}

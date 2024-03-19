@@ -49,6 +49,14 @@ const (
 	ipv6NetRevChar = `z.` + ipv6RevGoodSuffix
 )
 
+var (
+	testIPv4Pref     = netip.PrefixFrom(testIPv4Addr, testIPv4Addr.BitLen())
+	testIPv4PartPref = netip.MustParsePrefix("10.0.0.0/8")
+
+	testIPv6Pref     = netip.PrefixFrom(testIPv6Addr, testIPv6Addr.BitLen())
+	testIPv6PartPref = netip.MustParsePrefix("1234::/64")
+)
+
 func TestIPFromReversedAddr(t *testing.T) {
 	t.Parallel()
 
@@ -297,7 +305,7 @@ func TestPrefixFromReversedAddr(t *testing.T) {
 		in:         "0." + ipv4NetRevGood,
 		name:       "good_ipv4_subnet_leading_zero",
 	}, {
-		want:       netip.MustParsePrefix("10.0.0.0/8"),
+		want:       testIPv4PartPref,
 		wantErrAs:  nil,
 		wantErrMsg: "",
 		in:         ipv4NetRevGood,
@@ -475,6 +483,129 @@ func TestPrefixFromReversedAddr(t *testing.T) {
 				assert.ErrorAs(t, err, new(*netutil.AddrError))
 				assert.ErrorAs(t, err, tc.wantErrAs)
 			}
+		})
+	}
+}
+
+func TestExtractReversedAddr(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want    netip.Prefix
+		name    string
+		domain  string
+		wantErr string
+	}{{
+		want:   netip.Prefix{},
+		name:   "not_an_arpa",
+		domain: "some.domain.name.",
+		wantErr: `bad arpa domain name "some.domain.name": ` +
+			`not a reversed ip network`,
+	}, {
+		want:   netip.Prefix{},
+		name:   "bad_domain_name",
+		domain: "abc.123.",
+		wantErr: `bad arpa domain name "abc.123": ` +
+			`bad top-level domain name label "123": all octets are numeric`,
+	}, {
+		want:    testIPv4Pref,
+		name:    "whole_v4",
+		domain:  ipv4RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4PartPref,
+		name:    "partial_v4",
+		domain:  ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4Pref,
+		name:    "whole_v4_within_domain",
+		domain:  "a." + ipv4RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4Pref,
+		name:    "whole_v4_additional_label",
+		domain:  "5." + ipv4RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4PartPref,
+		name:    "partial_v4_within_domain",
+		domain:  "a." + ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4PartPref,
+		name:    "overflow_v4",
+		domain:  "256." + ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv4PartPref,
+		name:    "overflow_v4_within_domain",
+		domain:  "a.256." + ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:   netip.Prefix{},
+		name:   "empty_v4",
+		domain: ipv4Suffix[1:],
+		wantErr: `bad arpa domain name "in-addr.arpa": ` +
+			`not a reversed ip network`,
+	}, {
+		want:   netip.Prefix{},
+		name:   "empty_v4_within_domain",
+		domain: "a" + ipv4Suffix,
+		wantErr: `bad arpa domain name "in-addr.arpa": ` +
+			`not a reversed ip network`,
+	}, {
+		want:    testIPv6Pref,
+		name:    "whole_v6",
+		domain:  ipv6RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv6PartPref,
+		name:    "partial_v6",
+		domain:  ipv6RevGoodSuffix,
+		wantErr: "",
+	}, {
+		want:    testIPv6Pref,
+		name:    "whole_v6_within_domain",
+		domain:  "g." + ipv6RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv6Pref,
+		name:    "whole_v6_additional_label",
+		domain:  "1." + ipv6RevGood,
+		wantErr: "",
+	}, {
+		want:    testIPv6PartPref,
+		name:    "partial_v6_within_domain",
+		domain:  "l." + ipv6RevGoodSuffix,
+		wantErr: "",
+	}, {
+		want:    netip.Prefix{},
+		name:    "empty_v6",
+		domain:  ipv6Suffix[1:],
+		wantErr: `bad arpa domain name "ip6.arpa": not a reversed ip network`,
+	}, {
+		want:    netip.Prefix{},
+		name:    "empty_v6_within_domain",
+		domain:  "g" + ipv6Suffix,
+		wantErr: `bad arpa domain name "ip6.arpa": not a reversed ip network`,
+	}}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			subnet, err := netutil.ExtractReversedAddr(tc.domain)
+			if tc.wantErr != "" {
+				assert.ErrorAs(t, err, new(*netutil.AddrError))
+				assert.EqualError(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.want, subnet)
 		})
 	}
 }

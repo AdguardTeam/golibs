@@ -290,13 +290,14 @@ func ipv6NetFromReversed(arpa string) (pref netip.Prefix, err error) {
 
 // subnetFromReversedV4 tries to convert arpa to a CIDR prefix.  It expects
 // arpa to be a valid domain name in a lower case.
-func subnetFromReversedV4(arpa string) (subnet netip.Prefix, rErr error) {
+func subnetFromReversedV4(arpa string) (subnet netip.Prefix, err error) {
 	arpa = arpa[:len(arpa)-len(arpaV4Suffix)]
 
 	if dots := strings.Count(arpa, "."); dots > 3 {
 		return netip.Prefix{}, ErrNotAReversedSubnet
 	} else if dots == 3 {
-		addr, err := ipv4FromReversed(arpa)
+		var addr netip.Addr
+		addr, err = ipv4FromReversed(arpa)
 		if err != nil {
 			// Don't wrap the error, since it's already informative enough as is.
 			return netip.Prefix{}, err
@@ -310,9 +311,10 @@ func subnetFromReversedV4(arpa string) (subnet netip.Prefix, rErr error) {
 
 // subnetFromReversedV6 tries to convert arpa a CIDR prefix.  It expects
 // arpa to be a valid domain name in a lower case.
-func subnetFromReversedV6(arpa string) (subnet netip.Prefix, rErr error) {
+func subnetFromReversedV6(arpa string) (subnet netip.Prefix, err error) {
 	if l := len(arpa); l == arpaV6MaxLen {
-		addr, err := ipv6FromReversed(arpa)
+		var addr netip.Addr
+		addr, err = ipv6FromReversed(arpa)
 		if err != nil {
 			// Don't wrap the error, since it's already informative enough as is.
 			return netip.Prefix{}, err
@@ -348,12 +350,84 @@ func PrefixFromReversedAddr(arpa string) (p netip.Prefix, err error) {
 	// TODO(a.garipov): Add stringutil.HasSuffixFold and remove this.
 	arpa = strings.ToLower(arpa)
 
-	if strings.HasSuffix(arpa, arpaV4Suffix) {
+	switch {
+	case strings.HasSuffix(arpa, arpaV4Suffix):
 		return subnetFromReversedV4(arpa)
+	case strings.HasSuffix(arpa, arpaV6Suffix):
+		return subnetFromReversedV6(arpa)
+	default:
+		return netip.Prefix{}, ErrNotAReversedSubnet
+	}
+}
+
+// indexFirstV4Label returns the index at which the reversed IPv4 address starts
+// within domain, assuming domain itself is a valid ARPA IPv4 domain name.
+func indexFirstV4Label(domain string) (idx int) {
+	idx = len(domain) - len(arpaV4Suffix) + 1
+	for labelsNum := 0; labelsNum < net.IPv4len && idx > 0; labelsNum++ {
+		curIdx := strings.LastIndexByte(domain[:idx-1], '.') + 1
+		_, parseErr := strconv.ParseUint(domain[curIdx:idx-1], 10, 8)
+		if parseErr != nil {
+			return idx
+		}
+
+		idx = curIdx
 	}
 
-	if strings.HasSuffix(arpa, arpaV6Suffix) {
-		return subnetFromReversedV6(arpa)
+	return idx
+}
+
+// indexFirstV6Label returns the index at which the reversed IPv6 address starts
+// within domain, assuming domain itself is a valid ARPA IPv6 domain name.
+func indexFirstV6Label(domain string) (idx int) {
+	idx = len(domain) - len(arpaV6Suffix) + 1
+	for labelsNum := 0; labelsNum < net.IPv6len*2 && idx > 0; labelsNum++ {
+		curIdx := idx - len("a.")
+		if curIdx > 1 && domain[curIdx-1] != '.' || fromHexByte(domain[curIdx]) == 0xff {
+			return idx
+		}
+
+		idx = curIdx
+	}
+
+	return idx
+}
+
+// ExtractReversedAddr searches for an ARPA subdomain within domain and returns
+// the encoded prefix.  It returns [ErrNotAReversedSubnet] if domain contains no
+// valid ARPA subdomain.  domain can be a domain name or an FQDN.  The returned
+// error will have the underlying type of [*AddrError].
+func ExtractReversedAddr(domain string) (pref netip.Prefix, err error) {
+	domain = strings.TrimSuffix(domain, ".")
+	err = ValidateDomainName(domain)
+	if err != nil {
+		replaceKind(err, AddrKindARPA)
+
+		// Don't wrap the error since it's informative enough as is.
+		return netip.Prefix{}, err
+	}
+
+	domain = strings.ToLower(domain)
+	// Wrap the deferred function to capture the actual value of domain.
+	defer func() { makeAddrError(&err, domain, AddrKindARPA) }()
+
+	switch {
+	case strings.HasSuffix(domain, arpaV4Suffix):
+		idx := indexFirstV4Label(domain)
+
+		domain = domain[idx:]
+		if len(domain) > len(arpaV4Suffix) {
+			return subnetFromReversedV4(domain)
+		}
+	case strings.HasSuffix(domain, arpaV6Suffix):
+		idx := indexFirstV6Label(domain)
+
+		domain = domain[idx:]
+		if len(domain) > len(arpaV6Suffix) {
+			return subnetFromReversedV6(domain)
+		}
+	default:
+		// Go on.
 	}
 
 	return netip.Prefix{}, ErrNotAReversedSubnet
