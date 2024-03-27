@@ -7,33 +7,10 @@ import (
 	"unicode/utf8"
 )
 
-// AllUnique returns true if all items of strs are unique.
-func AllUnique(strs []string) (ok bool) {
-	set := NewSet()
-	for _, s := range strs {
-		if set.Has(s) {
-			return false
-		}
-
-		set.Add(s)
-	}
-
-	return true
-}
-
 // CloneSliceOrEmpty returns the copy of strs or empty strings slice if strs is
 // a nil slice.
 func CloneSliceOrEmpty(strs []string) (clone []string) {
 	return append([]string{}, strs...)
-}
-
-// CloneSlice returns the exact copy of strs.
-func CloneSlice(strs []string) (clone []string) {
-	if strs == nil {
-		return nil
-	}
-
-	return CloneSliceOrEmpty(strs)
 }
 
 // Coalesce returns the first non-empty string.  It is named after the function
@@ -89,17 +66,6 @@ func FilterOut(strs []string, f func(s string) (ok bool)) (filtered []string) {
 	}
 
 	return filtered
-}
-
-// InSlice checks if strs contains str.
-func InSlice(strs []string, str string) (ok bool) {
-	for _, s := range strs {
-		if s == str {
-			return true
-		}
-	}
-
-	return false
 }
 
 // SplitTrimmed slices str into all substrings separated by sep and returns

@@ -1,6 +1,8 @@
 // Package httphdr contains the names of HTTP headers.
 //
 // Please keep the values in their canonical form.
+//
+// TODO(a.garipov): Tests for that.
 package httphdr
 
 // Common standard headers for authentication.
@@ -154,16 +156,17 @@ const (
 	AdminToken   = "Admin-Token"
 	TrueClientIP = "True-Client-Ip"
 
-	XConnectingIP   = "X-Connecting-Ip"
-	XError          = "X-Error"
-	XForwardedFor   = "X-Forwarded-For"
-	XForwardedHost  = "X-Forwarded-Host"
-	XForwardedProto = "X-Forwarded-Proto"
-	XProjectName    = "X-Project-Name"
-	XProxyTarget    = "X-Proxy-Target"
-	XRealIP         = "X-Real-Ip"
-	XRequestID      = "X-Request-Id"
-	XRequestedWith  = "X-Requested-With"
+	XConnectingIP       = "X-Connecting-Ip"
+	XContentTypeOptions = "X-Content-Type-Options"
+	XError              = "X-Error"
+	XForwardedFor       = "X-Forwarded-For"
+	XForwardedHost      = "X-Forwarded-Host"
+	XForwardedProto     = "X-Forwarded-Proto"
+	XProjectName        = "X-Project-Name"
+	XProxyTarget        = "X-Proxy-Target"
+	XRealIP             = "X-Real-Ip"
+	XRequestID          = "X-Request-Id"
+	XRequestedWith      = "X-Requested-With"
 )
 
 // Common Cloudflare extension headers.

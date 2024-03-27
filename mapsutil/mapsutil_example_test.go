@@ -6,7 +6,7 @@ import (
 	"github.com/AdguardTeam/golibs/mapsutil"
 )
 
-func ExampleOrderedRange() {
+func ExampleSortedRange() {
 	m := map[string]int{
 		"b": 200,
 		"a": 100,
@@ -14,7 +14,7 @@ func ExampleOrderedRange() {
 		"d": 400,
 	}
 
-	mapsutil.OrderedRange(m, func(k string, v int) (cont bool) {
+	mapsutil.SortedRange(m, func(k string, v int) (cont bool) {
 		fmt.Printf("value for %q is %d\n", k, v)
 
 		// Do not print any values after "c".
@@ -27,7 +27,7 @@ func ExampleOrderedRange() {
 	// value for "c" is 300
 }
 
-func ExampleOrderedRangeError() {
+func ExampleSortedRangeError() {
 	checkKey := func(k string, v int) (err error) {
 		if k == "x" {
 			return fmt.Errorf("bad key: %q", k)
@@ -38,7 +38,7 @@ func ExampleOrderedRangeError() {
 		return nil
 	}
 
-	err := mapsutil.OrderedRangeError(
+	err := mapsutil.SortedRangeError(
 		map[string]int{
 			"b": 200,
 			"a": 100,
@@ -49,7 +49,7 @@ func ExampleOrderedRangeError() {
 
 	fmt.Println(err)
 
-	err = mapsutil.OrderedRangeError(
+	err = mapsutil.SortedRangeError(
 		map[string]int{
 			"x": 0,
 		},

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/AdguardTeam/golibs/container"
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/log"
 )
@@ -20,25 +21,17 @@ type Storage interface {
 	ByName(name string) (addrs []netip.Addr)
 }
 
-// unit is a convenient alias for empty struct.
-type unit = struct{}
-
-// set is a helper type that removes duplicates.
-//
-// TODO(e.burkov):  Think of using slices in combination with binary search.
-type set[K string | netip.Addr] map[K]unit
-
 // orderedSet is a helper type for storing values in original adding order and
 // dealing with duplicates.
 type orderedSet[K string | netip.Addr] struct {
-	set  set[K]
+	set  *container.MapSet[K]
 	vals []K
 }
 
 // add adds val to os if it's not already there.
 func (os *orderedSet[K]) add(key, val K) {
-	if _, ok := os.set[key]; !ok {
-		os.set[key] = unit{}
+	if !os.set.Has(key) {
+		os.set.Add(key)
 		os.vals = append(os.vals, val)
 	}
 }
@@ -89,7 +82,10 @@ var _ HandleSet = (*DefaultStorage)(nil)
 func (s *DefaultStorage) Add(rec *Record) {
 	names := s.names[rec.Addr]
 	if names == nil {
-		names = &namesSet{set: set[string]{}}
+		names = &namesSet{
+			set: container.NewMapSet[string](),
+		}
+
 		s.names[rec.Addr] = names
 	}
 
@@ -101,7 +97,7 @@ func (s *DefaultStorage) Add(rec *Record) {
 		if addrs == nil {
 			addrs = &addrsSet{
 				vals: []netip.Addr{},
-				set:  set[netip.Addr]{},
+				set:  container.NewMapSet[netip.Addr](),
 			}
 			s.addrs[lowered] = addrs
 		}

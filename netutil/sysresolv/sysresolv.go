@@ -12,12 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AdguardTeam/golibs/container"
 	"github.com/AdguardTeam/golibs/errors"
-	"golang.org/x/exp/maps"
 )
-
-// unit is a convenient type alias for empty struct.
-type unit = struct{}
 
 // HostGenFunc is a function used for generating hostnames to check the system
 // DNS.  The generated hosts should be unique to avoid resolver's cache.
@@ -91,7 +88,7 @@ func (sr *SystemResolvers) Refresh() (err error) {
 		return err
 	}
 
-	addrs := maps.Keys(set)
+	addrs := set.Values()
 	slices.SortFunc(addrs, compareAddrPorts)
 
 	sr.updMu.Lock()
@@ -118,9 +115,9 @@ func compareAddrPorts(a, b netip.AddrPort) (res int) {
 }
 
 // collectResolvers returns the set of resolvers' addresses used by the system.
-func (sr *SystemResolvers) collectResolvers() (set map[netip.AddrPort]unit, err error) {
+func (sr *SystemResolvers) collectResolvers() (set *container.MapSet[netip.AddrPort], err error) {
 	setMu := sync.Mutex{}
-	set = map[netip.AddrPort]unit{}
+	set = container.NewMapSet[netip.AddrPort]()
 
 	dialFunc := func(_ context.Context, _, address string) (_ net.Conn, err error) {
 		addrPort, err := sr.parse(address)
@@ -131,7 +128,7 @@ func (sr *SystemResolvers) collectResolvers() (set map[netip.AddrPort]unit, err 
 		setMu.Lock()
 		defer setMu.Unlock()
 
-		set[addrPort] = unit{}
+		set.Add(addrPort)
 
 		return nil, errFakeDial
 	}
