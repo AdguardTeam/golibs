@@ -7,19 +7,22 @@ import (
 	"github.com/AdguardTeam/golibs/netutil"
 )
 
-func ExampleIPFromReversedAddr() {
-	ip, err := netutil.IPFromReversedAddr("4.3.2.1.in-addr.arpa")
+// check is a helper function for examples that panics on error.
+func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func ExampleIPFromReversedAddr() {
+	ip, err := netutil.IPFromReversedAddr("4.3.2.1.in-addr.arpa")
+	check(err)
 
 	fmt.Println(ip)
 
 	a := `4.3.2.1.d.c.b.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa`
 	ip, err = netutil.IPFromReversedAddr(a)
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	fmt.Println(ip)
 
@@ -31,17 +34,13 @@ func ExampleIPFromReversedAddr() {
 
 func ExampleIPToReversedAddr() {
 	arpa, err := netutil.IPToReversedAddr(net.IP{1, 2, 3, 4})
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	fmt.Println(arpa)
 
 	ip := net.ParseIP("::abcd:1234")
 	arpa, err = netutil.IPToReversedAddr(ip)
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	fmt.Println(arpa)
 
@@ -52,59 +51,61 @@ func ExampleIPToReversedAddr() {
 }
 
 func ExamplePrefixFromReversedAddr() {
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv4RevGood))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv4NetRevGood))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv6RevGood))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv6NetRevGood))
+	pref, err := netutil.PrefixFromReversedAddr("10.in-addr.arpa")
+	check(err)
 
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv4Missing))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv4Char))
+	fmt.Println(pref)
 
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv6RevMany))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv6RevCharHi))
+	pref, err = netutil.PrefixFromReversedAddr("1.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa")
+	check(err)
 
-	// Output:
-	//
-	// 1.2.3.4/32 <nil>
-	// 10.0.0.0/8 <nil>
-	// 1234::cdef/128 <nil>
-	// 1234::1000:0:0:0/68 <nil>
-	// invalid Prefix bad arpa domain name ".0.0.127.in-addr.arpa": bad domain name label "": domain name label is empty
-	// invalid Prefix bad arpa domain name "1.0.z.127.in-addr.arpa": ParseAddr("1.0.z.127"): unexpected character (at "z.127")
-	// invalid Prefix bad arpa domain name "4.3.2.1.dbc.b.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa": not a full reversed ip address
-	// invalid Prefix bad arpa domain name "4.3.2.1.d.c.b.a.0.z.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa": bad arpa domain name rune 'z'
-}
+	fmt.Println(pref)
 
-func ExamplePrefixFromReversedAddr_domainOnly() {
-	a := `in-addr.arpa`
-	_, err := netutil.PrefixFromReversedAddr(a)
+	pref, err = netutil.PrefixFromReversedAddr("in-addr.arpa")
+	check(err)
 
-	fmt.Println(err)
+	fmt.Println(pref)
+
+	pref, err = netutil.PrefixFromReversedAddr("ip6.arpa")
+	check(err)
+
+	fmt.Println(pref)
 
 	// Output:
 	//
-	// bad arpa domain name "in-addr.arpa": not a reversed ip network
+	// 10.0.0.0/8
+	// 1234::1000:0:0:0/68
+	// 0.0.0.0/0
+	// ::/0
 }
 
 func ExampleExtractReversedAddr() {
-	fmt.Println(netutil.ExtractReversedAddr(ipv4RevGood))
-	fmt.Println(netutil.ExtractReversedAddr(ipv4NetRevGood))
-	fmt.Println(netutil.ExtractReversedAddr("abc." + ipv4RevGood))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv4Missing))
+	pref, err := netutil.ExtractReversedAddr("_some-srv.10.in-addr.arpa")
+	check(err)
 
-	fmt.Println(netutil.ExtractReversedAddr(ipv6RevGood))
-	fmt.Println(netutil.ExtractReversedAddr(ipv6NetRevGood))
-	fmt.Println(netutil.ExtractReversedAddr("abc." + ipv6RevGood))
-	fmt.Println(netutil.PrefixFromReversedAddr(ipv6RevCharHi))
+	fmt.Println(pref)
+
+	pref, err = netutil.ExtractReversedAddr("_some-srv.1.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa")
+	check(err)
+
+	fmt.Println(pref)
+
+	pref, err = netutil.ExtractReversedAddr("_some-srv.in-addr.arpa")
+	check(err)
+
+	fmt.Println(pref)
+
+	pref, err = netutil.ExtractReversedAddr("_some-srv.ip6.arpa")
+	check(err)
+
+	fmt.Println(pref)
+
+	// fmt.Println(pref)
 
 	// Output:
 	//
-	// 1.2.3.4/32 <nil>
-	// 10.0.0.0/8 <nil>
-	// 1.2.3.4/32 <nil>
-	// invalid Prefix bad arpa domain name ".0.0.127.in-addr.arpa": bad domain name label "": domain name label is empty
-	// 1234::cdef/128 <nil>
-	// 1234::1000:0:0:0/68 <nil>
-	// 1234::cdef/128 <nil>
-	// invalid Prefix bad arpa domain name "4.3.2.1.d.c.b.a.0.z.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.3.2.1.ip6.arpa": bad arpa domain name rune 'z'
+	// 10.0.0.0/8
+	// 1234::1000:0:0:0/68
+	// 0.0.0.0/0
+	// ::/0
 }

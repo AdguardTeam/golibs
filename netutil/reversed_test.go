@@ -49,12 +49,18 @@ const (
 	ipv6NetRevChar = `z.` + ipv6RevGoodSuffix
 )
 
+const nonARPADomain = "valid.domain.example"
+
 var (
 	testIPv4Pref     = netip.PrefixFrom(testIPv4Addr, testIPv4Addr.BitLen())
 	testIPv4PartPref = netip.MustParsePrefix("10.0.0.0/8")
 
+	emptyV4Pref = netip.PrefixFrom(netip.IPv4Unspecified(), 0)
+
 	testIPv6Pref     = netip.PrefixFrom(testIPv6Addr, testIPv6Addr.BitLen())
 	testIPv6PartPref = netip.MustParsePrefix("1234::/64")
+
+	emptyV6Pref = netip.PrefixFrom(netip.IPv6Unspecified(), 0)
 )
 
 func TestIPFromReversedAddr(t *testing.T) {
@@ -96,6 +102,13 @@ func TestIPFromReversedAddr(t *testing.T) {
 		in:   ipv4Char,
 		wantErrMsg: `bad arpa domain name "` + ipv4Char + `": ` +
 			`ParseAddr("1.0.z.127"): unexpected character (at "z.127")`,
+		wantErrAs: new(*netutil.AddrError),
+		want:      netip.Addr{},
+	}, {
+		name: "ipv6_arpa_v4",
+		in:   testIPv6Addr.String() + ipv4Suffix,
+		wantErrMsg: `bad arpa domain name "` + testIPv6Addr.String() +
+			ipv4Suffix + `": bad ipv4 address "` + testIPv6Addr.String() + `"`,
 		wantErrAs: new(*netutil.AddrError),
 		want:      netip.Addr{},
 	}, {
@@ -166,11 +179,25 @@ func TestIPFromReversedAddr(t *testing.T) {
 		wantErrAs: new(*netutil.RuneError),
 		want:      netip.Addr{},
 	}, {
+		name: "ipv4_arpa_v6",
+		in:   testIPv4Addr.String() + ipv6Suffix,
+		wantErrMsg: `bad arpa domain name "` + testIPv4Addr.String() +
+			ipv6Suffix + `": bad arpa domain name length 16, allowed: 72`,
+		wantErrAs: new(*netutil.AddrError),
+		want:      netip.Addr{},
+	}, {
 		name: "not_a_reversed_ip",
 		in:   testIPv4.String(),
 		wantErrMsg: `bad arpa domain name "` + testIPv4.String() + `": ` +
 			`bad top-level domain name label "4": all octets are numeric`,
 		wantErrAs: new(errors.Error),
+		want:      netip.Addr{},
+	}, {
+		name: "not_arpa",
+		in:   nonARPADomain,
+		wantErrMsg: `bad arpa domain name "` + nonARPADomain + `": ` +
+			`not a full reversed ip address`,
+		wantErrAs: new(*netutil.AddrError),
 		want:      netip.Addr{},
 	}}
 
@@ -312,6 +339,13 @@ func TestPrefixFromReversedAddr(t *testing.T) {
 		name:       "good_ipv4_subnet",
 	}, {
 		want:      netip.Prefix{},
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "4.3.2.1.not-in-addr.arpa": ` +
+			`not a reversed ip network`,
+		in:   "4.3.2.1.not-in-addr.arpa",
+		name: "almost_arpa_v4",
+	}, {
+		want:      netip.Prefix{},
 		wantErrAs: new(*netutil.LengthError),
 		wantErrMsg: `bad arpa domain name "` + ipv4Missing + `": ` +
 			`bad domain name label "": domain name label is empty`,
@@ -375,6 +409,13 @@ func TestPrefixFromReversedAddr(t *testing.T) {
 		wantErrMsg: "",
 		in:         "0." + ipv6RevGoodSuffix,
 		name:       "good_ipv6_subnet_leading_zeroes",
+	}, {
+		want:      netip.Prefix{},
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "a.b.c.not-ip6.arpa": ` +
+			`not a reversed ip network`,
+		in:   "a.b.c.not-ip6.arpa",
+		name: "almost_arpa_v6",
 	}, {
 		want:      netip.Prefix{},
 		wantErrAs: new(*netutil.AddrError),
@@ -453,19 +494,24 @@ func TestPrefixFromReversedAddr(t *testing.T) {
 		in:   testIPv4.String(),
 		name: "not_a_reversed_subnet",
 	}, {
-		want:      netip.Prefix{},
-		wantErrAs: new(errors.Error),
-		wantErrMsg: `bad arpa domain name "` + ipv4Suffix[1:] + `": ` +
-			`not a reversed ip network`,
-		in:   ipv4Suffix[1:],
-		name: "root_arpa_v4",
+		want:       emptyV4Pref,
+		wantErrAs:  nil,
+		wantErrMsg: ``,
+		in:         ipv4Suffix[1:],
+		name:       "root_arpa_v4",
+	}, {
+		want:       emptyV6Pref,
+		wantErrAs:  nil,
+		wantErrMsg: ``,
+		in:         ipv6Suffix[1:],
+		name:       "root_arpa_v6",
 	}, {
 		want:      netip.Prefix{},
-		wantErrAs: new(errors.Error),
-		wantErrMsg: `bad arpa domain name "` + ipv6Suffix[1:] + `": ` +
+		wantErrAs: new(*netutil.AddrError),
+		wantErrMsg: `bad arpa domain name "` + nonARPADomain + `": ` +
 			`not a reversed ip network`,
-		in:   ipv6Suffix[1:],
-		name: "root_arpa_v6",
+		in:   nonARPADomain,
+		name: "not_arpa",
 	}}
 
 	for _, tc := range testCases {
@@ -508,6 +554,12 @@ func TestExtractReversedAddr(t *testing.T) {
 		wantErr: `bad arpa domain name "abc.123": ` +
 			`bad top-level domain name label "123": all octets are numeric`,
 	}, {
+		want:   netip.Prefix{},
+		name:   "almost_arpa_v4",
+		domain: "4.3.2.1.not-in-addr.arpa",
+		wantErr: `bad arpa domain name "4.3.2.1.not-in-addr.arpa": ` +
+			`not a reversed ip network`,
+	}, {
 		want:    testIPv4Pref,
 		name:    "whole_v4",
 		domain:  ipv4RevGood,
@@ -516,6 +568,11 @@ func TestExtractReversedAddr(t *testing.T) {
 		want:    testIPv4PartPref,
 		name:    "partial_v4",
 		domain:  ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:    netip.PrefixFrom(testIPv4PartPref.Addr(), testIPv4PartPref.Bits()+8),
+		name:    "partial_v4_zero_label",
+		domain:  "0." + ipv4NetRevGood,
 		wantErr: "",
 	}, {
 		want:    testIPv4Pref,
@@ -530,7 +587,7 @@ func TestExtractReversedAddr(t *testing.T) {
 	}, {
 		want:    testIPv4PartPref,
 		name:    "partial_v4_within_domain",
-		domain:  "a." + ipv4NetRevGood,
+		domain:  "abc." + ipv4NetRevGood,
 		wantErr: "",
 	}, {
 		want:    testIPv4PartPref,
@@ -543,16 +600,25 @@ func TestExtractReversedAddr(t *testing.T) {
 		domain:  "a.256." + ipv4NetRevGood,
 		wantErr: "",
 	}, {
-		want:   netip.Prefix{},
-		name:   "empty_v4",
-		domain: ipv4Suffix[1:],
-		wantErr: `bad arpa domain name "in-addr.arpa": ` +
-			`not a reversed ip network`,
+		want:    testIPv4PartPref,
+		name:    "partial_v4_leading_zero_label",
+		domain:  "05." + ipv4NetRevGood,
+		wantErr: "",
+	}, {
+		want:    emptyV4Pref,
+		name:    "empty_v4",
+		domain:  ipv4Suffix[1:],
+		wantErr: ``,
+	}, {
+		want:    emptyV4Pref,
+		name:    "empty_v4_within_domain",
+		domain:  "a" + ipv4Suffix,
+		wantErr: ``,
 	}, {
 		want:   netip.Prefix{},
-		name:   "empty_v4_within_domain",
-		domain: "a" + ipv4Suffix,
-		wantErr: `bad arpa domain name "in-addr.arpa": ` +
+		name:   "almost_arpa_v6",
+		domain: "a.b.c.not-ip6.arpa",
+		wantErr: `bad arpa domain name "a.b.c.not-ip6.arpa": ` +
 			`not a reversed ip network`,
 	}, {
 		want:    testIPv6Pref,
@@ -580,15 +646,15 @@ func TestExtractReversedAddr(t *testing.T) {
 		domain:  "l." + ipv6RevGoodSuffix,
 		wantErr: "",
 	}, {
-		want:    netip.Prefix{},
+		want:    emptyV6Pref,
 		name:    "empty_v6",
 		domain:  ipv6Suffix[1:],
-		wantErr: `bad arpa domain name "ip6.arpa": not a reversed ip network`,
+		wantErr: ``,
 	}, {
-		want:    netip.Prefix{},
+		want:    emptyV6Pref,
 		name:    "empty_v6_within_domain",
 		domain:  "g" + ipv6Suffix,
-		wantErr: `bad arpa domain name "ip6.arpa": not a reversed ip network`,
+		wantErr: ``,
 	}}
 
 	for _, tc := range testCases {
@@ -632,6 +698,7 @@ func BenchmarkSubnetFromReversedAddr(b *testing.B) {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
+
 			for i := 0; i < b.N; i++ {
 				prefixSink, errSink = netutil.PrefixFromReversedAddr(bc.in)
 			}
@@ -641,18 +708,64 @@ func BenchmarkSubnetFromReversedAddr(b *testing.B) {
 		})
 	}
 
-	// Most recent results, on a MBP 14 with Apple M1 Pro chip:
-	//
-	//	goos: darwin
-	//	goarch: arm64
-	//	pkg: github.com/AdguardTeam/golibs/netutil
-	//	BenchmarkSubnetFromReversedAddr
-	//	BenchmarkSubnetFromReversedAddr/ipv4_single_addr
-	//	BenchmarkSubnetFromReversedAddr/ipv4_single_addr-8         	 3427572	       339.4 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkSubnetFromReversedAddr/ipv4_subnet
-	//	BenchmarkSubnetFromReversedAddr/ipv4_subnet-8              	 7136434	       167.0 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkSubnetFromReversedAddr/ipv6_single_addr
-	//	BenchmarkSubnetFromReversedAddr/ipv6_single_addr-8         	  661668	      1831 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkSubnetFromReversedAddr/ipv6_subnet
-	//	BenchmarkSubnetFromReversedAddr/ipv6_subnet-8              	 1000000	      1038 ns/op	       0 B/op	       0 allocs/op
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkSubnetFromReversedAddr/ipv4_single_addr-12	3640460		316.9 ns/op		0 B/op	0 allocs/op
+	// BenchmarkSubnetFromReversedAddr/ipv4_subnet-12		5989670		195.7 ns/op		0 B/op	0 allocs/op
+	// BenchmarkSubnetFromReversedAddr/ipv6_single_addr-12	861590		1413 ns/op		0 B/op	0 allocs/op
+	// BenchmarkSubnetFromReversedAddr/ipv6_subnet-12		1388446		863.8 ns/op		0 B/op	0 allocs/op
+}
+
+func BenchmarkExtractReversedAddr(b *testing.B) {
+	const serviceLabel = "_srv."
+
+	benchCases := []struct {
+		name string
+		in   string
+	}{{
+		name: "ipv4_root",
+		in:   ipv4Suffix[len("."):],
+	}, {
+		name: "ipv4_subnet",
+		in:   ipv4NetRevGood,
+	}, {
+		name: "ipv4_subnet_within_domain",
+		in:   serviceLabel + ipv4NetRevGood,
+	}, {
+		name: "ipv6_root",
+		in:   ipv6Suffix[len("."):],
+	}, {
+		name: "ipv6_subnet",
+		in:   ipv6NetRevGood,
+	}, {
+		name: "ipv6_subnet_within_domain",
+		in:   serviceLabel + ipv6NetRevGood,
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				prefixSink, errSink = netutil.ExtractReversedAddr(bc.in)
+			}
+
+			require.NotNil(b, prefixSink)
+			require.NoError(b, errSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkExtractReversedAddr/ipv4_root-12					7489261		146.5 ns/op		0 B/op	0 allocs/op
+	// BenchmarkExtractReversedAddr/ipv4_subnet-12					5592540		229.5 ns/op		0 B/op	0 allocs/op
+	// BenchmarkExtractReversedAddr/ipv4_subnet_within_domain-12	4316827		275.6 ns/op		0 B/op	0 allocs/op
+	// BenchmarkExtractReversedAddr/ipv6_root-12					8141828		145.8 ns/op		0 B/op	0 allocs/op
+	// BenchmarkExtractReversedAddr/ipv6_subnet-12					1359026		867.2 ns/op		0 B/op	0 allocs/op
+	// BenchmarkExtractReversedAddr/ipv6_subnet_within_domain-12	1000000		1025 ns/op		0 B/op	0 allocs/op
 }
