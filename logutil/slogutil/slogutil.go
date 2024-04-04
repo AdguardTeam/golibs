@@ -4,6 +4,7 @@ package slogutil
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"io"
 	"log"
@@ -52,8 +53,8 @@ func New(c *Config) (l *slog.Logger) {
 		lvl = slog.LevelDebug
 	}
 
-	format := or(c.Format, FormatDefault)
-	output := or[io.Writer](c.Output, os.Stdout)
+	format := cmp.Or(c.Format, FormatDefault)
+	output := cmp.Or[io.Writer](c.Output, os.Stdout)
 	if format == FormatDefault {
 		// Fast path for the default handler.
 		return newDefault(output, lvl, c.AddTimestamp)
@@ -90,18 +91,6 @@ func New(c *Config) (l *slog.Logger) {
 	}
 
 	return slog.New(h)
-}
-
-// or returns defVal if val is its zero value.
-//
-// TODO(a.garipov): Replace with [cmp.Or] in Go 1.22.
-func or[T comparable](val, defVal T) (res T) {
-	var zero T
-	if val == zero {
-		return defVal
-	}
-
-	return val
 }
 
 // newDefault returns a new default slog logger set up with the given options.

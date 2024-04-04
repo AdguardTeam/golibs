@@ -3,6 +3,7 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"log/slog"
 	"os"
@@ -66,29 +67,17 @@ func NewSignalHandler(c *SignalHandlerConfig) (h *SignalHandler) {
 	}
 
 	h = &SignalHandler{
-		logger:          or(c.Logger, defaultSignalHandlerConf.Logger),
+		logger:          cmp.Or(c.Logger, defaultSignalHandlerConf.Logger),
 		signal:          make(chan os.Signal, 1),
 		services:        nil,
-		shutdownTimeout: or(c.ShutdownTimeout, defaultSignalHandlerConf.ShutdownTimeout),
+		shutdownTimeout: cmp.Or(c.ShutdownTimeout, defaultSignalHandlerConf.ShutdownTimeout),
 	}
 
 	// TODO(a.garipov): Expand these to Windows.
-	notifier := or(c.SignalNotifier, defaultSignalHandlerConf.SignalNotifier)
+	notifier := cmp.Or(c.SignalNotifier, defaultSignalHandlerConf.SignalNotifier)
 	notifier.Notify(h.signal, unix.SIGINT, unix.SIGQUIT, unix.SIGTERM)
 
 	return h
-}
-
-// or returns defVal if val is the zero value of T.
-//
-// TODO(a.garipov): Replace with [cmp.Or] in Go 1.22.
-func or[T comparable](val, defVal T) (res T) {
-	var zero T
-	if val == zero {
-		return defVal
-	}
-
-	return val
 }
 
 // Add adds a services to the signal handler.

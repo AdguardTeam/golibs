@@ -60,7 +60,7 @@ set -f -u
 # add and document them.
 #
 # TODO(a.garipov): Add deprecated package golang.org/x/exp/maps once all
-# projects switch to Go 1.22.
+# projects switch to Go 1.23.
 blocklist_imports() {
 	# TODO(e.burkov):  These are temporary exclusions for some packages.
 	git grep\

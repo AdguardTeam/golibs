@@ -100,8 +100,6 @@ func ExampleExtractReversedAddr() {
 
 	fmt.Println(pref)
 
-	// fmt.Println(pref)
-
 	// Output:
 	//
 	// 10.0.0.0/8

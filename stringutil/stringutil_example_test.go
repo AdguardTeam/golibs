@@ -30,20 +30,6 @@ func ExampleCloneSliceOrEmpty() {
 	// &a[0] == &b[0] is false
 }
 
-func ExampleCoalesce() {
-	fmt.Printf("%q\n", stringutil.Coalesce())
-	fmt.Printf("%q\n", stringutil.Coalesce("", "a"))
-	fmt.Printf("%q\n", stringutil.Coalesce("a", ""))
-	fmt.Printf("%q\n", stringutil.Coalesce("a", "b"))
-
-	// Output:
-	//
-	// ""
-	// "a"
-	// "a"
-	// "a"
-}
-
 func ExampleContainsFold() {
 	if stringutil.ContainsFold("abc", "b") {
 		fmt.Println("works with the same case")
