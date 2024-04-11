@@ -219,6 +219,6 @@ func replaceKind(err error, newKind string) {
 	case *RuneError:
 		err.Kind = newKind
 	default:
-		panic(fmt.Errorf("unexpected error type %T", err))
+		panic(fmt.Errorf("netutil: unexpected error type %T", err))
 	}
 }

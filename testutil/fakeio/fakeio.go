@@ -11,6 +11,19 @@ package fakeio
 
 import "io"
 
+// Closer is the [io.Closer] implementation for tests.
+type Closer struct {
+	OnClose func() (err error)
+}
+
+// type check
+var _ io.Closer = (*Closer)(nil)
+
+// Close implements the [io.Closer] interface for *Closer.
+func (w *Closer) Close() (err error) {
+	return w.OnClose()
+}
+
 // Reader is the [io.Reader] implementation for tests.
 type Reader struct {
 	OnRead func(b []byte) (n int, err error)

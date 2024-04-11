@@ -73,6 +73,6 @@ func RoutePprof(r Router) {
 			panic(err)
 		}
 
-		r.Handle(pattern, route.handler)
+		r.Handle(http.MethodGet+" "+pattern, route.handler)
 	}
 }
