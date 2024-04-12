@@ -1,5 +1,3 @@
-//go:build unix
-
 package service
 
 import (
@@ -11,12 +9,9 @@ import (
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 	"github.com/AdguardTeam/golibs/osutil"
-	"golang.org/x/sys/unix"
 )
 
 // SignalHandler processes incoming signals and shuts services down.
-//
-// TODO(a.garipov): Expand to Windows.
 type SignalHandler struct {
 	logger          *slog.Logger
 	signal          chan os.Signal
@@ -73,9 +68,8 @@ func NewSignalHandler(c *SignalHandlerConfig) (h *SignalHandler) {
 		shutdownTimeout: cmp.Or(c.ShutdownTimeout, defaultSignalHandlerConf.ShutdownTimeout),
 	}
 
-	// TODO(a.garipov): Expand these to Windows.
 	notifier := cmp.Or(c.SignalNotifier, defaultSignalHandlerConf.SignalNotifier)
-	notifier.Notify(h.signal, unix.SIGINT, unix.SIGQUIT, unix.SIGTERM)
+	osutil.NotifyShutdownSignal(notifier, h.signal)
 
 	return h
 }
@@ -100,12 +94,7 @@ func (h *SignalHandler) Handle(ctx context.Context) (status osutil.ExitCode) {
 	for sig := range h.signal {
 		h.logger.InfoContext(ctx, "received", "signal", sig)
 
-		switch sig {
-		case
-			unix.SIGINT,
-			unix.SIGQUIT,
-			unix.SIGTERM:
-
+		if osutil.IsShutdownSignal(sig) {
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, h.shutdownTimeout)
 			defer cancel()

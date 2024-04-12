@@ -52,3 +52,13 @@ func (n DefaultSignalNotifier) Notify(c chan<- os.Signal, sig ...os.Signal) {
 func (n DefaultSignalNotifier) Stop(c chan<- os.Signal) {
 	signal.Stop(c)
 }
+
+// IsShutdownSignal returns true if sig is a shutdown signal.
+func IsShutdownSignal(sig os.Signal) (ok bool) {
+	return isShutdownSignal(sig)
+}
+
+// NotifyShutdownSignal notifies c on receiving shutdown signals using n.
+func NotifyShutdownSignal(n SignalNotifier, c chan<- os.Signal) {
+	notifyShutdownSignal(n, c)
+}
