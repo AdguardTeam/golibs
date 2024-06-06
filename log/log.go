@@ -23,7 +23,8 @@ type Level uint32
 
 // Level constants.
 const (
-	ERROR Level = iota
+	OFF Level = iota
+	ERROR
 	INFO
 	DEBUG
 )
@@ -37,6 +38,8 @@ func (l Level) String() string {
 		return "info"
 	case ERROR:
 		return "error"
+	case OFF:
+		return "off"
 	default:
 		panic(fmt.Sprintf("not a valid Level: %d", l))
 	}
@@ -115,12 +118,14 @@ func SetFlags(flags int) {
 // Fatal writes to error log and exits application
 func Fatal(args ...any) {
 	writeLog("fatal", "", "%s", fmt.Sprint(args...))
+
 	os.Exit(1)
 }
 
 // Fatalf writes to error log and exits application
 func Fatalf(format string, args ...any) {
 	writeLog("fatal", "", format, args...)
+
 	os.Exit(1)
 }
 
@@ -195,6 +200,10 @@ func goroutineID() uint64 {
 // Construct a log message and write it
 // TIME PID#GOID [LEVEL] FUNCNAME(): TEXT
 func writeLog(levelStr, funcName, format string, args ...any) {
+	if atomic.LoadUint32(&level) == uint32(OFF) {
+		return
+	}
+
 	var buf strings.Builder
 
 	if atomic.LoadUint32(&level) >= uint32(DEBUG) {
@@ -239,6 +248,8 @@ func (w *stdLogWriter) Write(p []byte) (n int, err error) {
 
 	var logFunc func(format string, args ...any)
 	switch w.level {
+	case OFF:
+		return len(p), nil
 	case ERROR:
 		logFunc = Error
 	case DEBUG:

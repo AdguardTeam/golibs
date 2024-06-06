@@ -7,9 +7,24 @@ import (
 	"github.com/AdguardTeam/golibs/log"
 )
 
-func ExampleOnPanic() {
+func ExampleLevel() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
+
+	log.Info("printed")
+
+	log.SetLevel(log.OFF)
+	log.Info("not printed")
+
+	// Output:
+	//
+	// [info] printed
+}
+
+func ExampleOnPanic() {
+	log.SetFlags(0)
+	log.SetLevel(log.INFO)
+	log.SetOutput(os.Stdout)
 
 	f := func() {
 		defer log.OnPanic("")
@@ -40,8 +55,9 @@ func (c *ErrorCloser) Close() error {
 }
 
 func ExampleOnCloserError() {
-	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
+	log.SetLevel(log.INFO)
+	log.SetOutput(os.Stdout)
 
 	closer := &ErrorCloser{}
 	f := func() {
@@ -56,8 +72,9 @@ func ExampleOnCloserError() {
 }
 
 func ExamplePanic() {
-	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
+	log.SetLevel(log.INFO)
+	log.SetOutput(os.Stdout)
 
 	defer log.OnPanic("")
 
@@ -70,8 +87,9 @@ func ExamplePanic() {
 }
 
 func ExamplePanicf() {
-	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
+	log.SetLevel(log.INFO)
+	log.SetOutput(os.Stdout)
 
 	defer log.OnPanic("")
 
