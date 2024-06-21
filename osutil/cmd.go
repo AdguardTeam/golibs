@@ -5,6 +5,7 @@ type ExitCode = int
 
 // Exit status constants.
 const (
-	ExitCodeSuccess ExitCode = 0
-	ExitCodeFailure ExitCode = 1
+	ExitCodeSuccess       ExitCode = 0
+	ExitCodeFailure       ExitCode = 1
+	ExitCodeArgumentError ExitCode = 2
 )

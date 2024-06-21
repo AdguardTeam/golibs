@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"strings"
 )
 
 // Additional key constants.
@@ -128,6 +129,24 @@ func PrintStack(ctx context.Context, l *slog.Logger, lvl slog.Level) {
 		if len(line) > 0 {
 			l.Log(ctx, lvl, "stack", "i", i, "line", line)
 		}
+	}
+}
+
+// PrintLines splits s and logs the lines to l using the given level, including
+// empty lines.
+func PrintLines(ctx context.Context, l *slog.Logger, lvl slog.Level, msg, s string) {
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		l.Log(ctx, lvl, msg, "line_num", i+1, "line", line)
+	}
+}
+
+// PrintByteLines splits b and logs the lines to l using the given level,
+// including empty lines.
+func PrintByteLines(ctx context.Context, l *slog.Logger, lvl slog.Level, msg string, b []byte) {
+	lines := bytes.Split(b, []byte{'\n'})
+	for i, line := range lines {
+		l.Log(ctx, lvl, msg, "line_num", i+1, "line", line)
 	}
 }
 
