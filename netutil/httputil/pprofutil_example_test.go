@@ -1,4 +1,4 @@
-package pprofutil_test
+package httputil_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/AdguardTeam/golibs/pprofutil"
+	"github.com/AdguardTeam/golibs/netutil/httputil"
 )
 
 // must is a helper for tests.
@@ -24,12 +24,12 @@ func must[T any](v T, err error) (res T) {
 
 func Example() {
 	mux := http.NewServeMux()
-	pprofutil.RoutePprof(mux)
+	httputil.RoutePprof(mux)
 
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	u := must(url.Parse(srv.URL)).JoinPath(pprofutil.BasePath)
+	u := must(url.Parse(srv.URL)).JoinPath(httputil.PprofBasePath)
 	req := must(http.NewRequest(http.MethodGet, u.String(), nil))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

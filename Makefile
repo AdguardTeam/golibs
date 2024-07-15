@@ -8,7 +8,7 @@
 # Makefile.  Bump this number every time a significant change is made to
 # this Makefile.
 #
-# AdGuard-Project-Version: 4
+# AdGuard-Project-Version: 5
 
 # Don't name these macros "GO" etc., because GNU Make apparently makes
 # them exported environment variables with the literal value of
@@ -22,8 +22,8 @@ VERBOSE.MACRO = $${VERBOSE:-0}
 
 BRANCH = $$( git rev-parse --abbrev-ref HEAD )
 GOAMD64 = v1
-GOPROXY = https://goproxy.cn|https://proxy.golang.org|direct
-GOTOOLCHAIN = go1.22.4
+GOPROXY = https://proxy.golang.org|direct
+GOTOOLCHAIN = go1.22.5
 RACE = 0
 REVISION = $$( git rev-parse --short HEAD )
 VERSION = 0
@@ -39,6 +39,11 @@ ENV = env\
 	REVISION="$(REVISION)"\
 	VERBOSE="$(VERBOSE.MACRO)"\
 	VERSION="$(VERSION)"\
+
+# Keep the line above blank.
+
+ENV_MISC = env\
+	VERBOSE="$(VERBOSE.MACRO)"\
 
 # Keep the line above blank.
 
@@ -69,3 +74,6 @@ go-os-check:
 	env GOOS='windows' "$(GO.MACRO)" vet ./...
 
 txt-lint: ; $(ENV) "$(SHELL)" ./scripts/make/txt-lint.sh
+
+md-lint:  ; $(ENV_MISC) "$(SHELL)" ./scripts/make/md-lint.sh
+sh-lint:  ; $(ENV_MISC) "$(SHELL)" ./scripts/make/sh-lint.sh

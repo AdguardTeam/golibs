@@ -1,4 +1,9 @@
 ---
+# This comment is used to simplify checking local copies of the
+# Makefile.  Bump this number every time a significant change is made to
+# this Makefile.
+#
+# AdGuard-Project-Version: 1
 'version': 2
 'plan':
     'project-key': 'GO'
@@ -9,14 +14,67 @@
     # exact patch version as opposed to a minor one to make sure that this exact
     # version is actually used and not whatever the docker daemon on the CI has
     # cached a few months ago.
-    'dockerGo': 'golang:1.22.4'
+    'dockerGo': 'golang:1.22.5'
+    'dockerMisc': 'adguard/go-misc-tools:1.0'
 
 'stages':
+  - 'Go Lint':
+        'manual': false
+        'final': false
+        'jobs':
+          - 'Go Lint'
+  - 'Misc Lint':
+        'manual': false
+        'final': false
+        'jobs':
+          - 'Misc Lint'
   - 'Test':
         'manual': false
         'final': false
         'jobs':
           - 'Test'
+
+'Go Lint':
+    'docker':
+        'image': '${bamboo.dockerGo}'
+        'volumes':
+            '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
+            '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
+    'key': 'GOLINT'
+    'other':
+        'clean-working-dir': true
+    'requirements':
+      - 'adg-docker': true
+    'tasks':
+      - 'checkout':
+            'force-clean-build': true
+      - 'script':
+            'interpreter': 'SHELL'
+            'scripts':
+              - |
+                set -e -f -u -x
+
+                make VERBOSE=1 go-tools go-lint
+
+'Misc Lint':
+    'docker':
+        'image': '${bamboo.dockerMisc}'
+    'key': 'MISCLINT'
+    'other':
+        'clean-working-dir': true
+    'requirements':
+      - 'adg-docker': true
+    'tasks':
+      - 'checkout':
+            'force-clean-build': true
+      - 'script':
+            'interpreter': 'SHELL'
+            'scripts':
+              - |
+                set -e -f -u -x
+
+                make VERBOSE=1 md-lint sh-lint
+
 
 'Test':
     'docker':
@@ -46,6 +104,26 @@
         'after-deleted-days': 1
         'after-inactive-days': 5
     'link-to-jira': true
+
+# Run only the linting and testing stages in any branch save for "master".
+'branch-overrides':
+  - '^((?!master).)*$':
+        'stages':
+          - 'Go Lint':
+                'manual': false
+                'final': false
+                'jobs':
+                  - 'Go Lint'
+          - 'Misc Lint':
+                'manual': false
+                'final': false
+                'jobs':
+                  - 'Misc Lint'
+          - 'Test':
+                'manual': false
+                'final': false
+                'jobs':
+                  - 'Test'
 
 'notifications':
   - 'events':

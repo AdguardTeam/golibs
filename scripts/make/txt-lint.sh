@@ -35,7 +35,9 @@ trailing_newlines() {
 	nl="$( printf "\n" )"
 	readonly nl
 
-	git ls-files | while read -r f
+	# NOTE: Adjust for your project.
+	git ls-files\
+		| while read -r f
 		do
 			final_byte="$( tail -c -1 "$f" )"
 			if [ "$final_byte" != "$nl" ]
@@ -48,7 +50,9 @@ trailing_newlines() {
 # trailing_whitespace is a simple check that makes sure that there are no
 # trailing whitespace in plain-text files.
 trailing_whitespace() {
-	git ls-files | while read -r f
+	# NOTE: Adjust for your project.
+	git ls-files\
+		| while read -r f
 		do
 			grep -e '[[:space:]]$' -n -- "$f"\
 				| sed -e "s:^:${f}\::" -e 's/ \+$/>>>&<<</'
@@ -59,6 +63,7 @@ run_linter -e trailing_newlines
 
 run_linter -e trailing_whitespace
 
+# TODO(a.garipov): Consider moving this script into the "Misc Lint" stage.
 git ls-files -- '*.conf' '*.md' '*.txt' '*.yaml' '*.yml'\
 	| xargs misspell --error\
 	| sed -e 's/^/misspell: /'
