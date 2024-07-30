@@ -168,12 +168,14 @@ func TestSplitHostPort(t *testing.T) {
 	}
 }
 
+var (
+	longDomainName      = strings.Repeat("a", 255)
+	longLabel           = strings.Repeat("a", 64)
+	longLabelDomainName = longLabel + ".com"
+)
+
 func TestValidateDomainName(t *testing.T) {
 	t.Parallel()
-
-	longDomainName := strings.Repeat("a", 255)
-	longLabel := strings.Repeat("a", 64)
-	longLabelDomainName := longLabel + ".com"
 
 	testCases := []struct {
 		name       string
@@ -273,10 +275,6 @@ func TestValidateDomainName(t *testing.T) {
 
 func TestValidateHostname(t *testing.T) {
 	t.Parallel()
-
-	longDomainName := strings.Repeat("a", 255)
-	longLabel := strings.Repeat("a", 64)
-	longLabelDomainName := longLabel + ".com"
 
 	testCases := []struct {
 		name       string
@@ -402,9 +400,8 @@ func TestValidateHostname(t *testing.T) {
 func TestValidateSRVDomainName(t *testing.T) {
 	t.Parallel()
 
-	longDomainName := strings.Repeat("a", 255)
-	longLabel := "_" + strings.Repeat("a", 16)
-	longLabelDomainName := longLabel + ".com"
+	longSRVLabel := "_" + strings.Repeat("a", 16)
+	longSRVLabelDomainName := longSRVLabel + ".com"
 
 	testCases := []struct {
 		name       string
@@ -452,10 +449,10 @@ func TestValidateSRVDomainName(t *testing.T) {
 			`service domain name is too long: got 255, max 253`,
 	}, {
 		name:      "bad_label_length",
-		in:        longLabelDomainName,
+		in:        longSRVLabelDomainName,
 		wantErrAs: new(*netutil.LengthError),
-		wantErrMsg: `bad service domain name "` + longLabelDomainName + `": ` +
-			`bad service name label "` + longLabel + `": ` +
+		wantErrMsg: `bad service domain name "` + longSRVLabelDomainName + `": ` +
+			`bad service name label "` + longSRVLabel + `": ` +
 			`service name label is too long: got 17, max 16`,
 	}, {
 		name:      "bad_label_empty",
@@ -550,8 +547,11 @@ func TestValidateServiceNameLabel_errors(t *testing.T) {
 
 // Common long test cases for benchmarking.
 var (
-	testLongValidLabel = strings.Repeat("a", 63)
-	testLongValidName  = strings.Repeat(testLongValidLabel+".", 3) + "com"
+	testLongValidLabel    = strings.Repeat("a", 63)
+	testLongValidHostname = strings.Repeat(testLongValidLabel+".", 3) + "com"
+
+	testLongInvalidLabel    = strings.Repeat("a", 62) + "!"
+	testLongInvalidHostname = strings.Repeat(testLongValidLabel+".", 3) + "123"
 )
 
 func BenchmarkValidateDomainName(b *testing.B) {
@@ -566,7 +566,7 @@ func BenchmarkValidateDomainName(b *testing.B) {
 		in:   testLongValidLabel,
 	}, {
 		name: "long_labels",
-		in:   testLongValidName,
+		in:   testLongValidHostname,
 	}}
 
 	for _, bc := range benchCases {
@@ -589,6 +589,52 @@ func BenchmarkValidateDomainName(b *testing.B) {
 	// BenchmarkValidateDomainName/common-12		10058613	109.4 ns/op		0 B/op	0 allocs/op
 	// BenchmarkValidateDomainName/long_names-12	4830151		246.2 ns/op		0 B/op	0 allocs/op
 	// BenchmarkValidateDomainName/long_labels-12	4775589		246.7 ns/op		0 B/op	0 allocs/op
+}
+
+func BenchmarkIsValidHostnameLabel(b *testing.B) {
+	benchCases := []struct {
+		want assert.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: assert.True,
+		name: "valid_short",
+		in:   "label",
+	}, {
+		want: assert.True,
+		name: "valid_long",
+		in:   testLongValidLabel,
+	}, {
+		want: assert.False,
+		name: "invalid_short",
+		in:   "_label",
+	}, {
+		want: assert.False,
+		name: "invalid_long",
+		in:   testLongInvalidLabel,
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				boolSink = netutil.IsValidHostnameLabel(bc.in)
+			}
+
+			bc.want(b, boolSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkIsValidHostnameLabel/valid_short-12		99108642	12.58 ns/op		0 B/op	0 allocs/op
+	// BenchmarkIsValidHostnameLabel/valid_long-12		8952439		140.7 ns/op		0 B/op	0 allocs/op
+	// BenchmarkIsValidHostnameLabel/invalid_short-12	330907425	3.817 ns/op		0 B/op	0 allocs/op
+	// BenchmarkIsValidHostnameLabel/invalid_long-12	8770068		133.4 ns/op		0 B/op	0 allocs/op
 }
 
 func BenchmarkValidateSRVDomainName(b *testing.B) {
@@ -630,17 +676,37 @@ func BenchmarkValidateSRVDomainName(b *testing.B) {
 
 func BenchmarkValidateHostname(b *testing.B) {
 	benchCases := []struct {
+		want require.ErrorAssertionFunc
 		name string
 		in   string
 	}{{
+		want: require.NoError,
 		name: "common",
-		in:   exampleDomain,
+		in:   "domain.example",
 	}, {
-		name: "long_names",
-		in:   testLongValidLabel,
+		want: require.NoError,
+		name: "good_short",
+		in:   "abc.xyz",
 	}, {
-		name: "long_labels",
-		in:   testLongValidName,
+		want: require.NoError,
+		name: "good_long",
+		in:   testLongValidHostname,
+	}, {
+		want: require.NoError,
+		name: "good_idna",
+		in:   "международный.пример",
+	}, {
+		want: require.Error,
+		name: "bad_short",
+		in:   "!!!",
+	}, {
+		want: require.Error,
+		name: "bad_long",
+		in:   testLongInvalidHostname,
+	}, {
+		want: require.Error,
+		name: "bad_idna",
+		in:   "xn---.com",
 	}}
 
 	for _, bc := range benchCases {
@@ -652,7 +718,7 @@ func BenchmarkValidateHostname(b *testing.B) {
 				errSink = netutil.ValidateHostname(bc.in)
 			}
 
-			require.NoError(b, errSink)
+			bc.want(b, errSink)
 		})
 	}
 
@@ -660,7 +726,124 @@ func BenchmarkValidateHostname(b *testing.B) {
 	// goarch: amd64
 	// pkg: github.com/AdguardTeam/golibs/netutil
 	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkValidateHostname/common-12			9037418		134.2 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateHostname/long_names-12		5069252		239.9 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateHostname/long_labels-12		1581854		765.9 ns/op		0 B/op	0 allocs/op
+	// BenchmarkValidateHostname/common-12		7973626		127.9 ns/op		0 B/op		0 allocs/op
+	// BenchmarkValidateHostname/good_short-12	11739956	102.7 ns/op		0 B/op		0 allocs/op
+	// BenchmarkValidateHostname/good_long-12	1778172		723.7 ns/op		0 B/op		0 allocs/op
+	// BenchmarkValidateHostname/good_idna-12	466024		2397 ns/op		216 B/op	6 allocs/op
+	// BenchmarkValidateHostname/bad_short-12	5950212		201.4 ns/op		168 B/op	4 allocs/op
+	// BenchmarkValidateHostname/bad_long-12	1426054		877.4 ns/op		96 B/op		2 allocs/op
+	// BenchmarkValidateHostname/bad_idna-12	9367690		123.5 ns/op		80 B/op		2 allocs/op
+}
+
+func BenchmarkIsValidHostname(b *testing.B) {
+	benchCases := []struct {
+		want require.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: require.True,
+		name: "common",
+		in:   "domain.example",
+	}, {
+		want: require.True,
+		name: "good_short",
+		in:   "abc.xyz",
+	}, {
+		want: require.True,
+		name: "good_long",
+		in:   testLongValidHostname,
+	}, {
+		want: require.True,
+		name: "good_idna",
+		in:   "международный.пример",
+	}, {
+		want: require.False,
+		name: "bad_short",
+		in:   "!!!",
+	}, {
+		want: require.False,
+		name: "bad_long",
+		in:   testLongInvalidHostname,
+	}, {
+		want: require.False,
+		name: "bad_idna",
+		in:   "xn---.com",
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				boolSink = netutil.IsValidHostname(bc.in)
+			}
+
+			bc.want(b, boolSink)
+		})
+	}
+
+	// goos: darwin
+	// goarch: amd64
+	// pkg: github.com/AdguardTeam/golibs/netutil
+	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+	// BenchmarkIsValidHostname/common-12			12472970	90.50 ns/op		0 B/op		0 allocs/op
+	// BenchmarkIsValidHostname/good_short-12		17173087	71.27 ns/op		0 B/op		0 allocs/op
+	// BenchmarkIsValidHostname/good_long-12		1949978		624.3 ns/op		0 B/op		0 allocs/op
+	// BenchmarkIsValidHostname/good_idna-12		536984		2201 ns/op		216 B/op	6 allocs/op
+	// BenchmarkIsValidHostname/bad_short-12		36260581	37.20 ns/op		0 B/op		0 allocs/op
+	// BenchmarkIsValidHostname/bad_long-12			1912574		639.4 ns/op		0 B/op		0 allocs/op
+	// BenchmarkIsValidHostname/bad_idna-12			16072608	74.95 ns/op		32 B/op		1 allocs/op
+}
+
+func FuzzIsValidHostname(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"\n",
+		exampleDomain,
+		"пример.рф",
+		"xn---.com",
+		"e",
+		"!!!",
+		longDomainName,
+		longLabelDomainName,
+		"example..com",
+		"example.-aa.com",
+		"example-.aa.com",
+		"example.a!!!.com",
+		"example.123",
+		"example._bad",
+		"example." + longLabel,
+		"example.",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidHostname(input)
+		err := netutil.ValidateHostname(input)
+
+		require.Equal(t, err == nil, ok)
+	})
+}
+
+func FuzzIsValidHostnameLabel(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"\n",
+		exampleDomain,
+		testLongValidHostname,
+		testLongValidLabel,
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidHostnameLabel(input)
+		err := netutil.ValidateHostnameLabel(input)
+
+		require.Equal(t, err == nil, ok)
+	})
 }

@@ -165,10 +165,11 @@ func ValidateMAC(mac net.HardwareAddr) (err error) {
 // [RFC 1035]: https://datatracker.ietf.org/doc/html/rfc1035
 const MaxDomainLabelLen = 63
 
-// ValidateTLDLabel validates the top-level domain label in accordance to [RFC
-// 3696 Section 2].  In addition to the validations performed by
-// [ValidateHostnameLabel], it also checks that the label contains at least one
-// non-digit character.
+// ValidateTLDLabel validates a top-level domain label in accordance to [RFC
+// 3696 Section 2].  An empty label is considered invalid.  In addition to the
+// [ValidateHostnameLabel] validation, it also checks that the label contains at
+// least one non-digit character.  label should only contain ASCII characters,
+// use [idna.ToASCII] for converting non-ASCII labels.
 //
 // Any error returned will have the underlying type of [*LabelError].
 //
@@ -183,17 +184,33 @@ func ValidateTLDLabel(tld string) (err error) {
 		return err
 	}
 
+	if !hasValidTLDChars(tld) {
+		return errors.Error("all octets are numeric")
+	}
+
+	return nil
+}
+
+// hasValidTLDChars returns true if given tld is in accordance with a
+// requirement for top-level domain label to contain at least one non-digit
+// character.  See [RFC 3696 Section 2].
+//
+// [RFC 3696 Section 2]: https://datatracker.ietf.org/doc/html/rfc3696#section-2
+func hasValidTLDChars(tld string) (ok bool) {
 	for _, r := range tld {
 		if r < '0' || r > '9' {
-			return nil
+			return true
 		}
 	}
 
-	// There is a requirement for top-level domain label to contain at least one
-	// non-digit character.  See [RFC 3696 Section 2].
-	//
-	// [RFC 3696 Section 2]: https://datatracker.ietf.org/doc/html/rfc3696#section-2
-	return errors.Error("all octets are numeric")
+	return false
+}
+
+// isValidTLDLabel returns true if the top-level domain label is in accordance
+// to [RFC 3696 Section 2].  This function works the same way as
+// [ValidateTLDLabel] and does not allocate.
+func isValidTLDLabel(tld string) (ok bool) {
+	return IsValidHostnameLabel(tld) && hasValidTLDChars(tld)
 }
 
 // MaxDomainNameLen is the maximum allowed length of a full domain name
@@ -248,8 +265,8 @@ func ValidateDomainName(name string) (err error) {
 // ValidateDomainNameLabel returns an error if label is not a valid label of a
 // domain name.  An empty label is considered invalid.  Essentially it validates
 // the length of the label since the name in DNS is permitted to contain any
-// printable ASCII character, see [RFC 3696 Section 2].  label must only contain
-// ASCII characters, see [idna.ToASCII].
+// printable ASCII character, see [RFC 3696 Section 2].  label should only
+// contain ASCII characters, use [idna.ToASCII] for converting non-ASCII labels.
 //
 // Any error returned will have the underlying type of [*LabelError].
 //
@@ -276,8 +293,39 @@ func ValidateDomainNameLabel(label string) (err error) {
 	return nil
 }
 
+// IsValidHostnameLabel returns false if label is not a valid label of a host
+// name.  An empty label is considered invalid.  label should only contain ASCII
+// characters, use [idna.ToASCII] for converting non-ASCII labels.
+//
+// It replicates the behavior of [ValidateHostnameLabel], but doesn't allocate.
+func IsValidHostnameLabel(label string) (ok bool) {
+	if label == "" {
+		return false
+	}
+
+	l := len(label)
+	if l > MaxDomainLabelLen {
+		return false
+	}
+
+	if r := rune(label[0]); !IsValidHostOuterRune(r) {
+		return false
+	} else if l == 1 {
+		return true
+	}
+
+	for _, r := range label[1 : l-1] {
+		if !IsValidHostInnerRune(r) {
+			return false
+		}
+	}
+
+	return IsValidHostOuterRune(rune(label[l-1]))
+}
+
 // ValidateHostnameLabel returns an error if label is not a valid label of a
-// domain name.  An empty label is considered invalid.
+// host name.  An empty label is considered invalid.  label should only contain
+// ASCII characters, use [idna.ToASCII] for converting non-ASCII labels.
 //
 // Any error returned will have the underlying type of [*LabelError].
 func ValidateHostnameLabel(label string) (err error) {
@@ -317,6 +365,36 @@ func ValidateHostnameLabel(label string) (err error) {
 	}
 
 	return nil
+}
+
+// IsValidHostname returns true if name is in accordance to [RFC 952], [RFC
+// 1035], and with [RFC 1123]'s inclusion of digits at the start of the host.
+// It doesn't validate against two or more hyphens to allow punycode and
+// internationalized domains.
+//
+// It replicates the behavior of [ValidateHostname], but allocates less.
+//
+// TODO(e.burkov):  Validate non-ASCII domain names separately.
+func IsValidHostname(name string) (ok bool) {
+	name, err := idna.ToASCII(name)
+	if err != nil {
+		return false
+	}
+
+	if name == "" {
+		return false
+	} else if l := len(name); l > MaxDomainNameLen {
+		return false
+	}
+
+	label, tail, found := strings.Cut(name, ".")
+	for ; found; label, tail, found = strings.Cut(tail, ".") {
+		if !IsValidHostnameLabel(label) {
+			return false
+		}
+	}
+
+	return isValidTLDLabel(label)
 }
 
 // ValidateHostname validates the domain name in accordance to [RFC 952], [RFC
@@ -367,8 +445,10 @@ func ValidateHostname(name string) (err error) {
 // [RFC 6335]: https://datatracker.ietf.org/doc/html/rfc6335
 const MaxServiceLabelLen = 16
 
-// ValidateServiceNameLabel returns an error if label is not a valid label of
-// a service domain name.  An empty label is considered invalid.
+// ValidateServiceNameLabel returns an error if label is not a valid label of a
+// service domain name.  An empty label is considered invalid.  label should
+// only contain ASCII characters, use [idna.ToASCII] for converting non-ASCII
+// labels.
 //
 // Any error returned will have the underlying type of [*LabelError].
 func ValidateServiceNameLabel(label string) (err error) {

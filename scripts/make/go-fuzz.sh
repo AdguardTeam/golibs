@@ -44,6 +44,7 @@ fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=20s}"
 readonly go count_flags shuffle_flags timeout_flags fuzztime_flags
 
 # TODO(a.garipov): File an issue about using --fuzz with multiple packages.
+
 "$go" test\
 	"$count_flags"\
 	"$shuffle_flags"\
@@ -65,3 +66,36 @@ readonly go count_flags shuffle_flags timeout_flags fuzztime_flags
 	"$fuzztime_flags"\
 	--fuzz="FuzzRecord_UnmarshalText"\
 	./hostsfile;
+
+"$go" test\
+	"$count_flags"\
+	"$shuffle_flags"\
+	"$race_flags"\
+	"$timeout_flags"\
+	"$x_flags"\
+	"$v_flags"\
+	"$fuzztime_flags"\
+	--fuzz="FuzzIsValidHostname$"\
+	./netutil;
+
+"$go" test\
+	"$count_flags"\
+	"$shuffle_flags"\
+	"$race_flags"\
+	"$timeout_flags"\
+	"$x_flags"\
+	"$v_flags"\
+	"$fuzztime_flags"\
+	--fuzz="FuzzIsValidHostnameLabel"\
+	./netutil;
+
+"$go" test\
+	"$count_flags"\
+	"$shuffle_flags"\
+	"$race_flags"\
+	"$timeout_flags"\
+	"$x_flags"\
+	"$v_flags"\
+	"$fuzztime_flags"\
+	--fuzz="FuzzIsValidIPString"\
+	./netutil;

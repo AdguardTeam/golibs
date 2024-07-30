@@ -1,7 +1,6 @@
 package netutil
 
 import (
-	"math"
 	"net"
 	"net/netip"
 	"strconv"
@@ -383,30 +382,6 @@ func PrefixFromReversedAddr(arpa string) (p netip.Prefix, err error) {
 	}
 }
 
-// isV4ARPALabel reports whether label is a valid ARPA label for an IPv4
-// address, i.e. a decimal number in the range [0, 255] with no leading zeros.
-func isV4ARPALabel(label string) (ok bool) {
-	switch l := len(label); {
-	case l < 1, l > 3:
-		return false
-	case l == 1:
-		return label[0] >= '0' && label[0] <= '9'
-	case label[0] == '0':
-		return false
-	default:
-		val := 0
-		for _, c := range label {
-			if c < '0' || c > '9' {
-				return false
-			}
-
-			val = val*10 + int(c-'0')
-		}
-
-		return val <= math.MaxUint8
-	}
-}
-
 // indexFirstV4Label returns the index at which the reversed IPv4 address starts
 // within domain.  domain must be a valid ARPA IPv4 domain name.  idx is never
 // negative.
@@ -414,7 +389,7 @@ func indexFirstV4Label(domain string) (idx int) {
 	idx = len(domain) - len(arpaV4Suffix) + 1
 	for labelsNum := 0; labelsNum < net.IPv4len && idx > 0; labelsNum++ {
 		curIdx := strings.LastIndexByte(domain[:idx-1], '.') + 1
-		if !isV4ARPALabel(domain[curIdx : idx-1]) {
+		if !isIPv4Label(domain[curIdx : idx-1]) {
 			break
 		}
 
