@@ -1,4 +1,4 @@
-//go:build darwin || freebsd || linux || openbsd
+//go:build unix
 
 package osutil
 
