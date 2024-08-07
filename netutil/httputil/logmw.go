@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
+	"github.com/AdguardTeam/golibs/timeutil"
 )
 
 // LogMiddleware adds a logger using [slogutil.ContextWithLogger] and logs the
@@ -45,8 +46,11 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 
 		l.Log(ctx, mw.lvl, "started")
 		defer func() {
-			elapsed := time.Since(startTime)
-			l.Log(ctx, mw.lvl, "finished", "code", rw.code, "elapsed", elapsed.String())
+			// TODO(a.garipov):  Augment our JSON handler to use
+			// [time.Duration.String] automatically?
+			l.Log(ctx, mw.lvl, "finished", "code", rw.code, "elapsed", timeutil.Duration{
+				Duration: time.Since(startTime),
+			})
 		}()
 
 		h.ServeHTTP(rw, r)

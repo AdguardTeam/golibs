@@ -54,6 +54,10 @@ func TestLogMiddleware(t *testing.T) {
 
 		if i == 1 {
 			assert.Equal(t, float64(http.StatusOK), obj["code"])
+
+			// Make sure that the "elapsed" attribute is printed consistently.
+			elapsedStr := testutil.RequireTypeAssert[string](t, obj["elapsed"])
+			assert.Regexp(t, `[0-9.]+[a-zµ]+`, elapsedStr)
 		}
 	}
 }
