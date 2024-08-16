@@ -15,14 +15,14 @@ import (
 // empty.
 const ErrEmpty errors.Error = "empty url"
 
-// URL is a wrapper around url.URL that can marshal and unmarshal itself from
+// URL is a wrapper around [url.URL] that can marshal and unmarshal itself from
 // text form more easily.
 type URL struct {
 	url.URL
 }
 
-// Parse is a wrapper around [url.Parse] that returns *URL.  Unlike url.Parse,
-// it does not consider empty string a valid URL and returns [ErrEmpty]
+// Parse is a wrapper around [url.Parse] that returns *URL.  Unlike [url.Parse],
+// it does not consider empty string a valid URL and returns [ErrEmpty].
 func Parse(rawURL string) (u *URL, err error) {
 	if rawURL == "" {
 		return nil, ErrEmpty
@@ -42,6 +42,8 @@ func Parse(rawURL string) (u *URL, err error) {
 var _ encoding.TextMarshaler = (*URL)(nil)
 
 // MarshalText implements the [encoding.TextMarshaler] interface for *URL.
+//
+// TODO(e.burkov):  Consider declaring it on a non-pointer receiver.
 func (u *URL) MarshalText() (b []byte, err error) {
 	return u.MarshalBinary()
 }

@@ -17,8 +17,8 @@ type Interface interface {
 	// implementation of Start must document that.
 	Start(ctx context.Context) (err error)
 
-	// Shutdown gracefully stops the service.  ctx is used to determine
-	// a timeout before trying to stop the service less gracefully.
+	// Shutdown gracefully stops the service.  ctx is used to determine a
+	// timeout before trying to stop the service less gracefully.
 	//
 	// It is recommended that Shutdown returns only after the service has
 	// completely finished its termination.  If that cannot be done, the

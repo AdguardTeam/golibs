@@ -13,8 +13,6 @@ import (
 	"golang.org/x/net/idna"
 )
 
-// Various Network Address Utilities
-
 // CloneURL returns a deep clone of u.  The User pointer of clone is the same,
 // since a *url.Userinfo is effectively an immutable value.
 func CloneURL(u *url.URL) (clone *url.URL) {
@@ -33,8 +31,8 @@ func IsValidHostInnerRune(r rune) (ok bool) {
 	return r == '-' || IsValidHostOuterRune(r)
 }
 
-// IsValidHostOuterRune returns true if r is a valid initial or final rune for
-// a hostname label.
+// IsValidHostOuterRune returns true if r is a valid initial or final rune for a
+// hostname label.
 func IsValidHostOuterRune(r rune) (ok bool) {
 	switch {
 	case

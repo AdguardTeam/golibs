@@ -54,8 +54,8 @@ func FilterOut(strs []string, f func(s string) (ok bool)) (filtered []string) {
 	return filtered
 }
 
-// SplitTrimmed slices str into all substrings separated by sep and returns
-// a slice of the trimmed substrings between those separators with empty strings
+// SplitTrimmed slices str into all substrings separated by sep and returns a
+// slice of the trimmed substrings between those separators with empty strings
 // skipped.  If str has no such substrings, strs is an empty slice.
 func SplitTrimmed(str, sep string) (strs []string) {
 	str = strings.TrimSpace(str)
@@ -76,8 +76,8 @@ func SplitTrimmed(str, sep string) (strs []string) {
 		strs = append(strs, s)
 	}
 
-	// Reset the remaining elements of the original slice so that the
-	// garbage is collected.
+	// Reset the remaining elements of the original slice so that the garbage is
+	// collected.
 	for i := len(strs); i < len(split); i++ {
 		split[i] = ""
 	}

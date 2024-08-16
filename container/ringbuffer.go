@@ -1,21 +1,21 @@
 package container
 
-// RingBuffer is the implementation of ring buffer data structure.
+// RingBuffer is the generic implementation of ring buffer data structure.
 type RingBuffer[T any] struct {
 	buf  []T
 	cur  uint
 	full bool
 }
 
-// NewRingBuffer initializes the new instance of ring buffer.
+// NewRingBuffer initializes a new ring buffer with the given size.
 func NewRingBuffer[T any](size uint) (rb *RingBuffer[T]) {
 	return &RingBuffer[T]{
 		buf: make([]T, size),
 	}
 }
 
-// Push appends an element to the buffer and sets the current position to the
-// next element.
+// Push adds an element to the buffer and sets the current position to the next
+// element.
 func (rb *RingBuffer[T]) Push(e T) {
 	if len(rb.buf) == 0 {
 		return
@@ -28,8 +28,8 @@ func (rb *RingBuffer[T]) Push(e T) {
 	}
 }
 
-// Current returns the element at the current position.  Returns zero T if ring
-// buffer is nil or has no elements.
+// Current returns the element at the current position.  It returns zero value
+// of T if rb is nil or empty.
 func (rb *RingBuffer[T]) Current() (e T) {
 	if rb == nil || len(rb.buf) == 0 {
 		return e
@@ -38,7 +38,8 @@ func (rb *RingBuffer[T]) Current() (e T) {
 	return rb.buf[rb.cur]
 }
 
-// Range calls f for each element of the buffer.  If f returns false it stops.
+// Range calls f for each element of the buffer starting from the current
+// position until f returns false.
 func (rb *RingBuffer[T]) Range(f func(T) (cont bool)) {
 	before, after := rb.splitCur()
 
@@ -55,8 +56,8 @@ func (rb *RingBuffer[T]) Range(f func(T) (cont bool)) {
 	}
 }
 
-// ReverseRange calls f for each element of the buffer in reverse order.  If f
-// returns false it stops.
+// ReverseRange calls f for each element of the buffer in reverse order ending
+// with the current position until f returns false.
 func (rb *RingBuffer[T]) ReverseRange(f func(T) (cont bool)) {
 	before, after := rb.splitCur()
 

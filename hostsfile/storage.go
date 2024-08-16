@@ -171,7 +171,7 @@ func (s *DefaultStorage) RangeAddrs(f func(host string, addrs []netip.Addr) (con
 }
 
 // Equal returns true if s and other contain the same addresses mapped to the
-// same hostnames.
+// same hostnames.  Empty and nil storages are not equal.
 func (s *DefaultStorage) Equal(other *DefaultStorage) (ok bool) {
 	if s == nil || other == nil {
 		return s == other

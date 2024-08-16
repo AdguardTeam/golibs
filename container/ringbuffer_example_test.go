@@ -16,20 +16,20 @@ func ExampleRingBuffer_Current() {
 	fmt.Printf("empty: %#v\n", rb.Current())
 
 	rb.Push(x)
-	fmt.Printf("append %d: %#v\n", x, rb.Current())
+	fmt.Printf("push %d: %#v\n", x, rb.Current())
 
 	rb.Push(y)
-	fmt.Printf("append %d: %#v\n", y, rb.Current())
+	fmt.Printf("push %d: %#v\n", y, rb.Current())
 
 	rb.Push(z)
-	fmt.Printf("append %d: %#v\n", z, rb.Current())
+	fmt.Printf("push %d: %#v\n", z, rb.Current())
 	fmt.Printf("current: %#v\n", rb.Current())
 
 	// Output:
 	// nil: 0
 	// empty: 0
-	// append 1: 0
-	// append 2: 1
-	// append 3: 2
+	// push 1: 0
+	// push 2: 1
+	// push 3: 2
 	// current: 2
 }

@@ -9,8 +9,7 @@ import (
 )
 
 // SortedRange is like the usual Go range but sorts the keys before iterating
-// ensuring a predictable order.  If cont is false, SortedRange stops the
-// iteration.
+// ensuring a predictable order.  It iterates until f returns false.
 func SortedRange[K constraints.Ordered, V any, M ~map[K]V](m M, f func(k K, v V) (cont bool)) {
 	keys := maps.Keys(m)
 	slices.Sort(keys)

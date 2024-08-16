@@ -19,7 +19,7 @@ type NamedReader interface {
 	Name() (name string)
 }
 
-// Set adds successfully unmarshaled records.
+// Set handles successfully unmarshaled records.
 type Set interface {
 	// Add adds rec to the set.  rec should be valid.
 	Add(rec *Record)

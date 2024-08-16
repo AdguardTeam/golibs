@@ -6,15 +6,15 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 )
 
-// ErrEmptyLine is returned when the hosts file line is empty or contains only
+// ErrEmptyLine is returned when a hosts file line is empty or contains only
 // comments and spaces.
 const ErrEmptyLine errors.Error = "line is empty"
 
-// ErrNoHosts is returned when the record doesn't contain any delimiters, but
-// the IP address is valid.
+// ErrNoHosts is returned when a hosts file record doesn't contain any
+// delimiters, but the IP address is valid.
 const ErrNoHosts errors.Error = "no hostnames"
 
-// LineError is an error about a specific line in the hosts file.
+// LineError is an error about a specific line in a hosts file.
 type LineError struct {
 	// err is the original error.
 	err error

@@ -10,8 +10,6 @@ import (
 	"github.com/AdguardTeam/golibs/stringutil"
 )
 
-// Reversed ARPA Addresses
-
 // fromHexByte converts a single hexadecimal ASCII digit character into an
 // integer from 0 to 15.  For all other characters it returns 0xff.
 //
@@ -218,7 +216,7 @@ func ipv4NetFromReversed(arpa string) (pref netip.Prefix, err error) {
 		// empty labels.
 		octet64, err = strconv.ParseUint(addr[octetIdx:], 10, 8)
 		if err != nil {
-			// Don't wrap the error, since it's already informative enough as is.
+			// Don't wrap the error, since it's informative enough as is.
 			return netip.Prefix{}, err
 		} else if octet64 != 0 && addr[octetIdx] == '0' {
 			// Octets of an ARPA domain name shouldn't contain leading zero
@@ -328,8 +326,8 @@ func subnetFromReversedV4(arpa string) (subnet netip.Prefix, err error) {
 	return ipv4NetFromReversed(arpa)
 }
 
-// subnetFromReversedV6 tries to convert arpa a CIDR prefix.  It expects arpa to
-// be a valid domain name in a lower case.  The root domain "ip6.arpa" is
+// subnetFromReversedV6 tries to convert arpa to a CIDR prefix.  It expects arpa
+// to be a valid domain name in a lower case.  The root domain "ip6.arpa" is
 // considered valid and turns into the zero prefix of an IPv6 family.
 func subnetFromReversedV6(arpa string) (subnet netip.Prefix, err error) {
 	if l := len(arpa); l == arpaV6MaxLen {

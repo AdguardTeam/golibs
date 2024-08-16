@@ -20,7 +20,7 @@ func isShutdownSignal(sig os.Signal) (ok bool) {
 // notifyShutdownSignal notifies c on receiving Windows shutdown signals using
 // n.
 func notifyShutdownSignal(n SignalNotifier, c chan<- os.Signal) {
-	// syscall.SIGTERM is processed automatically.  See go doc os/signal,
+	// [syscall.SIGTERM] is processed automatically.  See go doc os/signal,
 	// section Windows.
 	n.Notify(c, os.Interrupt)
 }

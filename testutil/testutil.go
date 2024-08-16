@@ -28,8 +28,8 @@ func AssertErrorMsg(t testing.TB, msg string, err error) (ok bool) {
 	return assert.Equal(t, msg, err.Error())
 }
 
-// stringCodecChecker is used in AssertMarshalText and AssertUnmarshalText to
-// check against encoding and decoding corner cases.
+// stringCodecChecker is used in [AssertMarshalText] and [AssertUnmarshalText]
+// to check against encoding and decoding corner cases.
 type stringCodecChecker struct {
 	PtrMap map[string]*string `json:"ptr_map"`
 	Map    map[string]string  `json:"map"`
@@ -160,8 +160,9 @@ func assignGenericCodecChecker(checkerVal reflect.Value, v any) {
 	checkerVal.Elem().Field(7).Index(0).Set(val)
 }
 
-// AssertMarshalText checks that the implementation of v's MarshalText works in
-// all situations and results in the string s.  v must be a pointer.
+// AssertMarshalText checks that the implementation of
+// [encoding.TextMarshaler.MarshalText] works in all situations and results in
+// the string s.  v must be a pointer.
 //
 // See https://github.com/dominikh/go-tools/issues/911.
 func AssertMarshalText(t testing.TB, s string, v encoding.TextMarshaler) (ok bool) {
@@ -183,8 +184,9 @@ func AssertMarshalText(t testing.TB, s string, v encoding.TextMarshaler) (ok boo
 	return assert.Equal(t, string(want), string(b))
 }
 
-// AssertUnmarshalText checks that the implementation of v's UnmarshalText works
-// in all situations and results in a value deeply equal to want.
+// AssertUnmarshalText checks that the implementation of
+// [encoding.TextUnmarshaler.UnmarshalText] works in all situations and results
+// in a value deeply equal to want.
 func AssertUnmarshalText(t testing.TB, s string, v encoding.TextUnmarshaler) (ok bool) {
 	t.Helper()
 
@@ -208,13 +210,13 @@ func AssertUnmarshalText(t testing.TB, s string, v encoding.TextUnmarshaler) (ok
 }
 
 // CleanupAndRequireSuccess sets a cleanup function which checks the error
-// returned by f and fails the test using t if there is one.
-func CleanupAndRequireSuccess(t testing.TB, f func() (err error)) {
-	t.Helper()
+// returned by f and fails the test using tb if there is one.
+func CleanupAndRequireSuccess(tb testing.TB, f func() (err error)) {
+	tb.Helper()
 
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		err := f()
-		require.NoError(t, err)
+		require.NoError(tb, err)
 	})
 }
 

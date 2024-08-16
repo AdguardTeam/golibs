@@ -10,7 +10,7 @@ import (
 
 // Parse reads src and parses it as a hosts file line by line using buf for
 // buffered scanning.  If src is a [NamedReader], the name of the data source
-// will be set to the Source field of each record.
+// will be set to the Source field of each [Record].
 //
 // dst must not be nil, use [DiscardSet] if only the unmarshaling errors needed.
 // By default it returns all unmarshaling errors within err, but if dst is also

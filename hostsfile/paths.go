@@ -2,7 +2,7 @@ package hostsfile
 
 import "io/fs"
 
-// justify import
+// justify doc import
 var _ fs.FS
 
 // DefaultHostsPaths returns the slice of default paths to system hosts files.

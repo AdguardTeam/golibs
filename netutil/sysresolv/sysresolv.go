@@ -21,7 +21,8 @@ import (
 // Implementations must be safe for concurrent use.
 type HostGenFunc func() (hostname string)
 
-// SystemResolvers is a default implementation of the Resolvers interface.
+// SystemResolvers used to discover the default DNS resolvers used by the
+// operating system.
 type SystemResolvers struct {
 	// lastUpd is the moment when the last update started.
 	lastUpd time.Time
@@ -40,7 +41,7 @@ type SystemResolvers struct {
 	defaultPort uint16
 }
 
-// NewSystemResolvers returns a SystemResolvers instance that uses genHost to
+// NewSystemResolvers returns a *SystemResolvers instance that uses genHost to
 // generate fake hosts for dialing, see [HostGenFunc].  The default generator is
 // used, if genHost is nil.  The defaultPort is used when resolvers are provided
 // without a port number.
@@ -105,6 +106,8 @@ func (sr *SystemResolvers) Refresh() (err error) {
 }
 
 // compareAddrPorts compares two [netip.AddrPort]s.  It's used for sorting.
+//
+// TODO(e.burkov):  Use [netip.AddrPort.Compare].
 func compareAddrPorts(a, b netip.AddrPort) (res int) {
 	res = a.Addr().Compare(b.Addr())
 	if res != 0 {

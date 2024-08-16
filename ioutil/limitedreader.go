@@ -29,7 +29,8 @@ type limitedReader struct {
 // type check
 var _ io.Reader = (*limitedReader)(nil)
 
-// Read implements the [io.Reader] interface for *limitedReader.
+// Read implements the [io.Reader] interface for *limitedReader.  It's not safe
+// for concurrent use.
 func (lr *limitedReader) Read(p []byte) (n int, err error) {
 	if lr.n == 0 {
 		return 0, &LimitError{
@@ -47,8 +48,8 @@ func (lr *limitedReader) Read(p []byte) (n int, err error) {
 }
 
 // LimitReader returns an io.Reader that reads up to n bytes.  Once that limit
-// is reached, [ErrLimit] is returned from limited.Read.  limited.Read is not
-// safe for concurrent use.  n must be non-negative.
+// is reached, [ErrLimit] is returned from the Read method.  The Read method is
+// not safe for concurrent use.
 func LimitReader(r io.Reader, n uint64) (limited io.Reader) {
 	return &limitedReader{
 		r:     r,

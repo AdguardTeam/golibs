@@ -24,8 +24,8 @@ func NewPool[T any](newFunc func() (v *T)) (p *Pool[T]) {
 	}
 }
 
-// NewSlicePool is a helper for constructing pools with pointers to slices
-// of a type with the given length.
+// NewSlicePool is a helper for constructing pools with pointers to slices of a
+// type with the given length.
 func NewSlicePool[T any](l int) (p *Pool[[]T]) {
 	return NewPool(func() (v *[]T) {
 		s := make([]T, l)

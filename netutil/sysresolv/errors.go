@@ -3,7 +3,7 @@ package sysresolv
 import "github.com/AdguardTeam/golibs/errors"
 
 const (
-	// errFakeDial is an error which dialFunc is expected to return.
+	// errFakeDial is an error which [dialFunc] is expected to return.
 	errFakeDial errors.Error = "this error signals the successful dialFunc work"
 
 	// errBadAddrPassed is returned by validateDialedHost when the host is not

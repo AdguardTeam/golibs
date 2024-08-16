@@ -6,6 +6,7 @@ import "net/http"
 
 // Middleware is a common HTTP middleware interface.
 type Middleware interface {
+	// Wrap returns a new handler that wraps the specified handler.
 	Wrap(handler http.Handler) (wrapped http.Handler)
 }
 
@@ -29,11 +30,18 @@ func Wrap(h http.Handler, middlewares ...Middleware) (wrapped http.Handler) {
 
 // Router is the interface for HTTP routers, such as [*http.ServeMux].
 type Router interface {
+	// Handle registers the handler for the given pattern.
 	Handle(pattern string, h http.Handler)
 }
 
+// type check
+var _ Router = (*http.ServeMux)(nil)
+
 // RouterFunc is a functional implementation of the [Router] interface.
 type RouterFunc func(pattern string, h http.Handler)
+
+// type check
+var _ Router = RouterFunc(nil)
 
 // Handle implements the [Router] interface for RouterFunc.
 func (f RouterFunc) Handle(pattern string, h http.Handler) {

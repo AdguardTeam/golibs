@@ -33,10 +33,10 @@ func (w *CodeRecorderResponseWriter) Code() (code int) {
 }
 
 // SetImplicitSuccess should be called after the handler has finished to set the
-// status code to 200 OK if it hadn't been set explicitly.  This can be used to
-// detect panics within handlers, as when a handler panics before calling
-// w.WriteHeader, SetImplicitSuccess isn't reached, and w.Code returns 0 and
-// false.
+// status code to [http.StatusOK] if it hadn't been set explicitly.  This can be
+// used to detect panics within handlers, as when a handler panics before
+// calling w.WriteHeader, SetImplicitSuccess isn't reached, and w.Code returns 0
+// and false.
 func (w *CodeRecorderResponseWriter) SetImplicitSuccess() {
 	w.code = cmp.Or(w.code, http.StatusOK)
 }

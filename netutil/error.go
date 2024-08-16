@@ -6,9 +6,7 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 )
 
-// Errors
-//
-// TODO(a.garipov): Implement the errors.Iser interface and use errors.Is in
+// TODO(a.garipov): Implement the [errors.Iser] interface and use [errors.Is] in
 // tests to test the whole content of the errors.
 
 const (
@@ -39,8 +37,8 @@ const (
 	AddrKindSRVName    AddrKind = "service domain name"
 )
 
-// AddrError is the underlying type of errors returned from validation
-// functions when a domain name is invalid.
+// AddrError is the underlying type of errors returned from validation functions
+// when a domain name is invalid.
 type AddrError struct {
 	// Err is the underlying error, if any.
 	Err error
@@ -118,7 +116,7 @@ type LabelError struct {
 // type check
 var _ error = (*AddrError)(nil)
 
-// Error implements the error interface for *AddrError.
+// Error implements the error interface for *LabelError.
 func (err *LabelError) Error() (msg string) {
 	if err.Err != nil {
 		return fmt.Sprintf("bad %s %q: %s", err.Kind, err.Label, err.Err)
@@ -130,8 +128,8 @@ func (err *LabelError) Error() (msg string) {
 // type check
 var _ errors.Wrapper = (*AddrError)(nil)
 
-// Unwrap implements the [errors.Wrapper] interface for *AddrError.  It returns
-// err.Err.
+// Unwrap implements the [errors.Wrapper] interface for *LabelError.  It returns
+// Err error.
 func (err *LabelError) Unwrap() (unwrapped error) {
 	return err.Err
 }
@@ -172,6 +170,9 @@ type LengthError struct {
 	Length int
 }
 
+// type check
+var _ error = (*LengthError)(nil)
+
 // Error implements the error interface for *LengthError.
 func (err *LengthError) Error() (msg string) {
 	if err.Max > 0 {
@@ -200,6 +201,9 @@ type RuneError struct {
 	// Rune is the invalid rune.
 	Rune rune
 }
+
+// type check
+var _ error = (*RuneError)(nil)
 
 // Error implements the error interface for *RuneError.
 func (err *RuneError) Error() (msg string) {

@@ -3,6 +3,8 @@
 package timeutil
 
 import (
+	"encoding"
+	"fmt"
 	"time"
 
 	"github.com/AdguardTeam/golibs/errors"
@@ -16,7 +18,10 @@ type Duration struct {
 	time.Duration
 }
 
-// String implements the fmt.Stringer interface for Duration.  It wraps
+// type check
+var _ fmt.Stringer = Duration{}
+
+// String implements the [fmt.Stringer] interface for Duration.  It wraps
 // time.Duration.String method and additionally cuts off non-leading zero values
 // of minutes and seconds.  Some values which are differ between the
 // implementations:
@@ -52,12 +57,18 @@ func (d Duration) String() (str string) {
 	}
 }
 
-// MarshalText implements the encoding.TextMarshaler interface for Duration.
+// type check
+var _ encoding.TextMarshaler = Duration{}
+
+// MarshalText implements the [encoding.TextMarshaler] interface for Duration.
 func (d Duration) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for
+// type check
+var _ encoding.TextUnmarshaler = (*Duration)(nil)
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface for
 // *Duration.
 //
 // TODO(e.burkov): Make it able to parse larger units like days.
