@@ -13,6 +13,9 @@ type Wrapper interface {
 
 // CodeRecorderResponseWriter wraps an [http.ResponseWriter] allowing to save
 // the response code.
+//
+// Instances must be initialized either with [NewCodeRecorderResponseWriter]
+// or by calling [CodeRecorderResponseWriter.Reset].
 type CodeRecorderResponseWriter struct {
 	rw   http.ResponseWriter
 	code int
@@ -39,6 +42,13 @@ func (w *CodeRecorderResponseWriter) Code() (code int) {
 // and false.
 func (w *CodeRecorderResponseWriter) SetImplicitSuccess() {
 	w.code = cmp.Or(w.code, http.StatusOK)
+}
+
+// Reset allows reusing w by setting rw as the response writer and setting the
+// code to zero.
+func (w *CodeRecorderResponseWriter) Reset(rw http.ResponseWriter) {
+	w.rw = rw
+	w.code = 0
 }
 
 // type check

@@ -17,25 +17,3 @@ func BoolToNumber[T Number](cond bool) (res T) {
 
 	return 0
 }
-
-// Max returns the larger of x or y.
-//
-// Deprecated: Use the built-in function max.
-func Max[T constraints.Integer | ~string](x, y T) (res T) {
-	if x > y {
-		return x
-	}
-
-	return y
-}
-
-// Min returns the smaller of x or y.
-//
-// Deprecated: Use the built-in function min.
-func Min[T constraints.Integer | ~string](x, y T) (res T) {
-	if x < y {
-		return x
-	}
-
-	return y
-}

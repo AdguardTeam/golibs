@@ -2,7 +2,9 @@ package httputil_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -17,13 +19,22 @@ import (
 
 func TestLogMiddleware(t *testing.T) {
 	logOutput := &bytes.Buffer{}
-	l := slogutil.New(&slogutil.Config{
+	logger := slogutil.New(&slogutil.Config{
 		Output: logOutput,
 		Format: slogutil.FormatJSON,
 	})
 
-	mw := httputil.NewLogMiddleware(l, slog.LevelInfo)
-	h := mw.Wrap(httputil.HealthCheckHandler)
+	mw := httputil.NewLogMiddleware(logger, slog.LevelInfo)
+	h := mw.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l, ok := slogutil.LoggerFromContext(ctx)
+		require.True(t, ok)
+
+		l.InfoContext(ctx, "test", "attr", 123)
+
+		_, err := io.WriteString(w, testBody)
+		require.NoError(t, err)
+	}))
 
 	w := httptest.NewRecorder()
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
@@ -37,10 +48,10 @@ func TestLogMiddleware(t *testing.T) {
 	lines := bytes.Split(logOutput.Bytes(), []byte("\n"))
 
 	// This includes an empty line at the end.
-	require.Len(t, lines, 3)
+	require.Len(t, lines, 4)
 
 	for i, line := range lines {
-		if i == 2 && len(line) == 0 {
+		if i == 3 && len(line) == 0 {
 			continue
 		}
 
@@ -48,11 +59,15 @@ func TestLogMiddleware(t *testing.T) {
 		err := json.Unmarshal(line, &obj)
 		require.NoError(t, err)
 
+		assert.NotEmpty(t, "INFO", obj["msg"])
 		assert.Equal(t, "INFO", obj["level"])
 		assert.Equal(t, http.MethodGet, obj["method"])
 		assert.Equal(t, testPath, obj["request_uri"])
 
-		if i == 1 {
+		switch i {
+		case 1:
+			assert.Equal(t, float64(123), obj["attr"])
+		case 2:
 			assert.Equal(t, float64(http.StatusOK), obj["code"])
 
 			// Make sure that the "elapsed" attribute is printed consistently.
@@ -60,4 +75,62 @@ func TestLogMiddleware(t *testing.T) {
 			assert.Regexp(t, `[0-9.]+[a-zµ]+`, elapsedStr)
 		}
 	}
+}
+
+// testResponseWriter is a response writer that does nothing.
+type testResponseWriter struct {
+	// hdr is the header returned by [testResponseWriter.Header].
+	hdr http.Header
+}
+
+// type check
+var _ http.ResponseWriter = testResponseWriter{}
+
+// Header returns [rw.hdr].
+func (rw testResponseWriter) Header() (hdr http.Header) { return rw.hdr }
+
+// Write does nothing and returns len(b), nil.
+func (testResponseWriter) Write(b []byte) (_ int, _ error) { return len(b), nil }
+
+// WriteHeader does nothing.
+func (testResponseWriter) WriteHeader(_ int) {}
+
+func BenchmarkLogMiddleware(b *testing.B) {
+	w := testResponseWriter{
+		hdr: http.Header{},
+	}
+
+	ctx := context.Background()
+	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+
+	b.Run("enabled", func(b *testing.B) {
+		logHdlr := slogutil.NewLevelHandler(slog.LevelInfo, slogutil.DiscardHandler{})
+		mw := httputil.NewLogMiddleware(slog.New(logHdlr), slog.LevelInfo)
+		h := mw.Wrap(httputil.HealthCheckHandler)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+		for range b.N {
+			h.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("disabled", func(b *testing.B) {
+		mw := httputil.NewLogMiddleware(slogutil.NewDiscardLogger(), slog.LevelInfo)
+		h := mw.Wrap(httputil.HealthCheckHandler)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+		for range b.N {
+			h.ServeHTTP(w, r)
+		}
+	})
+
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil/httputil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkLogMiddleware/enabled-16         	  807336	      1900 ns/op	     128 B/op	       6 allocs/op
+	//	BenchmarkLogMiddleware/disabled-16        	 1672407	       743.0 ns/op	      88 B/op	       4 allocs/op
 }

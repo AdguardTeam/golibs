@@ -2,7 +2,10 @@
 // with HTTP.
 package httputil
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // Middleware is a common HTTP middleware interface.
 type Middleware interface {
@@ -46,4 +49,15 @@ var _ Router = RouterFunc(nil)
 // Handle implements the [Router] interface for RouterFunc.
 func (f RouterFunc) Handle(pattern string, h http.Handler) {
 	f(pattern, h)
+}
+
+// CopyRequestTo is an optimized version of [http.Request.WithContext] that uses
+// compiler optimizations to allow reducing allocations with a pool.  ctx, dst,
+// and src must not be nil.
+//
+// See https://github.com/golang/go/issues/68501#issuecomment-2234069762.
+func CopyRequestTo(ctx context.Context, dst, src *http.Request) {
+	// NOTE:  Just putting this into the code doesn't work most of the time.
+	// Most likely because it gets harder for the compiler to inline.
+	*dst = *src.WithContext(ctx)
 }

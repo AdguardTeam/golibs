@@ -20,21 +20,3 @@ func ExampleBoolToNumber() {
 	// 1
 	// 0
 }
-
-func ExampleMax() {
-	fmt.Println(mathutil.Max(1, 2))
-	fmt.Println(mathutil.Max(2, 1))
-
-	// Output:
-	// 2
-	// 2
-}
-
-func ExampleMin() {
-	fmt.Println(mathutil.Min(1, 2))
-	fmt.Println(mathutil.Min(2, 1))
-
-	// Output:
-	// 1
-	// 1
-}
