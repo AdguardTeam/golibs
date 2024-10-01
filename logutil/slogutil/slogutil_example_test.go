@@ -9,7 +9,7 @@ import (
 
 func ExampleNew_default() {
 	l := slogutil.New(&slogutil.Config{
-		Verbose: true,
+		Level: slog.LevelDebug,
 	})
 
 	l.Info("test info")
@@ -22,8 +22,8 @@ func ExampleNew_default() {
 
 func ExampleNew_json() {
 	l := slogutil.New(&slogutil.Config{
-		Format:  slogutil.FormatJSON,
-		Verbose: true,
+		Format: slogutil.FormatJSON,
+		Level:  slog.LevelDebug,
 	})
 
 	l.Info("test info")
@@ -41,8 +41,8 @@ func ExampleNew_json() {
 
 func ExampleNew_text() {
 	l := slogutil.New(&slogutil.Config{
-		Format:  slogutil.FormatText,
-		Verbose: true,
+		Format: slogutil.FormatText,
+		Level:  slog.LevelDebug,
 	})
 
 	l.Info("test info")
@@ -71,4 +71,20 @@ This is a very long text with many lines.`
 	// INFO my text line_num=1 line="A Very Long Text"
 	// INFO my text line_num=2 line=""
 	// INFO my text line_num=3 line="This is a very long text with many lines."
+}
+
+func ExampleNew_trace() {
+	l := slogutil.New(&slogutil.Config{
+		Format: slogutil.FormatText,
+		Level:  slogutil.LevelTrace,
+	})
+
+	l.Log(context.Background(), slogutil.LevelTrace, "test trace")
+	l.Info("test info")
+	l.Debug("test debug")
+
+	// Output:
+	// level=TRACE msg="test trace"
+	// level=INFO msg="test info"
+	// level=DEBUG msg="test debug"
 }

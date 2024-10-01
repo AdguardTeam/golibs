@@ -13,7 +13,7 @@ import (
 func ExampleCloseAndLog() {
 	ctx := context.Background()
 	l := slogutil.New(&slogutil.Config{
-		Verbose: true,
+		Level: slog.LevelDebug,
 	})
 
 	func() {

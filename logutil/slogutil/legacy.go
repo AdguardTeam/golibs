@@ -157,6 +157,8 @@ type logFunction func(format string, args ...any)
 // returned.
 func logFuncForLevel(lvl slog.Level) (logFunc logFunction, warnStr string, err error) {
 	switch lvl {
+	case LevelTrace:
+		return aglog.Debug, "trace: ", nil
 	case slog.LevelDebug:
 		return aglog.Debug, "", nil
 	case slog.LevelInfo:

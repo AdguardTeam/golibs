@@ -29,11 +29,11 @@ type Config struct {
 	// If set, it must be valid.
 	Format Format
 
+	// Level is the minimum record level that will be logged.
+	Level slog.Level
+
 	// AddTimestamp, if true, adds a timestamp to every record.
 	AddTimestamp bool
-
-	// Verbose, if true, enables verbose logging.
-	Verbose bool
 }
 
 // New creates a slog logger with the given parameters.  If c is nil, the
@@ -49,11 +49,7 @@ func New(c *Config) (l *slog.Logger) {
 		}
 	}
 
-	lvl := slog.LevelInfo
-	if c.Verbose {
-		lvl = slog.LevelDebug
-	}
-
+	lvl := c.Level
 	format := cmp.Or(c.Format, FormatDefault)
 	output := cmp.Or[io.Writer](c.Output, os.Stdout)
 	if format == FormatDefault {
@@ -61,10 +57,7 @@ func New(c *Config) (l *slog.Logger) {
 		return newDefault(output, lvl, c.AddTimestamp)
 	}
 
-	var replaceAttr func(groups []string, a slog.Attr) (res slog.Attr)
-	if !c.AddTimestamp {
-		replaceAttr = RemoveTime
-	}
+	replaceAttr := newReplaceAttr(!c.AddTimestamp)
 
 	var h slog.Handler
 	switch format {
@@ -95,6 +88,8 @@ func New(c *Config) (l *slog.Logger) {
 }
 
 // newDefault returns a new default slog logger set up with the given options.
+//
+// TODO(d.kolyshev): Replace log level name for [LevelTrace].
 func newDefault(output io.Writer, lvl slog.Level, addTimestamp bool) (l *slog.Logger) {
 	h := NewLevelHandler(lvl, slog.Default().Handler())
 	log.SetOutput(output)
@@ -105,6 +100,38 @@ func newDefault(output io.Writer, lvl slog.Level, addTimestamp bool) (l *slog.Lo
 	}
 
 	return slog.New(h)
+}
+
+// newReplaceAttr is a function that returns [slog.HandlerOptions.ReplaceAttr]
+// function for provided parameters.
+func newReplaceAttr(removeTime bool) func(groups []string, a slog.Attr) (res slog.Attr) {
+	if !removeTime {
+		return ReplaceLevel
+	}
+
+	return func(groups []string, a slog.Attr) (res slog.Attr) {
+		return ReplaceLevel(groups, RemoveTime(groups, a))
+	}
+}
+
+// traceAttrValue is a [LevelTrace] value under the [slog.LevelKey] key.
+var traceAttrValue = slog.StringValue("TRACE")
+
+// ReplaceLevel is a function for [slog.HandlerOptions.ReplaceAttr] that adds
+// [LevelTrace] custom name for level attribute.
+func ReplaceLevel(groups []string, a slog.Attr) (res slog.Attr) {
+	if len(groups) > 0 {
+		return a
+	}
+
+	if a.Key == slog.LevelKey {
+		lvl := a.Value.Any().(slog.Level)
+		if lvl == LevelTrace {
+			a.Value = traceAttrValue
+		}
+	}
+
+	return a
 }
 
 // RemoveTime is a function for [slog.HandlerOptions.ReplaceAttr] that removes
