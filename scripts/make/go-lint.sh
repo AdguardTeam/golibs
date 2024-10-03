@@ -3,19 +3,17 @@
 # This comment is used to simplify checking local copies of the script.  Bump
 # this number every time a significant change is made to this script.
 #
-# AdGuard-Project-Version: 8
+# AdGuard-Project-Version: 13
 
 verbose="${VERBOSE:-0}"
 readonly verbose
 
-if [ "$verbose" -gt '0' ]
-then
+if [ "$verbose" -gt '0' ]; then
 	set -x
 fi
 
 # Set $EXIT_ON_ERROR to zero to see all errors.
-if [ "${EXIT_ON_ERROR:-1}" -eq '0' ]
-then
+if [ "${EXIT_ON_ERROR:-1}" -eq '0' ]; then
 	set +e
 else
 	set -e
@@ -23,12 +21,8 @@ fi
 
 set -f -u
 
-
-
 # Source the common helpers, including not_found and run_linter.
 . ./scripts/make/helper.sh
-
-
 
 # Simple analyzers
 
@@ -38,12 +32,15 @@ set -f -u
 #   *  Package errors is replaced by our own package in the
 #      github.com/AdguardTeam/golibs module.
 #
-#   *  Packages golang.org/x/exp/slices and golang.org/x/net/context have been
-#      moved into stdlib.
-#
 #   *  Packages log and github.com/AdguardTeam/golibs/log are replaced by
 #      stdlib's new package log/slog and AdGuard's new utilities package
 #      github.com/AdguardTeam/golibs/logutil/slogutil.
+#
+#   *  Package github.com/prometheus/client_golang/prometheus/promauto is not
+#      recommended, as it encourages reliance on global state.
+#
+#   *  Packages golang.org/x/exp/maps, golang.org/x/exp/slices, and
+#      golang.org/x/net/context have been moved into stdlib.
 #
 #   *  Package io/ioutil is soft-deprecated.
 #
@@ -62,71 +59,65 @@ set -f -u
 # schemas, which use package reflect.  If your project needs more exceptions,
 # add and document them.
 #
-# TODO(a.garipov): Add deprecated package golang.org/x/exp/maps once all
-# projects switch to Go 1.23.
+# NOTE:  Flag -H for grep is non-POSIX but all of Busybox, GNU, macOS, and
+# OpenBSD support it.
 blocklist_imports() {
 	# TODO(e.burkov):  These are temporary exclusions for some packages.
-	git grep\
-		-e '[[:space:]]"unsafe"$'\
-		-n\
-		-- '*.go'\
-		':!cache/data.go'\
-		':!cache/list.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
-		|| exit 0
-
-	git grep\
-		-e '[[:space:]]"errors"$'\
-		-n\
-		-- '*.go'\
-		':!errors/errors.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
-		|| exit 0
-
-	git grep\
-		-e '[[:space:]]"reflect"$'\
-		-n\
-		-- '*.go'\
-		':!testutil/testutil.go'\
-		':!netutil/urlutil/url.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
-		|| exit 0
-
-	git grep\
-		-e '[[:space:]]"log"$'\
-		-n\
-		-- '*.go'\
-		':!log/log.go'\
-		':!logutil/slogutil/slogutil.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
-		|| exit 0
-
-	# These are common for the whole code.
-	git grep\
-		-e '[[:space:]]"io/ioutil"$'\
-		-e '[[:space:]]"sort"$'\
-		-e '[[:space:]]"golang.org/x/exp/slices"$'\
-		-e '[[:space:]]"golang.org/x/net/context"$'\
-		-n\
-		-- '*.go'\
-		':!*.pb.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 blocked import:\2/'\
-		|| exit 0
+	find . \
+		-type 'f' \
+		'(' -name '*.go' '!' -name '*.pb.go' ')' \
+		'!' '(' \
+		-path './cache/data.go' \
+		-o -path './cache/list.go' \
+		-o -path './errors/errors.go' \
+		-o -path './hostsfile/storage.go' \
+		-o -path './log/example_test.go' \
+		-o -path './log/log.go' \
+		-o -path './logutil/slogutil/legacy*.go' \
+		-o -path './logutil/slogutil/slogutil.go' \
+		-o -path './netutil/urlutil/url.go' \
+		-o -path './testutil/log.go' \
+		-o -path './testutil/testutil.go' \
+		')' \
+		-exec \
+		'grep' \
+		'-H' \
+		'-e' '[[:space:]]"errors"$' \
+		'-e' '[[:space:]]"github.com/AdguardTeam/golibs/log"$' \
+		'-e' '[[:space:]]"github.com/prometheus/client_golang/prometheus/promauto"$' \
+		'-e' '[[:space:]]"golang.org/x/exp/maps"$' \
+		'-e' '[[:space:]]"golang.org/x/exp/slices"$' \
+		'-e' '[[:space:]]"golang.org/x/net/context"$' \
+		'-e' '[[:space:]]"io/ioutil"$' \
+		'-e' '[[:space:]]"log"$' \
+		'-e' '[[:space:]]"reflect"$' \
+		'-e' '[[:space:]]"sort"$' \
+		'-e' '[[:space:]]"unsafe"$' \
+		'-n' \
+		'{}' \
+		';'
 }
 
 # method_const is a simple check against the usage of some raw strings and
 # numbers where one should use named constants.
+#
+# NOTE:  Flag -H for grep is non-POSIX but all of Busybox, GNU, macOS, and
+# OpenBSD support it.
 method_const() {
-	git grep -F\
-		-e '"DELETE"'\
-		-e '"GET"'\
-		-e '"PATCH"'\
-		-e '"POST"'\
-		-e '"PUT"'\
-		-n\
-		-- '*.go'\
-		| sed -e 's/^\([^[:space:]]\+\)\(.*\)$/\1 http method literal:\2/'\
-		|| exit 0
+	find . \
+		-type 'f' \
+		-name '*.go' \
+		-exec \
+		'grep' \
+		'-H' \
+		'-e' '"DELETE"' \
+		'-e' '"GET"' \
+		'-e' '"PATCH"' \
+		'-e' '"POST"' \
+		'-e' '"PUT"' \
+		'-n' \
+		'{}' \
+		';'
 }
 
 # underscores is a simple check against Go filenames with underscores.  Add new
@@ -134,30 +125,29 @@ method_const() {
 # use of filenames like client_manager.go.
 underscores() {
 	underscore_files="$(
-		git ls-files '*_*.go'\
-			| grep -F\
-			-e '_darwin.go'\
-			-e '_generate.go'\
-			-e '_linux.go'\
-			-e '_test.go'\
-			-e '_unix.go'\
-			-e '_windows.go'\
-			-e '_others.go'\
-			-v\
-			| sed -e 's/./\t\0/'
+		find . \
+			-type 'f' \
+			-name '*_*.go' \
+			'!' '(' -name '*_darwin.go' \
+			-o -name '*_generate.go' \
+			-o -name '*_linux.go' \
+			-o -name '*_others.go' \
+			-o -name '*_test.go' \
+			-o -name '*_unix.go' \
+			-o -name '*_windows.go' \
+			')' \
+			-exec 'printf' '\t%s\n' '{}' ';'
 	)"
 	readonly underscore_files
 
-	if [ "$underscore_files" != '' ]
-	then
-		echo 'found file names with underscores:'
-		echo "$underscore_files"
+	if [ "$underscore_files" != '' ]; then
+		printf \
+			'found file names with underscores:\n%s\n' \
+			"$underscore_files"
 	fi
 }
 
 # TODO(a.garipov): Add an analyzer to look for `fallthrough`, `goto`, and `new`?
-
-
 
 # Checks
 
@@ -168,8 +158,6 @@ run_linter -e method_const
 run_linter -e underscores
 
 run_linter -e gofumpt --extra -e -l .
-
-# TODO(a.garipov): golint is deprecated, find a suitable replacement.
 
 run_linter "${GO:-go}" vet ./...
 
@@ -183,65 +171,55 @@ run_linter ineffassign ./...
 
 run_linter unparam ./...
 
-git ls-files -- 'Makefile' '*.conf' '*.go' '*.mod' '*.sh' '*.yaml' '*.yml'\
-	| xargs misspell --error\
-	| sed -e 's/^/misspell: /'
+find . \
+	-type 'f' \
+	'(' \
+	-name 'Makefile' \
+	-o -name '*.conf' \
+	-o -name '*.go' \
+	-o -name '*.mod' \
+	-o -name '*.sh' \
+	-o -name '*.yaml' \
+	-o -name '*.yml' \
+	')' \
+	-exec 'misspell' '--error' '{}' '+'
 
 run_linter nilness ./...
 
-# TODO(e.burkov):  Add cache package.
-run_linter fieldalignment\
-	./container/\
-	./errors/\
-	./hostsfile/\
-	./httphdr/\
-	./internal/...\
-	./ioutil/\
-	./log/\
-	./logutil/...\
-	./mapsutil/\
-	./mathutil/\
-	./netutil/...\
-	./osutil/\
-	./service/\
-	./stringutil/\
-	./syncutil/\
-	./testutil/...\
-	./timeutil/\
+# TODO(a.garipov):  Remove or replace cache package.
+run_linter fieldalignment \
+	./container/ \
+	./errors/ \
+	./hostsfile/ \
+	./httphdr/ \
+	./internal/... \
+	./ioutil/ \
+	./log/ \
+	./logutil/... \
+	./mathutil/ \
+	./netutil/... \
+	./osutil/ \
+	./service/ \
+	./stringutil/ \
+	./syncutil/ \
+	./testutil/... \
+	./timeutil/ \
 	;
 
 run_linter -e shadow --strict ./...
 
-# TODO(e.burkov):  Add cache package.
-run_linter gosec --quiet\
-	./container/\
-	./errors/\
-	./hostsfile/\
-	./httphdr/\
-	./internal/...\
-	./ioutil/\
-	./log/\
-	./logutil/...\
-	./mapsutil/\
-	./mathutil/\
-	./netutil/...\
-	./osutil/\
-	./service/\
-	./stringutil/\
-	./syncutil/\
-	./testutil/...\
-	./timeutil/\
-	;
+# TODO(a.garipov):  Remove or replace cache package.
+run_linter gosec --exclude-dir='cache' --quiet ./...
 
 run_linter errcheck ./...
 
 staticcheck_matrix='
 darwin:  GOOS=darwin
-linux:   GOOS=linux
 freebsd: GOOS=freebsd
+linux:   GOOS=linux
 openbsd: GOOS=openbsd
 windows: GOOS=windows
 '
 readonly staticcheck_matrix
 
-echo "$staticcheck_matrix" | run_linter staticcheck --matrix ./...
+printf '%s' "$staticcheck_matrix" | run_linter staticcheck --matrix ./...

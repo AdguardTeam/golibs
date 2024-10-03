@@ -14,10 +14,15 @@ import (
 	"strings"
 )
 
-// Additional key constants.
+// Additional or renamed key constants.
 const (
-	KeyPrefix = "prefix"
 	KeyError  = "err"
+	KeyPrefix = "prefix"
+
+	KeyMessage = slog.MessageKey
+	KeySource  = slog.SourceKey
+	KeyTime    = slog.TimeKey
+	keyLevel   = slog.LevelKey
 )
 
 // Config contains the configuration for a logger.
@@ -141,7 +146,7 @@ func RemoveTime(groups []string, a slog.Attr) (res slog.Attr) {
 		return a
 	}
 
-	if a.Key == "time" {
+	if a.Key == KeyTime {
 		return slog.Attr{}
 	}
 

@@ -1,6 +1,7 @@
 package hostsfile_test
 
 import (
+	"maps"
 	"net/netip"
 	"path"
 	"slices"
@@ -12,7 +13,6 @@ import (
 	"github.com/AdguardTeam/golibs/testutil/fakeio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/maps"
 )
 
 func TestDefaultStorage_lookup(t *testing.T) {
@@ -56,11 +56,7 @@ func TestDefaultStorage_lookup(t *testing.T) {
 	t.Run("ByAddr", func(t *testing.T) {
 		t.Parallel()
 
-		// Sort keys to make the test deterministic.
-		addrs := maps.Keys(wantAddrs)
-		slices.SortFunc(addrs, netip.Addr.Compare)
-
-		for _, addr := range addrs {
+		for _, addr := range slices.SortedStableFunc(maps.Keys(wantAddrs), netip.Addr.Compare) {
 			addr := addr
 
 			t.Run(addr.String(), func(t *testing.T) {
@@ -74,11 +70,7 @@ func TestDefaultStorage_lookup(t *testing.T) {
 	t.Run("ByHost", func(t *testing.T) {
 		t.Parallel()
 
-		// Sort keys to make the test deterministic.
-		hosts := maps.Keys(wantHosts)
-		slices.Sort(hosts)
-
-		for _, host := range hosts {
+		for _, host := range slices.Sorted(maps.Keys(wantHosts)) {
 			host := host
 
 			t.Run(host, func(t *testing.T) {

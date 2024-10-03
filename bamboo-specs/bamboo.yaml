@@ -14,8 +14,7 @@
     # exact patch version as opposed to a minor one to make sure that this exact
     # version is actually used and not whatever the docker daemon on the CI has
     # cached a few months ago.
-    'dockerGo': 'golang:1.22.6'
-    'dockerMisc': 'adguard/go-misc-tools:1.0'
+    'dockerGo': 'adguard/go-builder:1.23.2--1'
 
 'stages':
   - 'Go Lint':
@@ -58,7 +57,7 @@
 
 'Misc Lint':
     'docker':
-        'image': '${bamboo.dockerMisc}'
+        'image': '${bamboo.dockerGo}'
     'key': 'MISCLINT'
     'other':
         'clean-working-dir': true
@@ -73,7 +72,7 @@
               - |
                 set -e -f -u -x
 
-                make VERBOSE=1 md-lint sh-lint
+                make VERBOSE=1 go-tools md-lint sh-lint txt-lint
 
 
 'Test':

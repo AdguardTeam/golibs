@@ -42,6 +42,10 @@ func (lr *limitedReader) Read(p []byte) (n int, err error) {
 	p = p[:l]
 
 	n, err = lr.r.Read(p)
+	if n < 0 {
+		return 0, fmt.Errorf("bad read length: %d", n)
+	}
+
 	lr.n -= uint64(n)
 
 	return n, err
