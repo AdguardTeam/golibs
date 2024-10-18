@@ -76,7 +76,7 @@ func New(c *Config) (l *slog.Logger) {
 	case FormatJSONL:
 		h = NewJSONHybridHandler(output, &slog.HandlerOptions{
 			Level:       lvl,
-			ReplaceAttr: newJSONLReplaceAttr(),
+			ReplaceAttr: newJSONLReplaceAttr(!c.AddTimestamp),
 		})
 	case FormatText:
 		h = slog.NewTextHandler(output, &slog.HandlerOptions{
@@ -141,7 +141,11 @@ func ReplaceLevel(groups []string, a slog.Attr) (res slog.Attr) {
 
 // newJSONLReplaceAttr is a function that returns
 // [slog.HandlerOptions.ReplaceAttr] function for [FormatJSONHybrid] format.
-func newJSONLReplaceAttr() func(groups []string, a slog.Attr) (res slog.Attr) {
+func newJSONLReplaceAttr(removeTime bool) func(groups []string, a slog.Attr) (res slog.Attr) {
+	if !removeTime {
+		return SimplifyLevel
+	}
+
 	return func(groups []string, a slog.Attr) (res slog.Attr) {
 		return SimplifyLevel(groups, RemoveTime(groups, a))
 	}
