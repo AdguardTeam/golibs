@@ -18,6 +18,12 @@ import (
 const (
 	KeyPrefix = "prefix"
 	KeyError  = "err"
+
+	// keySeverity is the key for the level attribute in [FormatJSONL].
+	keySeverity = "severity"
+
+	// keyMessage is the key for the message attribute in [FormatJSONL].
+	keyMessage = "message"
 )
 
 // Config contains the configuration for a logger.
@@ -140,32 +146,39 @@ func ReplaceLevel(groups []string, a slog.Attr) (res slog.Attr) {
 }
 
 // newJSONLReplaceAttr is a function that returns
-// [slog.HandlerOptions.ReplaceAttr] function for [FormatJSONHybrid] format.
+// [slog.HandlerOptions.ReplaceAttr] function for [FormatJSONL] format.
 func newJSONLReplaceAttr(removeTime bool) func(groups []string, a slog.Attr) (res slog.Attr) {
 	if !removeTime {
-		return SimplifyLevel
+		return renameAttrs
 	}
 
 	return func(groups []string, a slog.Attr) (res slog.Attr) {
-		return SimplifyLevel(groups, RemoveTime(groups, a))
+		return renameAttrs(groups, RemoveTime(groups, a))
 	}
 }
 
 // normalAttrValue is a NORMAL value under the [slog.LevelKey] key.
 var normalAttrValue = slog.StringValue("NORMAL")
 
-// SimplifyLevel is a function for [slog.HandlerOptions.ReplaceAttr] that
-// replaces level attribute values below ERROR with NORMAL.
-func SimplifyLevel(groups []string, a slog.Attr) (res slog.Attr) {
+// renameAttrs is a [slog.HandlerOptions.ReplaceAttr] function that renames the
+// [slog.LevelKey] key to [keySeverity], and the [slog.MessageKey] key to
+// [keyMessage].  It also sets the level value to "NORMAL" for levels less than
+// [LevelError].
+func renameAttrs(groups []string, a slog.Attr) (res slog.Attr) {
 	if len(groups) > 0 {
 		return a
 	}
 
-	if a.Key == slog.LevelKey {
+	switch a.Key {
+	case slog.LevelKey:
 		lvl := a.Value.Any().(slog.Level)
 		if lvl < LevelError {
 			a.Value = normalAttrValue
 		}
+
+		a.Key = keySeverity
+	case slog.MessageKey:
+		a.Key = keyMessage
 	}
 
 	return a
