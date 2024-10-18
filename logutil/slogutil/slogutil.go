@@ -73,6 +73,11 @@ func New(c *Config) (l *slog.Logger) {
 			Level:       lvl,
 			ReplaceAttr: replaceAttr,
 		})
+	case FormatJSONL:
+		h = NewJSONHybridHandler(output, &slog.HandlerOptions{
+			Level:       lvl,
+			ReplaceAttr: newJSONLReplaceAttr(),
+		})
 	case FormatText:
 		h = slog.NewTextHandler(output, &slog.HandlerOptions{
 			Level:       lvl,
@@ -128,6 +133,34 @@ func ReplaceLevel(groups []string, a slog.Attr) (res slog.Attr) {
 		lvl := a.Value.Any().(slog.Level)
 		if lvl == LevelTrace {
 			a.Value = traceAttrValue
+		}
+	}
+
+	return a
+}
+
+// newJSONLReplaceAttr is a function that returns
+// [slog.HandlerOptions.ReplaceAttr] function for [FormatJSONHybrid] format.
+func newJSONLReplaceAttr() func(groups []string, a slog.Attr) (res slog.Attr) {
+	return func(groups []string, a slog.Attr) (res slog.Attr) {
+		return SimplifyLevel(groups, RemoveTime(groups, a))
+	}
+}
+
+// normalAttrValue is a NORMAL value under the [slog.LevelKey] key.
+var normalAttrValue = slog.StringValue("NORMAL")
+
+// SimplifyLevel is a function for [slog.HandlerOptions.ReplaceAttr] that
+// replaces level attribute values below ERROR with NORMAL.
+func SimplifyLevel(groups []string, a slog.Attr) (res slog.Attr) {
+	if len(groups) > 0 {
+		return a
+	}
+
+	if a.Key == slog.LevelKey {
+		lvl := a.Value.Any().(slog.Level)
+		if lvl < LevelError {
+			a.Value = normalAttrValue
 		}
 	}
 

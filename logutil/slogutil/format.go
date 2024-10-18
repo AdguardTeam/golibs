@@ -9,6 +9,7 @@ const (
 	FormatDefault       Format = "default"
 	FormatJSON          Format = "json"
 	FormatJSONHybrid    Format = "jsonhybrid"
+	FormatJSONL         Format = "jsonl"
 	FormatText          Format = "text"
 )
 
@@ -20,6 +21,7 @@ func NewFormat(s string) (f Format, err error) {
 		FormatDefault,
 		FormatJSON,
 		FormatJSONHybrid,
+		FormatJSONL,
 		FormatText:
 		return f, nil
 	default:
