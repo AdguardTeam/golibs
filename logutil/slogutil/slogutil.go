@@ -14,10 +14,15 @@ import (
 	"strings"
 )
 
-// Additional key constants.
+// Additional or renamed key constants.
 const (
-	KeyPrefix = "prefix"
 	KeyError  = "err"
+	KeyPrefix = "prefix"
+
+	KeyMessage = slog.MessageKey
+	KeySource  = slog.SourceKey
+	KeyTime    = slog.TimeKey
+	KeyLevel   = slog.LevelKey
 
 	// keySeverity is the key for the level attribute in [FormatJSONL].
 	keySeverity = "severity"
@@ -170,14 +175,14 @@ func renameAttrs(groups []string, a slog.Attr) (res slog.Attr) {
 	}
 
 	switch a.Key {
-	case slog.LevelKey:
+	case KeyLevel:
 		lvl := a.Value.Any().(slog.Level)
 		if lvl < LevelError {
 			a.Value = normalAttrValue
 		}
 
 		a.Key = keySeverity
-	case slog.MessageKey:
+	case KeyMessage:
 		a.Key = keyMessage
 	}
 
@@ -191,7 +196,7 @@ func RemoveTime(groups []string, a slog.Attr) (res slog.Attr) {
 		return a
 	}
 
-	if a.Key == "time" {
+	if a.Key == KeyTime {
 		return slog.Attr{}
 	}
 

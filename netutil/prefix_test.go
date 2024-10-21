@@ -65,7 +65,7 @@ func TestPrefix_UnmarshalText(t *testing.T) {
 		name:       "success_4_to_6",
 		in:         "::ffff:1.2.3.4/96",
 	}, {
-		want:       netip.PrefixFrom(testIPv4Addr, 16),
+		want:       netip.PrefixFrom(netip.MustParseAddr("::ffff:1.2.3.4"), 16),
 		wantErrMsg: "",
 		name:       "success_not_4_to_6",
 		in:         "::ffff:1.2.3.4/16",

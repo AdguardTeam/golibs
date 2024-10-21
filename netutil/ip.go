@@ -30,12 +30,15 @@ func CloneIPs(ips []net.IP) (clone []net.IP) {
 }
 
 // IPAndPortFromAddr returns the IP address and the port from addr.  If addr is
-// neither a [*net.TCPAddr] nor a [*net.UDPAddr], it returns nil and 0.
+// neither a [*net.TCPAddr] nor a [*net.UDPAddr], it returns nil and 0.  The
+// port of the address should fit in uint16.
 func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port uint16) {
 	switch addr := addr.(type) {
 	case *net.TCPAddr:
+		// #nosec G115 -- Assume that ports always fit in uint16.
 		return addr.IP, uint16(addr.Port)
 	case *net.UDPAddr:
+		// #nosec G115 -- Assume that ports always fit in uint16.
 		return addr.IP, uint16(addr.Port)
 	}
 
@@ -135,6 +138,8 @@ func IsValidIPString(s string) (ok bool) {
 	// maxSignificant is the maximum number of significant characters in a field
 	// of an IPv6 address.  There is no need to search for separator longer than
 	// this number of bytes.
+	//
+	// See https://www.rfc-editor.org/rfc/rfc4291#section-2.2.
 	const maxSignificant = 4
 
 	strLen := len(s)
@@ -150,8 +155,6 @@ func IsValidIPString(s string) (ok bool) {
 			}
 
 			return isValidIPv6String(withoutZone)
-		case '0':
-			// Skip leading zeros.
 		default:
 			significant++
 		}
@@ -287,17 +290,12 @@ func trimValidIPv6Field(s string, gotFields int, hasEllipsis bool) (withoutField
 // address.  It returns 0 if the field is invalid, due to an assumption that the
 // field is not shorter than 1 rune.
 func countIPv6FieldRunes(s string) (n int) {
-	value := uint32(0)
 	for n = range s {
-		b := fromHexByte(s[n])
-		if b == 0xff {
+		if fromHexByte(s[n]) == 0xff {
 			// Not a hex digit, return.
 			return n
-		}
-
-		value = value<<4 | uint32(b)
-		if value > math.MaxUint16 {
-			// Overflow.
+		} else if n > 3 {
+			// IPv6 label can't contain more than 4 hex digits.
 			return 0
 		}
 	}
