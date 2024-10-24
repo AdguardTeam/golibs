@@ -2,11 +2,13 @@ package slogutil
 
 import (
 	"context"
+	"encoding"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"slices"
-	"time"
+	"sync"
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/syncutil"
@@ -14,41 +16,48 @@ import (
 
 // JSONHybridHandler is a hybrid JSON-and-text [slog.Handler] more suitable for
 // stricter environments.  It guarantees that the only properties present in the
-// resulting objects are "level", "msg", "time", and "source", depending on the
-// options.  All other attributes are packed into the "msg" property using the
-// same format as [slogutil.TextHandler].
+// resulting objects are "severity" and "message".  All other attributes are
+// packed into the "message" property using the same format as
+// [slog.TextHandler].
 //
 // NOTE: [JSONHybridHandler.WithGroup] is not currently supported and panics.
 //
 // Example of output:
 //
-//	{"time":"2023-12-01T12:34:56.789Z","level":"INFO","msg":"listening; attrs: prefix=websvc url=http://127.0.0.1:8080"}
+//	{"severity":"NORMAL","message":"time=2024-10-22T12:09:59.525+03:00 level=INFO msg=listening prefix=websvc server=http://127.0.0.1:8181"}
 type JSONHybridHandler struct {
-	json        *slog.JSONHandler
-	attrPool    *syncutil.Pool[[]slog.Attr]
+	level       slog.Leveler
+	encoder     *json.Encoder
 	bufTextPool *syncutil.Pool[bufferedTextHandler]
-	textAttrs   []slog.Attr
+
+	// mu protects encoder.
+	mu *sync.Mutex
+
+	textAttrs []slog.Attr
 }
 
-const (
-	// initAttrsLenEst is the estimation used to set the initial length of
-	// attribute slices.
-	initAttrsLenEst = 2
-
-	// initLineLenEst is the estimation used to set the initial sizes of
-	// log-line buffers.
-	initLineLenEst = 256
-)
+// initLineLenEst is the estimation used to set the initial sizes of log-line
+// buffers.
+const initLineLenEst = 256
 
 // NewJSONHybridHandler creates a new properly initialized *JSONHybridHandler.
-// opts are used for the underlying JSON handler.
+// opts are used for the underlying text handler.
 func NewJSONHybridHandler(w io.Writer, opts *slog.HandlerOptions) (h *JSONHybridHandler) {
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+
+	lvl := slog.LevelInfo
+	if opts != nil && opts.Level != nil {
+		lvl = opts.Level.Level()
+	}
+
 	return &JSONHybridHandler{
-		json:     slog.NewJSONHandler(w, opts),
-		attrPool: syncutil.NewSlicePool[slog.Attr](initAttrsLenEst),
+		level:   lvl,
+		encoder: enc,
 		bufTextPool: syncutil.NewPool(func() (bufTextHdlr *bufferedTextHandler) {
-			return newBufferedTextHandler(initLineLenEst)
+			return newBufferedTextHandler(initLineLenEst, opts)
 		}),
+		mu:        &sync.Mutex{},
 		textAttrs: nil,
 	}
 }
@@ -57,8 +66,8 @@ func NewJSONHybridHandler(w io.Writer, opts *slog.HandlerOptions) (h *JSONHybrid
 var _ slog.Handler = (*JSONHybridHandler)(nil)
 
 // Enabled implements the [slog.Handler] interface for *JSONHybridHandler.
-func (h *JSONHybridHandler) Enabled(ctx context.Context, level slog.Level) (ok bool) {
-	return h.json.Enabled(ctx, level)
+func (h *JSONHybridHandler) Enabled(_ context.Context, level slog.Level) (ok bool) {
+	return level >= h.level.Level()
 }
 
 // Handle implements the [slog.Handler] interface for *JSONHybridHandler.
@@ -68,46 +77,62 @@ func (h *JSONHybridHandler) Handle(ctx context.Context, r slog.Record) (err erro
 
 	bufTextHdlr.reset()
 
-	_, _ = bufTextHdlr.buffer.WriteString(r.Message)
+	r.AddAttrs(h.textAttrs...)
 
-	numAttrs := r.NumAttrs() + len(h.textAttrs)
-	if numAttrs > 0 {
-		_, _ = bufTextHdlr.buffer.WriteString("; attrs: ")
-	}
-
-	textAttrsPtr := h.attrPool.Get()
-	defer h.attrPool.Put(textAttrsPtr)
-
-	*textAttrsPtr = (*textAttrsPtr)[:0]
-	r.Attrs(func(a slog.Attr) (cont bool) {
-		*textAttrsPtr = append(*textAttrsPtr, a)
-
-		return true
-	})
-
-	textRec := slog.NewRecord(time.Time{}, r.Level, "", 0)
-	textRec.AddAttrs(h.textAttrs...)
-	textRec.AddAttrs(*textAttrsPtr...)
-
-	err = bufTextHdlr.handler.Handle(ctx, textRec)
+	err = bufTextHdlr.handler.Handle(ctx, r)
 	if err != nil {
-		return fmt.Errorf("handling text for msg: %w", err)
+		return fmt.Errorf("handling text for data: %w", err)
 	}
 
-	msgForJSON := bufTextHdlr.buffer.String()
+	msg := byteString(bufTextHdlr.buffer.Bytes())
 
 	// Remove newline.
-	msgForJSON = msgForJSON[:len(msgForJSON)-1]
+	msg = msg[:len(msg)-1]
+	data := newJSONHybridMessage(r.Level, msg)
 
-	return h.json.Handle(ctx, slog.NewRecord(r.Time, r.Level, msgForJSON, r.PC))
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return h.encoder.Encode(data)
+}
+
+// byteString optimizes memory allocations in [JSONHybridHandler.Handle].
+type byteString []byte
+
+// type check
+var _ encoding.TextMarshaler = byteString{}
+
+// MarshalText implements the [encoding.TextMarshaler] interface for byteString.
+func (b byteString) MarshalText() (res []byte, err error) {
+	return b, nil
+}
+
+// jsonHybridMessage represents the data structure for *JSONHybridHandler.
+type jsonHybridMessage = struct {
+	Severity string     `json:"severity"`
+	Message  byteString `json:"message"`
+}
+
+// newJSONHybridMessage returns new properly initialized message.
+func newJSONHybridMessage(lvl slog.Level, msg byteString) (m *jsonHybridMessage) {
+	severity := "NORMAL"
+	if lvl >= slog.LevelError {
+		severity = "ERROR"
+	}
+
+	return &jsonHybridMessage{
+		Severity: severity,
+		Message:  msg,
+	}
 }
 
 // WithAttrs implements the [slog.Handler] interface for *JSONHybridHandler.
 func (h *JSONHybridHandler) WithAttrs(attrs []slog.Attr) (res slog.Handler) {
 	return &JSONHybridHandler{
-		json:        h.json,
-		attrPool:    h.attrPool,
+		level:       h.level,
+		encoder:     h.encoder,
 		bufTextPool: h.bufTextPool,
+		mu:          h.mu,
 		textAttrs:   append(slices.Clip(h.textAttrs), attrs...),
 	}
 }

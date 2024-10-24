@@ -26,11 +26,16 @@ func ExampleJSONHybridHandler() {
 	l.Info("new info with no attributes")
 	l.Info("new info with attributes", "number", 123)
 
+	l.Error("error with no attributes")
+	l.Error("error with attributes", "number", 123)
+
 	// Output:
-	// {"level":"DEBUG","msg":"debug with no attributes"}
-	// {"level":"DEBUG","msg":"debug with attributes; attrs: number=123"}
-	// {"level":"INFO","msg":"info with no attributes"}
-	// {"level":"INFO","msg":"info with attributes; attrs: number=123"}
-	// {"level":"INFO","msg":"new info with no attributes; attrs: attr=abc"}
-	// {"level":"INFO","msg":"new info with attributes; attrs: attr=abc number=123"}
+	// {"severity":"NORMAL","message":"level=DEBUG msg=\"debug with no attributes\""}
+	// {"severity":"NORMAL","message":"level=DEBUG msg=\"debug with attributes\" number=123"}
+	// {"severity":"NORMAL","message":"level=INFO msg=\"info with no attributes\""}
+	// {"severity":"NORMAL","message":"level=INFO msg=\"info with attributes\" number=123"}
+	// {"severity":"NORMAL","message":"level=INFO msg=\"new info with no attributes\" attr=abc"}
+	// {"severity":"NORMAL","message":"level=INFO msg=\"new info with attributes\" number=123 attr=abc"}
+	// {"severity":"ERROR","message":"level=ERROR msg=\"error with no attributes\" attr=abc"}
+	// {"severity":"ERROR","message":"level=ERROR msg=\"error with attributes\" number=123 attr=abc"}
 }

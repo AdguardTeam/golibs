@@ -13,6 +13,10 @@ import (
 	"github.com/AdguardTeam/golibs/syncutil"
 )
 
+// initAttrsLenEst is the estimation used to set the initial length of
+// attribute slices.
+const initAttrsLenEst = 2
+
 // AdGuardLegacyHandler is a text [slog.Handler] that uses package
 // github.com/AdguardTeam/golibs/log for output.  It is a legacy handler that
 // will be removed in a future version.
@@ -40,9 +44,34 @@ func NewAdGuardLegacyHandler(lvl slog.Leveler) (h *AdGuardLegacyHandler) {
 		level:    lvl,
 		attrPool: syncutil.NewSlicePool[slog.Attr](initAttrsLenEst),
 		bufTextPool: syncutil.NewPool(func() (bufTextHdlr *bufferedTextHandler) {
-			return newBufferedTextHandler(initLineLenEst)
+			return newBufferedTextHandler(initLineLenEst, legacyTextHandlerOpts)
 		}),
 		attrs: nil,
+	}
+}
+
+// legacyTextHandlerOpts are the options used by buffered text handlers of
+// [FormatAdGuardLegacy] handlers.
+var legacyTextHandlerOpts = &slog.HandlerOptions{
+	ReplaceAttr: legacyRemoveTopLevel,
+}
+
+// legacyRemoveTopLevel is a [slog.HandlerOptions.ReplaceAttr] function that
+// removes "level", "msg", "time", and "source" attributes.
+func legacyRemoveTopLevel(groups []string, a slog.Attr) (res slog.Attr) {
+	if len(groups) > 0 {
+		return a
+	}
+
+	switch a.Key {
+	case
+		slog.LevelKey,
+		slog.MessageKey,
+		slog.TimeKey,
+		slog.SourceKey:
+		return slog.Attr{}
+	default:
+		return a
 	}
 }
 

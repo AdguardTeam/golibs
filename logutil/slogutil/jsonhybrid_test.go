@@ -67,7 +67,7 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 		expectedString := strings.Replace(textString, `level=INFO msg="test message" `, "", 1)
 
 		jsonString := hybridOutputStrings[i]
-		gotString := strings.Replace(jsonString, `{"level":"INFO","msg":"test message; attrs: `, "", 1)
+		gotString := strings.Replace(jsonString, `{"severity":"NORMAL","message":"level=INFO msg=\"test message\" `, "", 1)
 		gotString = strings.Replace(gotString, `"}`, "", 1)
 
 		assert.Equal(t, expectedString, gotString)
@@ -92,10 +92,9 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 
 	require.NoError(b, errSink)
 
-	// Most recent results, on a ThinkPad X13 with a Ryzen Pro 7 CPU:
-	//	goos: linux
-	//	goarch: amd64
-	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
-	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkJSONHybridHandler_Handle-16       	 1035621	      1246 ns/op	      48 B/op	       1 allocs/op
+	//  goos: darwin
+	//  goarch: arm64
+	//  pkg: github.com/AdguardTeam/golibs/logutil/slogutil
+	//  cpu: Apple M1 Pro
+	//  BenchmarkJSONHybridHandler_Handle-8   	 1992794	       602.4 ns/op	      48 B/op	       1 allocs/op
 }

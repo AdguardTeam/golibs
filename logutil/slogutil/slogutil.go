@@ -22,7 +22,7 @@ const (
 	KeyMessage = slog.MessageKey
 	KeySource  = slog.SourceKey
 	KeyTime    = slog.TimeKey
-	keyLevel   = slog.LevelKey
+	KeyLevel   = slog.LevelKey
 )
 
 // Config contains the configuration for a logger.
@@ -119,8 +119,8 @@ func newReplaceAttr(removeTime bool) func(groups []string, a slog.Attr) (res slo
 	}
 }
 
-// traceAttrValue is a [LevelTrace] value under the [slog.LevelKey] key.
-var traceAttrValue = slog.StringValue("TRACE")
+// valueLevelTrace is a [LevelTrace] value under the [slog.LevelKey] key.
+var valueLevelTrace = slog.StringValue("TRACE")
 
 // ReplaceLevel is a function for [slog.HandlerOptions.ReplaceAttr] that adds
 // [LevelTrace] custom name for level attribute.
@@ -132,7 +132,7 @@ func ReplaceLevel(groups []string, a slog.Attr) (res slog.Attr) {
 	if a.Key == slog.LevelKey {
 		lvl := a.Value.Any().(slog.Level)
 		if lvl == LevelTrace {
-			a.Value = traceAttrValue
+			a.Value = valueLevelTrace
 		}
 	}
 
@@ -191,37 +191,12 @@ type bufferedTextHandler struct {
 
 // newBufferedTextHandler returns a new bufferedTextHandler with the given
 // buffer length.
-func newBufferedTextHandler(l int) (h *bufferedTextHandler) {
+func newBufferedTextHandler(l int, handlerOpts *slog.HandlerOptions) (h *bufferedTextHandler) {
 	buf := bytes.NewBuffer(make([]byte, 0, l))
 
 	return &bufferedTextHandler{
 		buffer:  buf,
-		handler: slog.NewTextHandler(buf, textHandlerOpts),
-	}
-}
-
-// textHandlerOpts are the options used by buffered text handlers of JSON hybrid
-// handlers.
-var textHandlerOpts = &slog.HandlerOptions{
-	ReplaceAttr: removeTopLevel,
-}
-
-// removeTopLevel is a [slog.HandlerOptions.ReplaceAttr] function that removes
-// "level", "msg", "time", and "source" attributes.
-func removeTopLevel(groups []string, a slog.Attr) (res slog.Attr) {
-	if len(groups) > 0 {
-		return a
-	}
-
-	switch a.Key {
-	case
-		slog.LevelKey,
-		slog.MessageKey,
-		slog.TimeKey,
-		slog.SourceKey:
-		return slog.Attr{}
-	default:
-		return a
+		handler: slog.NewTextHandler(buf, handlerOpts),
 	}
 }
 
