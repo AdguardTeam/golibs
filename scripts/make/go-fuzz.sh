@@ -31,7 +31,7 @@ else
 fi
 readonly race_flags
 
-count_flags='--count=1'
+count_flags='--count=2'
 fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=20s}"
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'

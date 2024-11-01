@@ -31,10 +31,10 @@ else
 fi
 readonly race_flags
 
-count_flags='--count=1'
+count_flags='--count=2'
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'
-timeout_flags="${TIMEOUT_FLAGS:---timeout=30s}"
+timeout_flags="${TIMEOUT_FLAGS:---timeout=5m}"
 readonly count_flags go shuffle_flags timeout_flags
 
 "$go" test \
@@ -46,6 +46,5 @@ readonly count_flags go shuffle_flags timeout_flags
 	"$v_flags" \
 	--bench='.' \
 	--benchmem \
-	--benchtime=1s \
 	--run='^$' \
 	./...

@@ -1,4 +1,3 @@
-// Package urlutil contains types and utilities for dealing with URLs.
 package urlutil
 
 import (

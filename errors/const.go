@@ -20,6 +20,9 @@ func (err Error) Error() (msg string) {
 // [ErrOutOfRange].
 const ErrBadEnumValue Error = "bad enum value"
 
+// ErrDuplicated indicates that a value that should be unique is duplicated.
+const ErrDuplicated Error = "duplicated value"
+
 // ErrEmptyValue indicates that a value is provided but it is empty.  For
 // example, a non-null but empty JSON or YAML object.
 //
@@ -37,6 +40,9 @@ const ErrNegative Error = "negative value"
 //
 // For a value that is present but empty, use [ErrEmptyValue].
 const ErrNoValue Error = "no value"
+
+// ErrNotEmpty indicates that a value that must be empty isn't.
+const ErrNotEmpty Error = "not empty"
 
 // ErrNotPositive indicates that the provided value is negative or zero when it
 // should be greater than zero.

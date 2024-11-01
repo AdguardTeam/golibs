@@ -28,7 +28,7 @@ func NewMapSet[T comparable](values ...T) (set *MapSet[T]) {
 	return set
 }
 
-// Add adds v to set.  Add panics if set is a nil set, just like a nil map does.
+// Add adds v to set.
 func (set *MapSet[T]) Add(v T) {
 	set.m[v] = unit{}
 }
@@ -61,21 +61,15 @@ func (set *MapSet[T]) Delete(v T) {
 	}
 }
 
-// Equal returns true if set is equal to other.
+// Equal returns true if set is equal to other.  set and other may be nil; Equal
+// returns true if both are nil, but a nil *MapSet is not equal to a non-nil
+// empty one.
 func (set *MapSet[T]) Equal(other *MapSet[T]) (ok bool) {
 	if set == nil || other == nil {
 		return set == other
-	} else if set.Len() != other.Len() {
-		return false
 	}
 
-	for v := range set.m {
-		if _, ok = other.m[v]; !ok {
-			return false
-		}
-	}
-
-	return true
+	return maps.Equal(set.m, other.m)
 }
 
 // Has returns true if v is in set.  Calling Has on a nil set returns false,

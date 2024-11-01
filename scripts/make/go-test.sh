@@ -36,7 +36,7 @@ else
 fi
 readonly race_flags
 
-count_flags='--count=1'
+count_flags='--count=2'
 cover_flags='--coverprofile=./cover.out'
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'

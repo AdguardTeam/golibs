@@ -51,6 +51,8 @@
             'interpreter': 'SHELL'
             'scripts':
               - |
+                #!/bin/sh
+
                 set -e -f -u -x
 
                 make VERBOSE=1 go-tools go-lint
@@ -70,6 +72,8 @@
             'interpreter': 'SHELL'
             'scripts':
               - |
+                #!/bin/sh
+
                 set -e -f -u -x
 
                 make VERBOSE=1 go-tools md-lint sh-lint txt-lint
@@ -89,9 +93,11 @@
             'interpreter': 'SHELL'
             'scripts':
               - |
+                #!/bin/sh
+
                 set -e -f -u -x
 
-                make VERBOSE=1 go-deps go-test go-fuzz
+                make VERBOSE=1 go-deps go-bench go-test go-fuzz
     'final-tasks':
       - 'clean'
     'requirements':

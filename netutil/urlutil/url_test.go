@@ -28,12 +28,12 @@ func TestParseURL(t *testing.T) {
 	}, {
 		want: &urlutil.URL{
 			URL: url.URL{
-				Scheme: "https",
-				Host:   "www.example.com",
+				Scheme: urlutil.SchemeHTTPS,
+				Host:   testHostname,
 			},
 		},
 		name:       "success",
-		in:         "https://www.example.com",
+		in:         "https://" + testHostname,
 		wantErrMsg: "",
 	}}
 
@@ -80,13 +80,13 @@ func TestURL_UnmarshalJSON(t *testing.T) {
 	}, {
 		want: &urlutil.URL{
 			URL: url.URL{
-				Scheme: "https",
-				Host:   "www.example.com",
+				Scheme: urlutil.SchemeHTTPS,
+				Host:   testHostname,
 			},
 		},
 		name:       "success",
 		wantErrMsg: "",
-		in:         []byte(`"https://www.example.com"`),
+		in:         []byte(`"https://` + testHostname + `"`),
 	}}
 
 	for _, tc := range testCases {
