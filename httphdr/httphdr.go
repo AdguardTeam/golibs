@@ -41,10 +41,10 @@ const (
 //
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#conditionals.
 const (
+	ETag              = "ETag"
 	IfMatch           = "If-Match"
 	IfModifiedSince   = "If-Modified-Since"
 	IfNoneMatch       = "If-None-Match"
-	IfRange           = "If-Range"
 	IfUnmodifiedSince = "If-Unmodified-Since"
 	LastModified      = "Last-Modified"
 	Vary              = "Vary"
@@ -95,6 +95,13 @@ const (
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#proxies.
 const (
 	Forwarded = "Forwarded"
+)
+
+// Common standard headers for range requests.
+//
+// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#range_requests.
+const (
+	IfRange = "If-Range"
 )
 
 // Common standard headers for redirects.
