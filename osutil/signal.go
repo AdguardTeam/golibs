@@ -53,9 +53,23 @@ func (n DefaultSignalNotifier) Stop(c chan<- os.Signal) {
 	signal.Stop(c)
 }
 
+// IsReconfigureSignal returns true if sig is a reconfigure signal.
+//
+// NOTE:  It always returns false on Windows.
+func IsReconfigureSignal(sig os.Signal) (ok bool) {
+	return isReconfigureSignal(sig)
+}
+
 // IsShutdownSignal returns true if sig is a shutdown signal.
 func IsShutdownSignal(sig os.Signal) (ok bool) {
 	return isShutdownSignal(sig)
+}
+
+// NotifyReconfigureSignal notifies c on receiving reconfigure signals using n.
+//
+// NOTE:  It does nothing on Windows.
+func NotifyReconfigureSignal(n SignalNotifier, c chan<- os.Signal) {
+	notifyReconfigureSignal(n, c)
 }
 
 // NotifyShutdownSignal notifies c on receiving shutdown signals using n.
