@@ -6,8 +6,25 @@ import (
 	"time"
 
 	"github.com/AdguardTeam/golibs/container"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestNewSortedSliceSet(t *testing.T) {
+	values := []int{1, 1, 1}
+
+	set := container.NewSortedSliceSet(values...)
+	assert.Equal(t, []int{1}, set.Values())
+
+	set.Add(2)
+	assert.Equal(t, []int{1, 2}, set.Values())
+
+	set.Delete(2)
+	assert.Equal(t, []int{1}, set.Values())
+
+	set.Clear()
+	assert.Equal(t, []int{}, set.Values())
+}
 
 func BenchmarkSortedSliceSet_Add(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {

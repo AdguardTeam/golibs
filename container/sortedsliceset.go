@@ -19,6 +19,7 @@ type SortedSliceSet[T cmp.Ordered] struct {
 // after calling NewSortedSliceSet.
 func NewSortedSliceSet[T cmp.Ordered](elems ...T) (set *SortedSliceSet[T]) {
 	slices.Sort(elems)
+	elems = slices.Compact(elems)
 
 	return &SortedSliceSet[T]{
 		elems: elems,
