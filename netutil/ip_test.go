@@ -32,12 +32,20 @@ func TestCloneIPs(t *testing.T) {
 func TestSpecialAddrs(t *testing.T) {
 	t.Parallel()
 
-	assert.NotSame(t, netutil.IPv4bcast(), netutil.IPv4bcast())
-	assert.NotSame(t, netutil.IPv4allsys(), netutil.IPv4allsys())
-	assert.NotSame(t, netutil.IPv4allrouter(), netutil.IPv4allrouter())
+	assertNotSameSlices(t, netutil.IPv4bcast(), netutil.IPv4bcast())
+	assertNotSameSlices(t, netutil.IPv4allsys(), netutil.IPv4allsys())
+	assertNotSameSlices(t, netutil.IPv4allrouter(), netutil.IPv4allrouter())
 
-	assert.NotSame(t, netutil.IPv4Zero(), netutil.IPv4Zero())
-	assert.NotSame(t, netutil.IPv6Zero(), netutil.IPv6Zero())
+	assertNotSameSlices(t, netutil.IPv4Zero(), netutil.IPv4Zero())
+	assertNotSameSlices(t, netutil.IPv6Zero(), netutil.IPv6Zero())
+}
+
+// assertNotSameSlices is a wrapper around [assert.NotSame] that checks the
+// underlying pointers of slices.
+func assertNotSameSlices[T any](tb testing.TB, want, got []T) (ok bool) {
+	tb.Helper()
+
+	return assert.NotSame(tb, &want[0], &got[0])
 }
 
 func TestIPAndPortFromAddr(t *testing.T) {
