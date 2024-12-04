@@ -1,9 +1,9 @@
 module github.com/AdguardTeam/golibs
 
-go 1.23.3
+go 1.23.4
 
 require (
-	github.com/getsentry/sentry-go v0.29.1
+	github.com/getsentry/sentry-go v0.30.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 	golang.org/x/net v0.31.0

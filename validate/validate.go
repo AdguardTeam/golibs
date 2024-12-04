@@ -1,0 +1,94 @@
+// Package validate contains functions for validating values.
+//
+// The common argument name can be the name of the JSON or YAML property, the
+// name of a function argument, or anything similar.
+//
+// NOTE:  More specific validations, like those of network addresses or URLs,
+// should be put into related utility packages.
+//
+// TODO(a.garipov):  Consider adding validate.KeyValues.
+package validate
+
+import (
+	"cmp"
+	"fmt"
+
+	"github.com/AdguardTeam/golibs/errors"
+)
+
+// Interface is the interface for configuration entities that can validate
+// themselves.
+type Interface interface {
+	// Validate returns an error if the entity isn't valid.  Entities should not
+	// add a prefix; instead, the callers should add prefixes depending on the
+	// use.
+	Validate() (err error)
+}
+
+// Append validates values, wraps errors with the name and the index, appends
+// them to errs, and returns the result.
+func Append[T Interface](errs []error, name string, values []T) (res []error) {
+	res = errs
+	for i, v := range values {
+		// TODO(a.garipov):  Consider flattening error slices.
+		err := v.Validate()
+		if err != nil {
+			res = append(res, fmt.Errorf("%s: at index %d: %w", name, i, err))
+		}
+	}
+
+	return res
+}
+
+// Slice validates values, wraps errors with the name and the index, and returns
+// the result as a single joined error.
+func Slice[T Interface](name string, values []T) (err error) {
+	return errors.Join(Append(nil, name, values)...)
+}
+
+// InRange returns an error of v is less than min or greater than max.  The
+// underlying error of err is [errors.ErrOutOfRange].
+func InRange[T cmp.Ordered](name string, v, min, max T) (err error) {
+	const errRange = errors.ErrOutOfRange
+	if cmp.Compare(v, min) < 0 {
+		return fmt.Errorf("%s: %w: must be no less than %v, got %v", name, errRange, min, v)
+	} else if cmp.Compare(v, max) > 0 {
+		return fmt.Errorf("%s: %w: must be no greater than %v, got %v", name, errRange, max, v)
+	}
+
+	return nil
+}
+
+// NotNegative returns an error if v is less than the zero value of type T.  The
+// underlying error of err is [errors.ErrNegative].
+func NotNegative[T cmp.Ordered](name string, v T) (err error) {
+	var zero T
+	if cmp.Compare(v, zero) < 0 {
+		return fmt.Errorf("%s: %w: %v", name, errors.ErrNegative, v)
+	}
+
+	return nil
+}
+
+// NotNil returns an error if v is nil.  The underlying error of err is
+// [errors.ErrNoValue].
+//
+// TODO(a.garipov):  Find ways of extending to other nilable types.
+func NotNil[T any](name string, v *T) (err error) {
+	if v == nil {
+		return fmt.Errorf("%s: %w", name, errors.ErrNoValue)
+	}
+
+	return nil
+}
+
+// Positive returns an error if v is less than or equal to the zero value of
+// type T.  The underlying error of err is [errors.ErrNotPositive].
+func Positive[T cmp.Ordered](name string, v T) (err error) {
+	var zero T
+	if cmp.Compare(v, zero) <= 0 {
+		return fmt.Errorf("%s: %w: %v", name, errors.ErrNotPositive, v)
+	}
+
+	return nil
+}

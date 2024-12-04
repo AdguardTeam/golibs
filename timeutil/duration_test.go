@@ -54,7 +54,7 @@ func TestDuration_String(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := timeutil.Duration{Duration: tc.val}
+			d := timeutil.Duration(tc.val)
 			assert.Equal(t, tc.name, d.String())
 		})
 	}
@@ -63,10 +63,8 @@ func TestDuration_String(t *testing.T) {
 func TestDuration_encoding(t *testing.T) {
 	t.Parallel()
 
-	v := &timeutil.Duration{
-		Duration: time.Millisecond,
-	}
+	v := timeutil.Duration(time.Millisecond)
 
-	testutil.AssertMarshalText(t, "1ms", v)
-	testutil.AssertUnmarshalText(t, "1ms", v)
+	testutil.AssertMarshalText(t, "1ms", &v)
+	testutil.AssertUnmarshalText(t, "1ms", &v)
 }
