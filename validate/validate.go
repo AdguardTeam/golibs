@@ -6,6 +6,9 @@
 // NOTE:  More specific validations, like those of network addresses or URLs,
 // should be put into related utility packages.
 //
+// TODO(a.garipov):  Add a function that validates for both nilness and
+// emptiness.
+//
 // TODO(a.garipov):  Consider adding validate.KeyValues.
 package validate
 
@@ -50,6 +53,9 @@ func Slice[T Interface](name string, values []T) (err error) {
 // underlying error of err is [errors.ErrOutOfRange].
 func InRange[T cmp.Ordered](name string, v, min, max T) (err error) {
 	const errRange = errors.ErrOutOfRange
+
+	// Use cmp.Compare to get consistent results even with NaN, which will be
+	// below any other value.
 	if cmp.Compare(v, min) < 0 {
 		return fmt.Errorf("%s: %w: must be no less than %v, got %v", name, errRange, min, v)
 	} else if cmp.Compare(v, max) > 0 {
@@ -61,8 +67,14 @@ func InRange[T cmp.Ordered](name string, v, min, max T) (err error) {
 
 // NotNegative returns an error if v is less than the zero value of type T.  The
 // underlying error of err is [errors.ErrNegative].
+//
+// NOTE:  NaN is also considered negative, since [cmp.Compare] sorts it below
+// -Infinity.
 func NotNegative[T cmp.Ordered](name string, v T) (err error) {
 	var zero T
+
+	// Use cmp.Compare to get consistent results even with NaN, which will be
+	// below any other value.
 	if cmp.Compare(v, zero) < 0 {
 		return fmt.Errorf("%s: %w: %v", name, errors.ErrNegative, v)
 	}
@@ -84,6 +96,9 @@ func NotNil[T any](name string, v *T) (err error) {
 
 // Positive returns an error if v is less than or equal to the zero value of
 // type T.  The underlying error of err is [errors.ErrNotPositive].
+//
+// NOTE:  NaN is also considered negative, since [cmp.Compare] sorts it below
+// -Infinity.
 func Positive[T cmp.Ordered](name string, v T) (err error) {
 	var zero T
 	if cmp.Compare(v, zero) <= 0 {

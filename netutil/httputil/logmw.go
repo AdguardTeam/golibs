@@ -66,7 +66,7 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 		rw.Reset(w)
 
 		l.Log(ctx, mw.lvl, "started")
-		defer func() { mw.printFinished(ctx, l, rw.code, time.Since(startTime)) }()
+		defer mw.printFinished(ctx, l, rw, startTime)
 
 		h.ServeHTTP(rw, nextReq)
 		rw.SetImplicitSuccess()
@@ -79,14 +79,18 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 func (mw *LogMiddleware) printFinished(
 	ctx context.Context,
 	l *slog.Logger,
-	code int,
-	elapsed time.Duration,
+	rw *CodeRecorderResponseWriter,
+	startTime time.Time,
 ) {
-	if !l.Enabled(ctx, mw.lvl) {
-		return
+	if l.Enabled(ctx, mw.lvl) {
+		l.Log(
+			ctx,
+			mw.lvl,
+			"finished",
+			"code", rw.code,
+			"elapsed", timeutil.Duration(time.Since(startTime)),
+		)
 	}
-
-	l.Log(ctx, mw.lvl, "finished", "code", code, "elapsed", timeutil.Duration(elapsed))
 }
 
 // attrsSlicePtr returns a pointer to an slice with the attributes from the request

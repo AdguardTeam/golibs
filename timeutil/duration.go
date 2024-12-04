@@ -11,7 +11,8 @@ import (
 // Day is the duration of one day.
 const Day time.Duration = 24 * time.Hour
 
-// Duration is a wrapper for time.Duration providing functionality for encoding.
+// Duration is a helper type for time.Duration providing functionality for
+// encoding.
 type Duration time.Duration
 
 // type check
@@ -72,7 +73,8 @@ var _ encoding.TextUnmarshaler = (*Duration)(nil)
 func (d *Duration) UnmarshalText(b []byte) (err error) {
 	timeDur, err := time.ParseDuration(string(b))
 	if err != nil {
-		return fmt.Errorf("unmarshaling duration: %w", err)
+		// Don't wrap the error, because it's the only one here.
+		return err
 	}
 
 	*d = Duration(timeDur)

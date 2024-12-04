@@ -2,26 +2,27 @@ package validate_test
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/validate"
 )
 
-// Value is a simple value that returns err in [*Value.Validate].
-type Value struct {
+// value is a simple value that returns err in [*value.Validate].
+type value struct {
 	err error
 }
 
 // type check
-var _ validate.Interface = (*Value)(nil)
+var _ validate.Interface = (*value)(nil)
 
 // Validate implements the [validate.Interface] interface for *Value.
-func (v *Value) Validate() (err error) {
+func (v *value) Validate() (err error) {
 	return v.err
 }
 
 func ExampleSlice() {
-	values := []*Value{
+	values := []*value{
 		0: {
 			err: nil,
 		},
@@ -83,4 +84,17 @@ func ExamplePositive() {
 	// <nil>
 	// foo: not positive: 0
 	// foo: not positive: -1
+}
+
+func Example_withNaN() {
+	nan := math.NaN()
+
+	fmt.Println(validate.InRange("foo", nan, 0, 1))
+	fmt.Println(validate.NotNegative("foo", nan))
+	fmt.Println(validate.Positive("foo", nan))
+
+	// Output:
+	// foo: out of range: must be no less than 0, got NaN
+	// foo: negative value: NaN
+	// foo: not positive: NaN
 }
