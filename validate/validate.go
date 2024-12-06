@@ -51,15 +51,58 @@ func Slice[T Interface](name string, values []T) (err error) {
 
 // InRange returns an error of v is less than min or greater than max.  The
 // underlying error of err is [errors.ErrOutOfRange].
+//
+// NOTE:  NaN is also considered less than anything, since [cmp.Compare] sorts
+// it below -Infinity.
 func InRange[T cmp.Ordered](name string, v, min, max T) (err error) {
-	const errRange = errors.ErrOutOfRange
+	if err = NoLessThan(name, v, min); err != nil {
+		// Don't wrap the error, because it's informative enough as is.
+		return err
+	} else if err = NoGreaterThan(name, v, max); err != nil {
+		// Don't wrap the error, because it's informative enough as is.
+		return err
+	}
 
+	return nil
+}
+
+// NoGreaterThan returns an error if v is greater than max.  The underlying
+// error of err is [errors.ErrOutOfRange].
+//
+// NOTE:  NaN is also considered less than anything, since [cmp.Compare] sorts
+// it below -Infinity.
+func NoGreaterThan[T cmp.Ordered](name string, v, max T) (err error) {
+	// Use cmp.Compare to get consistent results even with NaN, which will be
+	// below any other value.
+	if cmp.Compare(v, max) > 0 {
+		return fmt.Errorf(
+			"%s: %w: must be no greater than %v, got %v",
+			name,
+			errors.ErrOutOfRange,
+			max,
+			v,
+		)
+	}
+
+	return nil
+}
+
+// NoLessThan returns an error if v is less than min.  The underlying error of
+// err is [errors.ErrOutOfRange].
+//
+// NOTE:  NaN is also considered less than anything, since [cmp.Compare] sorts
+// it below -Infinity.
+func NoLessThan[T cmp.Ordered](name string, v, min T) (err error) {
 	// Use cmp.Compare to get consistent results even with NaN, which will be
 	// below any other value.
 	if cmp.Compare(v, min) < 0 {
-		return fmt.Errorf("%s: %w: must be no less than %v, got %v", name, errRange, min, v)
-	} else if cmp.Compare(v, max) > 0 {
-		return fmt.Errorf("%s: %w: must be no greater than %v, got %v", name, errRange, max, v)
+		return fmt.Errorf(
+			"%s: %w: must be no less than %v, got %v",
+			name,
+			errors.ErrOutOfRange,
+			min,
+			v,
+		)
 	}
 
 	return nil

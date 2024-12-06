@@ -25,7 +25,7 @@ func (p *Prefix) UnmarshalText(b []byte) (err error) {
 	var ip netip.Addr
 	err = ip.UnmarshalText(b)
 	if err != nil {
-		// Don't wrap the error, since it's already informative enough as is.
+		// Don't wrap the error, because it's informative enough as is.
 		return err
 	}
 

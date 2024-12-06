@@ -69,7 +69,7 @@ var _ encoding.TextUnmarshaler = (*Duration)(nil)
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface for
 // *Duration.
 //
-// TODO(e.burkov):  Make it able to parse larger units like days.
+// TODO(e.burkov):  Fix parsing larger units like days.
 func (d *Duration) UnmarshalText(b []byte) (err error) {
 	timeDur, err := time.ParseDuration(string(b))
 	if err != nil {

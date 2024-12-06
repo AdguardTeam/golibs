@@ -63,7 +63,7 @@ func reverseIPv4(ip [4]byte) (out [4]byte) {
 func ipv4FromReversed(arpa string) (addr netip.Addr, err error) {
 	arpaAddr, err := netip.ParseAddr(arpa)
 	if err != nil {
-		// Don't wrap the error, since it's already informative enough as is.
+		// Don't wrap the error, because it's informative enough as is.
 		return netip.Addr{}, err
 	} else if !arpaAddr.Is4() {
 		return netip.Addr{}, &AddrError{
