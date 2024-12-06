@@ -66,7 +66,7 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 		rw.Reset(w)
 
 		l.Log(ctx, mw.lvl, "started")
-		defer mw.printFinished(ctx, l, rw, startTime)
+		defer mw.logFinished(ctx, l, rw, startTime)
 
 		h.ServeHTTP(rw, nextReq)
 		rw.SetImplicitSuccess()
@@ -75,8 +75,8 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 	return http.HandlerFunc(f)
 }
 
-// printFinished is called at the end of handling of a query.
-func (mw *LogMiddleware) printFinished(
+// logFinished is called at the end of handling of a query.
+func (mw *LogMiddleware) logFinished(
 	ctx context.Context,
 	l *slog.Logger,
 	rw *CodeRecorderResponseWriter,

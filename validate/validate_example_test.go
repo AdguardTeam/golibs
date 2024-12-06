@@ -21,6 +21,25 @@ func (v *value) Validate() (err error) {
 	return v.err
 }
 
+func ExampleAppend() {
+	var errs []error
+
+	var (
+		badValue = &value{
+			err: errors.Error("test error"),
+		}
+		goodValue = &value{}
+	)
+
+	errs = validate.Append(errs, "first_value", goodValue)
+	errs = validate.Append(errs, "second_value", badValue)
+
+	fmt.Println(errors.Join(errs...))
+
+	// Output:
+	// second_value: test error
+}
+
 func ExampleSlice() {
 	values := []*value{
 		0: {

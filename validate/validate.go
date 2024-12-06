@@ -28,9 +28,21 @@ type Interface interface {
 	Validate() (err error)
 }
 
-// Append validates values, wraps errors with the name and the index, appends
-// them to errs, and returns the result.
-func Append[T Interface](errs []error, name string, values []T) (res []error) {
+// Append validates v and, if it returns an error, appends it to errs and
+// returns the result.
+func Append(errs []error, name string, v Interface) (res []error) {
+	res = errs
+	err := v.Validate()
+	if err != nil {
+		res = append(res, fmt.Errorf("%s: %w", name, err))
+	}
+
+	return res
+}
+
+// AppendSlice validates values, wraps errors with the name and the index,
+// appends them to errs, and returns the result.
+func AppendSlice[T Interface](errs []error, name string, values []T) (res []error) {
 	res = errs
 	for i, v := range values {
 		// TODO(a.garipov):  Consider flattening error slices.
@@ -46,7 +58,7 @@ func Append[T Interface](errs []error, name string, values []T) (res []error) {
 // Slice validates values, wraps errors with the name and the index, and returns
 // the result as a single joined error.
 func Slice[T Interface](name string, values []T) (err error) {
-	return errors.Join(Append(nil, name, values)...)
+	return errors.Join(AppendSlice(nil, name, values)...)
 }
 
 // InRange returns an error of v is less than min or greater than max.  The
