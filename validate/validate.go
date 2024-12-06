@@ -108,6 +108,33 @@ func NoLessThan[T cmp.Ordered](name string, v, min T) (err error) {
 	return nil
 }
 
+// NotEmpty returns an error if v is its zero value.  The underlying error of
+// err is [errors.ErrEmpty].
+//
+// For pointers, prefer [NotNil].
+func NotEmpty[T comparable](name string, v T) (err error) {
+	var zero T
+	if v == zero {
+		return fmt.Errorf("%s: %w", name, errors.ErrEmptyValue)
+	}
+
+	return nil
+}
+
+// NotEmptySlice returns an error if v is nil or empty.  The underlying error of
+// err is either [errors.ErrNoValue] or [errors.ErrEmpty] correspondingly.
+//
+// TODO(a.garipov):  Find ways of extending to other nilable types with length.
+func NotEmptySlice[T any](name string, v []T) (err error) {
+	if v == nil {
+		return fmt.Errorf("%s: %w", name, errors.ErrNoValue)
+	} else if len(v) == 0 {
+		return fmt.Errorf("%s: %w", name, errors.ErrEmptyValue)
+	}
+
+	return nil
+}
+
 // NotNegative returns an error if v is less than the zero value of type T.  The
 // underlying error of err is [errors.ErrNegative].
 //
@@ -127,6 +154,9 @@ func NotNegative[T cmp.Ordered](name string, v T) (err error) {
 
 // NotNil returns an error if v is nil.  The underlying error of err is
 // [errors.ErrNoValue].
+//
+// For checking against emptyness (comparing with the zero value), prefer
+// [NotEmpty].
 //
 // TODO(a.garipov):  Find ways of extending to other nilable types.
 func NotNil[T any](name string, v *T) (err error) {

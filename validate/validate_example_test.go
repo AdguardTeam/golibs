@@ -65,6 +65,35 @@ func ExampleNotNegative() {
 	// foo: negative value: -1
 }
 
+func ExampleNotEmpty() {
+	fmt.Println(validate.NotEmpty("foo", "value"))
+	fmt.Println(validate.NotEmpty("foo", ""))
+
+	type Bar struct {
+		Field int
+	}
+
+	fmt.Println(validate.NotEmpty("bar", Bar{Field: 1}))
+	fmt.Println(validate.NotEmpty("bar", Bar{}))
+
+	// Output:
+	// <nil>
+	// foo: empty value
+	// <nil>
+	// bar: empty value
+}
+
+func ExampleNotEmptySlice() {
+	fmt.Println(validate.NotEmptySlice("foo", []int{1}))
+	fmt.Println(validate.NotEmptySlice("foo", []int(nil)))
+	fmt.Println(validate.NotEmptySlice("foo", []int{}))
+
+	// Output:
+	// <nil>
+	// foo: no value
+	// foo: empty value
+}
+
 func ExampleNotNil() {
 	v := 1
 	fmt.Println(validate.NotNil("foo", &v))
