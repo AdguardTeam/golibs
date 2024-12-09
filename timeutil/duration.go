@@ -6,20 +6,17 @@ import (
 	"encoding"
 	"fmt"
 	"time"
-
-	"github.com/AdguardTeam/golibs/errors"
 )
 
 // Day is the duration of one day.
 const Day time.Duration = 24 * time.Hour
 
-// Duration is a wrapper for time.Duration providing functionality for encoding.
-type Duration struct {
-	time.Duration
-}
+// Duration is a helper type for time.Duration providing functionality for
+// encoding.
+type Duration time.Duration
 
 // type check
-var _ fmt.Stringer = Duration{}
+var _ fmt.Stringer = Duration(0)
 
 // String implements the [fmt.Stringer] interface for Duration.  It wraps
 // time.Duration.String method and additionally cuts off non-leading zero values
@@ -30,7 +27,8 @@ var _ fmt.Stringer = Duration{}
 //	Duration:   "1h", time.Duration: "1h0m0s"
 //	Duration: "1h1m", time.Duration: "1h1m0s"
 func (d Duration) String() (str string) {
-	str = d.Duration.String()
+	timeDur := time.Duration(d)
+	str = timeDur.String()
 
 	const (
 		tailMin    = len(`0s`)
@@ -42,13 +40,13 @@ func (d Duration) String() (str string) {
 		minsInHour = time.Hour / time.Minute
 	)
 
-	switch rounded := d.Duration / time.Second; {
+	switch rounded := timeDur / time.Second; {
 	case
 		rounded == 0,
-		rounded*time.Second != d.Duration,
+		rounded*time.Second != timeDur,
 		rounded%60 != 0:
-		// Return the uncut value if it's either equal to zero or has
-		// fractions of a second or even whole seconds in it.
+		// Return the uncut value if it's either equal to zero or has fractions
+		// of a second or even whole seconds in it.
 		return str
 	case (rounded%secsInHour)/minsInHour != 0:
 		return str[:len(str)-tailMin]
@@ -58,7 +56,7 @@ func (d Duration) String() (str string) {
 }
 
 // type check
-var _ encoding.TextMarshaler = Duration{}
+var _ encoding.TextMarshaler = Duration(0)
 
 // MarshalText implements the [encoding.TextMarshaler] interface for Duration.
 func (d Duration) MarshalText() (text []byte, err error) {
@@ -71,11 +69,15 @@ var _ encoding.TextUnmarshaler = (*Duration)(nil)
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface for
 // *Duration.
 //
-// TODO(e.burkov): Make it able to parse larger units like days.
+// TODO(e.burkov):  Fix parsing larger units like days.
 func (d *Duration) UnmarshalText(b []byte) (err error) {
-	defer func() { err = errors.Annotate(err, "unmarshaling duration: %w") }()
+	timeDur, err := time.ParseDuration(string(b))
+	if err != nil {
+		// Don't wrap the error, because it's the only one here.
+		return err
+	}
 
-	d.Duration, err = time.ParseDuration(string(b))
+	*d = Duration(timeDur)
 
-	return err
+	return nil
 }

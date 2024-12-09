@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -65,21 +66,31 @@ func (mw *LogMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 		rw.Reset(w)
 
 		l.Log(ctx, mw.lvl, "started")
-		defer func() {
-			// TODO(a.garipov):  Augment our JSON handler to use
-			// [time.Duration.String] automatically?
-			if l.Enabled(ctx, mw.lvl) {
-				l.Log(ctx, mw.lvl, "finished", "code", rw.code, "elapsed", timeutil.Duration{
-					Duration: time.Since(startTime),
-				})
-			}
-		}()
+		defer mw.logFinished(ctx, l, rw, startTime)
 
 		h.ServeHTTP(rw, nextReq)
 		rw.SetImplicitSuccess()
 	}
 
 	return http.HandlerFunc(f)
+}
+
+// logFinished is called at the end of handling of a query.
+func (mw *LogMiddleware) logFinished(
+	ctx context.Context,
+	l *slog.Logger,
+	rw *CodeRecorderResponseWriter,
+	startTime time.Time,
+) {
+	if l.Enabled(ctx, mw.lvl) {
+		l.Log(
+			ctx,
+			mw.lvl,
+			"finished",
+			"code", rw.code,
+			"elapsed", timeutil.Duration(time.Since(startTime)),
+		)
+	}
 }
 
 // attrsSlicePtr returns a pointer to an slice with the attributes from the request

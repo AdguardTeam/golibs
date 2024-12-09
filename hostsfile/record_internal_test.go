@@ -26,7 +26,7 @@ func (rec *Record) UnmarshalTextEachSublice(data []byte) (err error) {
 		// The only field.
 		return ErrNoHosts
 	} else if err = rec.Addr.UnmarshalText(field); err != nil {
-		// Don't wrap the error, since it's already informative enough as is.
+		// Don't wrap the error, because it's informative enough as is.
 		return err
 	}
 
