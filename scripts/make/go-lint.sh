@@ -189,6 +189,7 @@ run_linter nilness ./...
 # TODO(a.garipov):  Remove or replace cache package.
 run_linter fieldalignment \
 	./container/ \
+	./contextutil/ \
 	./errors/ \
 	./hostsfile/ \
 	./httphdr/ \

@@ -61,6 +61,50 @@ func Slice[T Interface](name string, values []T) (err error) {
 	return errors.Join(AppendSlice(nil, name, values)...)
 }
 
+// Empty returns an error if v is not equal to its zero value.  The underlying
+// error of err is [errors.ErrNotEmpty].
+func Empty[T comparable](name string, v T) (err error) {
+	var zero T
+	if v != zero {
+		return fmt.Errorf("%s: %w", name, errors.ErrNotEmpty)
+	}
+
+	return nil
+}
+
+// EmptySlice returns an error if v is neither nil nor empty.  The underlying
+// error of err is either [errors.ErrNotEmpty].
+//
+// TODO(a.garipov):  Find ways of extending to other nilable types with length.
+func EmptySlice[T any](name string, v []T) (err error) {
+	if len(v) > 0 {
+		return fmt.Errorf("%s: %w", name, errors.ErrNotEmpty)
+	}
+
+	return nil
+}
+
+// GreaterThan returns an error if a is less than or equal to b.  The underlying
+// error of err is [errors.ErrOutOfRange].
+//
+// NOTE:  NaN is also considered less than anything, since [cmp.Compare] sorts
+// it below -Infinity.
+func GreaterThan[T cmp.Ordered](name string, a, b T) (err error) {
+	// Use cmp.Compare to get consistent results even with NaN, which will be
+	// below any other value.
+	if cmp.Compare(a, b) <= 0 {
+		return fmt.Errorf(
+			"%s: %w: must be greater than %v, got %v",
+			name,
+			errors.ErrOutOfRange,
+			b,
+			a,
+		)
+	}
+
+	return nil
+}
+
 // InRange returns an error of v is less than min or greater than max.  The
 // underlying error of err is [errors.ErrOutOfRange].
 //
@@ -73,6 +117,27 @@ func InRange[T cmp.Ordered](name string, v, min, max T) (err error) {
 	} else if err = NoGreaterThan(name, v, max); err != nil {
 		// Don't wrap the error, because it's informative enough as is.
 		return err
+	}
+
+	return nil
+}
+
+// LessThan returns an error if a is greater than or equal to b.  The underlying
+// error of err is [errors.ErrOutOfRange].
+//
+// NOTE:  NaN is also considered less than anything, since [cmp.Compare] sorts
+// it below -Infinity.
+func LessThan[T cmp.Ordered](name string, a, b T) (err error) {
+	// Use cmp.Compare to get consistent results even with NaN, which will be
+	// below any other value.
+	if cmp.Compare(a, b) >= 0 {
+		return fmt.Errorf(
+			"%s: %w: must be less than %v, got %v",
+			name,
+			errors.ErrOutOfRange,
+			b,
+			a,
+		)
 	}
 
 	return nil
@@ -167,7 +232,7 @@ func NotNegative[T cmp.Ordered](name string, v T) (err error) {
 // NotNil returns an error if v is nil.  The underlying error of err is
 // [errors.ErrNoValue].
 //
-// For checking against emptyness (comparing with the zero value), prefer
+// For checking against emptiness (comparing with the zero value), prefer
 // [NotEmpty].
 //
 // TODO(a.garipov):  Find ways of extending to other nilable types.

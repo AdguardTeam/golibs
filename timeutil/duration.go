@@ -1,5 +1,3 @@
-// Package timeutil contains types and utilities for dealing with time and
-// duration values.
 package timeutil
 
 import (
@@ -7,9 +5,6 @@ import (
 	"fmt"
 	"time"
 )
-
-// Day is the duration of one day.
-const Day time.Duration = 24 * time.Hour
 
 // Duration is a helper type for time.Duration providing functionality for
 // encoding.

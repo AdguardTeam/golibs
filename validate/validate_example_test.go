@@ -60,6 +60,37 @@ func ExampleSlice() {
 	// values: at index 2: test error 2
 }
 
+func ExampleEmpty() {
+	fmt.Println(validate.Empty("foo", "value"))
+	fmt.Println(validate.Empty("foo", ""))
+
+	// Output:
+	// foo: not empty
+	// <nil>
+}
+
+func ExampleEmptySlice() {
+	fmt.Println(validate.EmptySlice("foo", []int{1}))
+	fmt.Println(validate.EmptySlice("foo", []int(nil)))
+	fmt.Println(validate.EmptySlice("foo", []int{}))
+
+	// Output:
+	// foo: not empty
+	// <nil>
+	// <nil>
+}
+
+func ExampleGreaterThan() {
+	fmt.Println(validate.GreaterThan("foo", 0, 0))
+	fmt.Println(validate.GreaterThan("foo", 0, 1))
+	fmt.Println(validate.GreaterThan("foo", 1, 0))
+
+	// Output:
+	// foo: out of range: must be greater than 0, got 0
+	// foo: out of range: must be greater than 1, got 0
+	// <nil>
+}
+
 func ExampleInRange() {
 	fmt.Println(validate.InRange("foo", 0, 0, 100))
 	fmt.Println(validate.InRange("foo", 100, 0, 100))
@@ -71,6 +102,17 @@ func ExampleInRange() {
 	// <nil>
 	// foo: out of range: must be no greater than 100, got 101
 	// foo: out of range: must be no less than 0, got -1
+}
+
+func ExampleLessThan() {
+	fmt.Println(validate.LessThan("foo", 0, 0))
+	fmt.Println(validate.LessThan("foo", 0, 1))
+	fmt.Println(validate.LessThan("foo", 1, 0))
+
+	// Output:
+	// foo: out of range: must be less than 0, got 0
+	// <nil>
+	// foo: out of range: must be less than 0, got 1
 }
 
 func ExampleNotNegative() {

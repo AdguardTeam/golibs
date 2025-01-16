@@ -11,7 +11,7 @@ import (
 
 // CloseAndLog is a convenient helper to log errors returned by closer.  The
 // point is to not lose information from deferred Close calls.  The error is
-// logged with the specified logging level.
+// logged with the specified logging level.  l must not be nil.
 //
 // Instead of:
 //
@@ -36,7 +36,7 @@ func CloseAndLog(ctx context.Context, l *slog.Logger, closer io.Closer, lvl slog
 }
 
 // RecoverAndLog is a deferred helper that recovers from a panic and logs the
-// panic value into l along with the stacktrace.
+// panic value into l along with the stacktrace.  l must not be nil.
 func RecoverAndLog(ctx context.Context, l *slog.Logger) {
 	v := recover()
 	if v != nil {
@@ -44,8 +44,24 @@ func RecoverAndLog(ctx context.Context, l *slog.Logger) {
 	}
 }
 
+// RecoverAndLogDefault is like [RecoverAndLog] but tries to get the logger from
+// ctx using [LoggerFromContext] and, if there is none, uses [slog.Default].
+func RecoverAndLogDefault(ctx context.Context) {
+	v := recover()
+	if v == nil {
+		return
+	}
+
+	l, ok := LoggerFromContext(ctx)
+	if !ok {
+		l = slog.Default()
+	}
+
+	printRecovered(ctx, l, v)
+}
+
 // RecoverAndExit recovers a panic, logs it using l, and then exits with the
-// given exit code.
+// given exit code.  l must not be nil.
 func RecoverAndExit(ctx context.Context, l *slog.Logger, code osutil.ExitCode) {
 	v := recover()
 	if v == nil {
@@ -57,7 +73,7 @@ func RecoverAndExit(ctx context.Context, l *slog.Logger, code osutil.ExitCode) {
 	os.Exit(code)
 }
 
-// printRecovered prints the recovered value.
+// printRecovered prints the recovered value.  l must not be nil.
 func printRecovered(ctx context.Context, l *slog.Logger, v any) {
 	var args []any
 	if err, ok := v.(error); ok {
