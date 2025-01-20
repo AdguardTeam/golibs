@@ -90,16 +90,11 @@ func NewRandomizedSchedule(
 	minAdd time.Duration,
 	maxAdd time.Duration,
 ) (s *RandomizedSchedule) {
-	errs := []error{
+	err := errors.Join(
+		validate.NotNilInterface("sched", sched),
 		validate.NotNil("r", r),
 		validate.GreaterThan("maxAdd", maxAdd, minAdd),
-	}
-
-	if sched == nil {
-		errs = append(errs, fmt.Errorf("sched: %w", errors.ErrNoValue))
-	}
-
-	err := errors.Join(errs...)
+	)
 	if err != nil {
 		panic(fmt.Errorf("timeutil.NewRandomizedSchedule: %w", err))
 	}

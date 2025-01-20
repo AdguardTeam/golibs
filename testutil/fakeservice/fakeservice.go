@@ -33,3 +33,16 @@ func (s *Service) Start(ctx context.Context) (err error) {
 func (s *Service) Shutdown(ctx context.Context) (err error) {
 	return s.OnShutdown(ctx)
 }
+
+// Refresher is the [service.Refresher] for tests.
+type Refresher struct {
+	OnRefresh func(ctx context.Context) (err error)
+}
+
+// type check
+var _ service.Refresher = (*Refresher)(nil)
+
+// Refresh implements the [service.Refresher] interface for *Refresher.
+func (r *Refresher) Refresh(ctx context.Context) (err error) {
+	return r.OnRefresh(ctx)
+}

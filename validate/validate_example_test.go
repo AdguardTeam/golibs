@@ -165,6 +165,24 @@ func ExampleNotNil() {
 	// foo: no value
 }
 
+func ExampleNotNilInterface() {
+	var v any
+	fmt.Println(validate.NotNilInterface("foo", v))
+
+	type T struct{}
+	v = T{}
+	fmt.Println(validate.NotNilInterface("foo", v))
+
+	// NOTE:  A typed but nil interface value, be careful!
+	v = (*T)(nil)
+	fmt.Println(validate.NotNilInterface("foo", v))
+
+	// Output:
+	// foo: no value
+	// <nil>
+	// <nil>
+}
+
 func ExamplePositive() {
 	fmt.Println(validate.Positive("foo", 1))
 	fmt.Println(validate.Positive("foo", 0))

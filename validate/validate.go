@@ -244,6 +244,25 @@ func NotNil[T any](name string, v *T) (err error) {
 	return nil
 }
 
+// NotNilInterface returns an error if v is nil.  The underlying error of err is
+// [errors.ErrNoValue].
+//
+// For checking against emptiness (comparing with the zero value), prefer
+// [NotEmpty].
+//
+// NOTE:  This function returns an error only if v is a nil interface value.
+// This means that if v is an interface value with a type and a nil pointer, err
+// is nil.
+//
+// TODO(a.garipov):  Find ways of merging with [NotNil].
+func NotNilInterface(name string, v any) (err error) {
+	if v == nil {
+		return fmt.Errorf("%s: %w", name, errors.ErrNoValue)
+	}
+
+	return nil
+}
+
 // Positive returns an error if v is less than or equal to the zero value of
 // type T.  The underlying error of err is [errors.ErrNotPositive].
 //

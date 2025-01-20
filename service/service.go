@@ -1,12 +1,13 @@
 // Package service defines types and interfaces for long-running services that
 // can be started and shut down.
-//
-// TODO(a.garipov): Add tests.
 package service
 
 import (
 	"context"
 )
+
+// unit is a convenient alias for struct{}.
+type unit = struct{}
 
 // Interface is the interface for long-running services.
 type Interface interface {

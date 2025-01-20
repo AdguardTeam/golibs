@@ -44,9 +44,9 @@ func NewTimeoutConstructor(timeout time.Duration) (c *TimeoutConstructor) {
 // type check
 var _ Constructor = (*TimeoutConstructor)(nil)
 
-// New implements the [Constructor] interface for
-// *TimeoutConstructor.  It returns a context with its timeout and the
-// corresponding cancelation function.
+// New implements the [Constructor] interface for *TimeoutConstructor.  It
+// returns a context with its timeout and the corresponding cancelation
+// function.
 func (c *TimeoutConstructor) New(
 	parent context.Context,
 ) (ctx context.Context, cancel context.CancelFunc) {
