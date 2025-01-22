@@ -27,15 +27,16 @@ const (
 
 // Config contains the configuration for a logger.
 type Config struct {
+	// Level is the minimum record level that will be logged.  If not set,
+	// [LevelInfo] is used.
+	Level slog.Leveler
+
 	// Output is the output destination.  If not set, [os.Stdout] is used.
 	Output io.Writer
 
 	// Format is the format for the logs.  If not set, [FormatDefault] is used.
 	// If set, it must be valid.
 	Format Format
-
-	// Level is the minimum record level that will be logged.
-	Level slog.Level
 
 	// AddTimestamp, if true, adds a timestamp to every record.
 	AddTimestamp bool
@@ -51,10 +52,11 @@ func New(c *Config) (l *slog.Logger) {
 		c = &Config{
 			Output: os.Stdout,
 			Format: FormatDefault,
+			Level:  LevelInfo,
 		}
 	}
 
-	lvl := c.Level
+	lvl := cmp.Or[slog.Leveler](c.Level, LevelInfo)
 	format := cmp.Or(c.Format, FormatDefault)
 	output := cmp.Or[io.Writer](c.Output, os.Stdout)
 	if format == FormatDefault {
@@ -95,7 +97,7 @@ func New(c *Config) (l *slog.Logger) {
 // newDefault returns a new default slog logger set up with the given options.
 //
 // TODO(d.kolyshev): Replace log level name for [LevelTrace].
-func newDefault(output io.Writer, lvl slog.Level, addTimestamp bool) (l *slog.Logger) {
+func newDefault(output io.Writer, lvl slog.Leveler, addTimestamp bool) (l *slog.Logger) {
 	h := NewLevelHandler(lvl, slog.Default().Handler())
 	log.SetOutput(output)
 	if addTimestamp {

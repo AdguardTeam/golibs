@@ -61,5 +61,9 @@ func SetDefaultLogger(l *slog.Logger, p string) {
 	p = cmp.Or(p, DefaultLoggerPrefix)
 	l = l.With(slogutil.KeyPrefix, p)
 
-	sentry.Logger = slog.NewLogLogger(l.Handler(), slog.LevelDebug)
+	h := &traceMsgHandler{
+		handler: l.Handler(),
+	}
+
+	sentry.Logger = slog.NewLogLogger(h, slog.LevelDebug)
 }
