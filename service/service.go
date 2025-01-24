@@ -4,6 +4,9 @@ package service
 
 import (
 	"context"
+
+	"github.com/AdguardTeam/golibs/errors"
+	"github.com/AdguardTeam/golibs/validate"
 )
 
 // unit is a convenient alias for struct{}.
@@ -18,6 +21,12 @@ type Interface interface {
 	// implementation of Start must document that.
 	Start(ctx context.Context) (err error)
 
+	Shutdowner
+}
+
+// Shutdowner is the interface for types that have a Shutdown method but not
+// necessarily a Start method.
+type Shutdowner interface {
 	// Shutdown gracefully stops the service.  ctx is used to determine a
 	// timeout before trying to stop the service less gracefully.
 	//
@@ -38,3 +47,31 @@ func (Empty) Start(_ context.Context) (err error) { return nil }
 
 // Shutdown implements the [Interface] interface for Empty.
 func (Empty) Shutdown(_ context.Context) (err error) { return nil }
+
+// ShutdownService is an adapter for types that implement the [Shutdowner]
+// interface but not the [Interface] one.
+type ShutdownService struct {
+	shutdowner Shutdowner
+}
+
+// NewShutdownService returns a properly initialized *ShutdownService.  s must
+// not be nil.
+func NewShutdownService(s Shutdowner) (svc Interface) {
+	errors.Check(validate.NotNilInterface("s", s))
+
+	return &ShutdownService{
+		shutdowner: s,
+	}
+}
+
+// type check
+var _ Interface = (*ShutdownService)(nil)
+
+// Start implements the [Interface] interface for *ShutdownService.  It always
+// returns nil.
+func (s *ShutdownService) Start(_ context.Context) (err error) { return nil }
+
+// Shutdown implements the [Interface] interface for *ShutdownService.
+func (s *ShutdownService) Shutdown(ctx context.Context) (err error) {
+	return s.shutdowner.Shutdown(ctx)
+}
