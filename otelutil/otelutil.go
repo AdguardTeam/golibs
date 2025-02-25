@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"google.golang.org/grpc"
 )
 
 // Supported OpenTelemetry exporter protocols that are expected to be present in
@@ -72,7 +73,10 @@ func Init(ctx context.Context, c *Config) (svc service.Interface, err error) {
 	case "", ExporterProtoStdout:
 		exporter, err = stdouttrace.New()
 	case ExporterProtoGRPC:
-		exporter, err = otlptracegrpc.New(ctx)
+		exporter, err = otlptracegrpc.New(
+			ctx,
+			otlptracegrpc.WithDialOption(grpc.WithDisableServiceConfig()),
+		)
 	case ExporterProtoHTTPProtobuf:
 		exporter, err = otlptracehttp.New(ctx)
 	default:
