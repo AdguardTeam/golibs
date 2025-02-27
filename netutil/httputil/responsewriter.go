@@ -1,7 +1,9 @@
 package httputil
 
 import (
+	"bufio"
 	"cmp"
+	"net"
 	"net/http"
 )
 
@@ -77,4 +79,16 @@ func (w *CodeRecorderResponseWriter) WriteHeader(code int) {
 	w.code = code
 
 	w.rw.WriteHeader(code)
+}
+
+// type check
+var _ http.Hijacker = (*CodeRecorderResponseWriter)(nil)
+
+// Hijack implements [http.Hijacker] for *CodeRecorderResponseWriter.
+//
+// This can be necessary for older packages that don't support response
+// controllers and require the Hijack method on the response writer itself, such
+// as golang.org/x/net/http2/h2c.
+func (w *CodeRecorderResponseWriter) Hijack() (conn net.Conn, rw *bufio.ReadWriter, err error) {
+	return http.NewResponseController(w.rw).Hijack()
 }
