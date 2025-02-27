@@ -57,10 +57,15 @@ func RecoverAndLogDefault(ctx context.Context) {
 	PrintRecovered(ctx, l, v)
 }
 
-// RecoverAndExit recovers a panic, logs it using l, and then exits with the
-// given exit code.  l must not be nil.
+// RecoverAndExit recovers a panic and, if there is one, logs it using l and
+// exits with the given exit code.  l must not be nil.
 func RecoverAndExit(ctx context.Context, l *slog.Logger, code osutil.ExitCode) {
-	PrintRecovered(ctx, l, recover())
+	v := recover()
+	if v == nil {
+		return
+	}
+
+	PrintRecovered(ctx, l, v)
 
 	os.Exit(code)
 }
