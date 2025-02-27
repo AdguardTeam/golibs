@@ -1,9 +1,11 @@
 package slogutil_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
@@ -52,4 +54,29 @@ func ExampleCloseAndLog() {
 	// actual closer without error:
 	// actual closer with error:
 	// DEBUG deferred closing err="close failed"
+}
+
+func ExamplePrintRecovered() {
+	ctx := context.Background()
+
+	output := &bytes.Buffer{}
+	l := slogutil.New(&slogutil.Config{
+		Output: output,
+	})
+
+	func() {
+		defer func() { slogutil.PrintRecovered(ctx, l, recover()) }()
+
+		l = l.With("extra", "parameters", "added", "later")
+
+		panic("test value")
+	}()
+
+	// Only print the first line, since the stack trace is not reproducible in
+	// examples.
+	lines := strings.Split(output.String(), "\n")
+	fmt.Println(lines[0])
+
+	// Output:
+	// ERROR recovered from panic extra=parameters added=later value="test value"
 }

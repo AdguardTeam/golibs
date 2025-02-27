@@ -38,10 +38,7 @@ func CloseAndLog(ctx context.Context, l *slog.Logger, closer io.Closer, lvl slog
 // RecoverAndLog is a deferred helper that recovers from a panic and logs the
 // panic value into l along with the stacktrace.  l must not be nil.
 func RecoverAndLog(ctx context.Context, l *slog.Logger) {
-	v := recover()
-	if v != nil {
-		printRecovered(ctx, l, v)
-	}
+	PrintRecovered(ctx, l, recover())
 }
 
 // RecoverAndLogDefault is like [RecoverAndLog] but tries to get the logger from
@@ -57,24 +54,25 @@ func RecoverAndLogDefault(ctx context.Context) {
 		l = slog.Default()
 	}
 
-	printRecovered(ctx, l, v)
+	PrintRecovered(ctx, l, v)
 }
 
 // RecoverAndExit recovers a panic, logs it using l, and then exits with the
 // given exit code.  l must not be nil.
 func RecoverAndExit(ctx context.Context, l *slog.Logger, code osutil.ExitCode) {
-	v := recover()
-	if v == nil {
-		return
-	}
-
-	printRecovered(ctx, l, v)
+	PrintRecovered(ctx, l, recover())
 
 	os.Exit(code)
 }
 
-// printRecovered prints the recovered value.  l must not be nil.
-func printRecovered(ctx context.Context, l *slog.Logger, v any) {
+// PrintRecovered prints a message with the recovered value, if there is any, as
+// well as the stack.  If v is nil, PrintRecovered does nothing.  Otherwise, l
+// must not be nil.
+func PrintRecovered(ctx context.Context, l *slog.Logger, v any) {
+	if v == nil {
+		return
+	}
+
 	var args []any
 	if err, ok := v.(error); ok {
 		args = []any{KeyError, err}
