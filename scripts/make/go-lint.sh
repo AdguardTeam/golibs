@@ -193,7 +193,6 @@ run_linter fieldalignment \
 	./errors/ \
 	./hostsfile/ \
 	./httphdr/ \
-	./internal/... \
 	./ioutil/ \
 	./log/ \
 	./logutil/... \

@@ -302,7 +302,7 @@ func BenchmarkSliceSubnetSet_comparison(b *testing.B) {
 		b.ReportAllocs()
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for i := range b.N {
 			boolSink = general.Contains(ips[i%ipsLen])
 		}
 	})
@@ -311,19 +311,19 @@ func BenchmarkSliceSubnetSet_comparison(b *testing.B) {
 		b.ReportAllocs()
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for i := range b.N {
 			boolSink = optimized.Contains(ips[i%ipsLen])
 		}
 	})
 
-	// Most recent results, on a MBP 14 with Apple M1 Pro chip:
-	//
-	//	goos: darwin
-	//	goarch: arm64
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
 	//	BenchmarkSliceSubnetSet_comparison
 	//	BenchmarkSliceSubnetSet_comparison/general_set
-	//	BenchmarkSliceSubnetSet_comparison/general_set-8         	12637309	        80.11 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSliceSubnetSet_comparison/general_set-16         	13402231	        92.23 ns/op	       0 B/op	       0 allocs/op
 	//	BenchmarkSliceSubnetSet_comparison/optimized_set
-	//	BenchmarkSliceSubnetSet_comparison/optimized_set-8       	197142069	         6.049 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSliceSubnetSet_comparison/optimized_set-16       	119661958	         9.272 ns/op	       0 B/op	       0 allocs/op
 }

@@ -166,22 +166,23 @@ func BenchmarkParse(b *testing.B) {
 	set := hostsfile.DiscardSet{}
 
 	b.Run("run", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-
 		var err error
-		for i := 0; i < b.N; i++ {
+		b.ReportAllocs()
+		for b.Loop() {
 			err = hostsfile.Parse(set, data, buf)
 		}
 
 		require.NoError(b, err)
 	})
 
-	// goos: darwin
+	// Most recent results:
+	// goos: linux
 	// goarch: amd64
 	// pkg: github.com/AdguardTeam/golibs/hostsfile
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkParse/run-12		37397535		33.20 ns/op		0 B/op		0 allocs/op
+	// cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	// BenchmarkParse
+	// BenchmarkParse/run
+	// BenchmarkParse/run-16         	43759300	        25.07 ns/op	       0 B/op	       0 allocs/op
 }
 
 func FuzzParse(f *testing.F) {

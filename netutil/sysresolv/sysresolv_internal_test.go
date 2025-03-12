@@ -134,36 +134,31 @@ func TestCompareAddrPorts(t *testing.T) {
 	}
 }
 
-// strSink is a typed sink for sinking string values from benchmarks.
-var strSink string
-
 func BenchmarkHostGenFunc_default(b *testing.B) {
 	b.Run("builder", func(b *testing.B) {
 		b.ReportAllocs()
-		b.ResetTimer()
-
-		for i := 0; i < b.N; i++ {
-			strSink = defaultHostGenFunc()
+		for b.Loop() {
+			_ = defaultHostGenFunc()
 		}
 	})
 
 	b.Run("sprintf", func(b *testing.B) {
 		b.ReportAllocs()
-		b.ResetTimer()
-
-		for i := 0; i < b.N; i++ {
-			strSink = hostGenFuncSprintf()
+		for b.Loop() {
+			_ = hostGenFuncSprintf()
 		}
 	})
 
-	// The most recent results:
-	//
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil/sysresolv
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkHostGenFunc_default/builder-12	7903302		136.4 ns/op		32 B/op		1 allocs/op
-	// BenchmarkHostGenFunc_default/sprintf-12	5793406		205.5 ns/op		40 B/op		2 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil/sysresolv
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkHostGenFunc_default
+	//	BenchmarkHostGenFunc_default/builder
+	//	BenchmarkHostGenFunc_default/builder-16         	 4920481	       244.8 ns/op	      32 B/op	       1 allocs/op
+	//	BenchmarkHostGenFunc_default/sprintf
+	//	BenchmarkHostGenFunc_default/sprintf-16         	 2609809	       414.5 ns/op	      40 B/op	       2 allocs/op
 }
 
 // hostGenFuncSprintf is a [HostGenFunc] implementation that uses a plain

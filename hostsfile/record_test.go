@@ -212,12 +212,6 @@ func TestRecord_MarshalText(t *testing.T) {
 	}
 }
 
-// Common typed sinks for values returned in benchmarks.
-var (
-	errSink       error
-	byteSliceSink []byte
-)
-
 func BenchmarkRecord_UnmarshalText(b *testing.B) {
 	benchCases := []struct {
 		name      string
@@ -272,42 +266,52 @@ func BenchmarkRecord_UnmarshalText(b *testing.B) {
 		input := []byte(testIPv6.StringExpanded() + " " + strings.Repeat(host+" ", bc.hostsNum))
 
 		b.Run(bc.name, func(b *testing.B) {
-			b.ReportAllocs()
-			b.ResetTimer()
+			var err error
 
-			for i := 0; i < b.N; i++ {
-				errSink = rec.UnmarshalText(input)
+			b.ReportAllocs()
+			for b.Loop() {
+				err = rec.UnmarshalText(input)
 			}
 
-			require.NoError(b, errSink)
+			require.NoError(b, err)
 		})
 
 		b.Run(bc.name+"_with_allocs", func(b *testing.B) {
 			b.Skip("Comment this line to run the benchmark with allocs")
 
-			b.ReportAllocs()
-			b.ResetTimer()
+			var err error
 
-			for i := 0; i < b.N; i++ {
-				errSink = rec.UnmarshalTextEachSublice(input)
+			b.ReportAllocs()
+			for b.Loop() {
+				err = rec.UnmarshalTextEachSublice(input)
 			}
 
-			require.NoError(b, errSink)
+			require.NoError(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/hostsfile
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkRecord_UnmarshalText/two_hosts-12						2159073		557.5 ns/op		96 B/op		3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_labels-12						859887		1298 ns/op		192 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_hosts-12						413870		2947 ns/op		496 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_labels_and_hosts-12			125826		9447 ns/op		1392 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/two_large_hosts-12					642380		1753 ns/op		592 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_large_hosts-12				83216		15716 ns/op		5744 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_hosts_tiny_labels-12			41907		28358 ns/op		4656 B/op	3 allocs/op
-	// BenchmarkRecord_UnmarshalText/many_hosts_many_tiny_labels-12		1917		620872 ns/op	36912 B/op	3 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/hostsfile
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkRecord_UnmarshalText
+	//	BenchmarkRecord_UnmarshalText/two_hosts
+	//	BenchmarkRecord_UnmarshalText/two_hosts-16         	  993870	      1192 ns/op	      96 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_labels
+	//	BenchmarkRecord_UnmarshalText/many_labels-16       	 1000000	      2577 ns/op	     192 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_hosts
+	//	BenchmarkRecord_UnmarshalText/many_hosts-16        	  254593	      5107 ns/op	     496 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_labels_and_hosts
+	//	BenchmarkRecord_UnmarshalText/many_labels_and_hosts-16         	   47509	     22245 ns/op	    1392 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/two_large_hosts
+	//	BenchmarkRecord_UnmarshalText/two_large_hosts-16               	  259664	      3964 ns/op	     592 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_large_hosts
+	//	BenchmarkRecord_UnmarshalText/many_large_hosts-16              	   54634	     29194 ns/op	    5744 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_hosts_tiny_labels
+	//	BenchmarkRecord_UnmarshalText/many_hosts_tiny_labels-16        	   26436	     47916 ns/op	    5424 B/op	       3 allocs/op
+	//	BenchmarkRecord_UnmarshalText/many_hosts_many_tiny_labels
+	//	BenchmarkRecord_UnmarshalText/many_hosts_many_tiny_labels-16   	    1159	   1018552 ns/op	   37680 B/op	       3 allocs/op
 }
 
 func BenchmarkRecord_MarshalText(b *testing.B) {
@@ -340,23 +344,28 @@ func BenchmarkRecord_MarshalText(b *testing.B) {
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				byteSliceSink, errSink = bc.rec.MarshalText()
+			for b.Loop() {
+				_, _ = bc.rec.MarshalText()
 			}
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/hostsfile
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkRecord_MarshalText/empty-12				171733868	6.617 ns/op		0 B/op		0 allocs/op
-	// BenchmarkRecord_MarshalText/ipv4_only-12			39205971	31.15 ns/op		16 B/op		1 allocs/op
-	// BenchmarkRecord_MarshalText/ipv6_only-12			13188110	95.01 ns/op		48 B/op		1 allocs/op
-	// BenchmarkRecord_MarshalText/ipv4_with_hosts-12	14623215	80.86 ns/op		64 B/op		2 allocs/op
-	// BenchmarkRecord_MarshalText/ipv6_with_hosts-12	7962034		151.7 ns/op		144 B/op	2 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/hostsfile
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkRecord_MarshalText
+	//	BenchmarkRecord_MarshalText/empty
+	//	BenchmarkRecord_MarshalText/empty-16         	167696192	         6.848 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkRecord_MarshalText/ipv4_only
+	//	BenchmarkRecord_MarshalText/ipv4_only-16     	13294310	        79.69 ns/op	      16 B/op	       1 allocs/op
+	//	BenchmarkRecord_MarshalText/ipv6_only
+	//	BenchmarkRecord_MarshalText/ipv6_only-16     	 7429681	       211.1 ns/op	      48 B/op	       1 allocs/op
+	//	BenchmarkRecord_MarshalText/ipv4_with_hosts
+	//	BenchmarkRecord_MarshalText/ipv4_with_hosts-16         	 5413416	       206.0 ns/op	      64 B/op	       2 allocs/op
+	//	BenchmarkRecord_MarshalText/ipv6_with_hosts
+	//	BenchmarkRecord_MarshalText/ipv6_with_hosts-16         	 4154754	       308.1 ns/op	     144 B/op	       2 allocs/op
 }
 
 func FuzzRecord_UnmarshalText(f *testing.F) {

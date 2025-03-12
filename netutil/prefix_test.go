@@ -116,38 +116,37 @@ func BenchmarkPrefix_UnmarshalText(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var err error
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				errSink = p.UnmarshalText([]byte(bc.in))
+			for b.Loop() {
+				err = p.UnmarshalText([]byte(bc.in))
 			}
 
 			require.NotNil(b, p)
-			require.NoError(b, errSink)
+			require.NoError(b, err)
 		})
 	}
 
-	// Most recent results, on a MBP 14 with Apple M1 Pro chip:
-	//
-	//	goos: darwin
-	//	goarch: arm64
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
 	//	BenchmarkPrefix_UnmarshalText
 	//	BenchmarkPrefix_UnmarshalText/good_cidr4
-	//	BenchmarkPrefix_UnmarshalText/good_cidr4-8         	26359432	        43.79 ns/op	      16 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_cidr4-16         	 6845535	       154.8 ns/op	      16 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_ip4
-	//	BenchmarkPrefix_UnmarshalText/good_ip4-8           	35014515	        34.11 ns/op	       8 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_ip4-16           	11513816	       112.1 ns/op	       8 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_cidr6
-	//	BenchmarkPrefix_UnmarshalText/good_cidr6-8         	18753552	        64.19 ns/op	      16 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_cidr6-16         	 7655109	       187.7 ns/op	      16 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_ip6
-	//	BenchmarkPrefix_UnmarshalText/good_ip6-8           	21536590	        56.39 ns/op	      16 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_ip6-16           	 8027028	       166.3 ns/op	      16 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_cidr4to6
-	//	BenchmarkPrefix_UnmarshalText/good_cidr4to6-8      	15560022	        76.39 ns/op	      24 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_cidr4to6-16      	 5304142	       213.8 ns/op	      24 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_ip4to6
-	//	BenchmarkPrefix_UnmarshalText/good_ip4to6-8        	19428386	        61.31 ns/op	      16 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_ip4to6-16        	 6912882	       156.0 ns/op	      16 B/op	       1 allocs/op
 	//	BenchmarkPrefix_UnmarshalText/good_cidr_not4to6
-	//	BenchmarkPrefix_UnmarshalText/good_cidr_not4to6-8  	15747678	        84.56 ns/op	      24 B/op	       1 allocs/op
+	//	BenchmarkPrefix_UnmarshalText/good_cidr_not4to6-16  	 8418352	       208.8 ns/op	      24 B/op	       1 allocs/op
 }
 
 func BenchmarkPrefix_UnmarshalText_errors(b *testing.B) {
@@ -166,24 +165,24 @@ func BenchmarkPrefix_UnmarshalText_errors(b *testing.B) {
 
 	for _, bc := range benchErrCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var err error
 			b.ReportAllocs()
-
-			for i := 0; i < b.N; i++ {
-				errSink = p.UnmarshalText([]byte(bc.in))
+			for b.Loop() {
+				err = p.UnmarshalText([]byte(bc.in))
 			}
 
-			require.Error(b, errSink)
+			require.Error(b, err)
 		})
 	}
 
-	// Most recent results, on a MBP 14 with Apple M1 Pro chip:
-	//
-	//	goos: darwin
-	//	goarch: arm64
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
 	//	BenchmarkPrefix_UnmarshalText_errors
 	//	BenchmarkPrefix_UnmarshalText_errors/bad_cidr
-	//	BenchmarkPrefix_UnmarshalText_errors/bad_cidr-8         	 2811278	       404.8 ns/op	     296 B/op	       9 allocs/op
+	//	BenchmarkPrefix_UnmarshalText_errors/bad_cidr-16         	 1468476	       804.8 ns/op	     192 B/op	       7 allocs/op
 	//	BenchmarkPrefix_UnmarshalText_errors/bad_ip
-	//	BenchmarkPrefix_UnmarshalText_errors/bad_ip-8           	20484777	        59.03 ns/op	      64 B/op	       2 allocs/op
+	//	BenchmarkPrefix_UnmarshalText_errors/bad_ip-16           	 5339067	       199.9 ns/op	      64 B/op	       2 allocs/op
 }

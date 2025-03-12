@@ -97,8 +97,6 @@ func TestContainsFold(t *testing.T) {
 	}
 }
 
-var sink bool
-
 func BenchmarkContainsFold(b *testing.B) {
 	const s = "aaahBbBhccchDDDeEehFfFhGGGhHhh"
 	const substr = "HHH"
@@ -106,22 +104,33 @@ func BenchmarkContainsFold(b *testing.B) {
 	// Compare our implementation of containsFold against a stupid solution
 	// of calling strings.ToLower and strings.Contains.
 	b.Run("containsfold", func(b *testing.B) {
+		var ok bool
 		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
-			sink = stringutil.ContainsFold(s, substr)
+		for b.Loop() {
+			ok = stringutil.ContainsFold(s, substr)
 		}
 
-		assert.True(b, sink)
+		assert.True(b, ok)
 	})
 
 	b.Run("tolower_contains", func(b *testing.B) {
+		var ok bool
 		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
-			sink = strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+		for b.Loop() {
+			ok = strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 		}
 
-		assert.True(b, sink)
+		assert.True(b, ok)
 	})
+
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/stringutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkContainsFold
+	//	BenchmarkContainsFold/containsfold
+	//	BenchmarkContainsFold/containsfold-16         	18405379	        65.11 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkContainsFold/tolower_contains
+	//	BenchmarkContainsFold/tolower_contains-16     	 3056272	       418.4 ns/op	      40 B/op	       2 allocs/op
 }

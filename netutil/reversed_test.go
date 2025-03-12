@@ -696,26 +696,35 @@ func BenchmarkSubnetFromReversedAddr(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
-			b.ReportAllocs()
-			b.ResetTimer()
+			var (
+				prefix netip.Prefix
+				err    error
+			)
 
-			for i := 0; i < b.N; i++ {
-				prefixSink, errSink = netutil.PrefixFromReversedAddr(bc.in)
+			b.ReportAllocs()
+			for b.Loop() {
+				prefix, err = netutil.PrefixFromReversedAddr(bc.in)
 			}
 
-			require.NotNil(b, prefixSink)
-			require.NoError(b, errSink)
+			require.NotNil(b, prefix)
+			require.NoError(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkSubnetFromReversedAddr/ipv4_single_addr-12	3640460		316.9 ns/op		0 B/op	0 allocs/op
-	// BenchmarkSubnetFromReversedAddr/ipv4_subnet-12		5989670		195.7 ns/op		0 B/op	0 allocs/op
-	// BenchmarkSubnetFromReversedAddr/ipv6_single_addr-12	861590		1413 ns/op		0 B/op	0 allocs/op
-	// BenchmarkSubnetFromReversedAddr/ipv6_subnet-12		1388446		863.8 ns/op		0 B/op	0 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkSubnetFromReversedAddr
+	//	BenchmarkSubnetFromReversedAddr/ipv4_single_addr
+	//	BenchmarkSubnetFromReversedAddr/ipv4_single_addr-16         	 3429879	       321.1 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSubnetFromReversedAddr/ipv4_subnet
+	//	BenchmarkSubnetFromReversedAddr/ipv4_subnet-16              	 6412760	       186.3 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSubnetFromReversedAddr/ipv6_single_addr
+	//	BenchmarkSubnetFromReversedAddr/ipv6_single_addr-16         	  790614	      1449 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSubnetFromReversedAddr/ipv6_subnet
+	//	BenchmarkSubnetFromReversedAddr/ipv6_subnet-16              	 1381117	       817.3 ns/op	       0 B/op	       0 allocs/op
 }
 
 func BenchmarkExtractReversedAddr(b *testing.B) {
@@ -746,26 +755,37 @@ func BenchmarkExtractReversedAddr(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
-			b.ReportAllocs()
-			b.ResetTimer()
+			var (
+				prefix netip.Prefix
+				err    error
+			)
 
-			for i := 0; i < b.N; i++ {
-				prefixSink, errSink = netutil.ExtractReversedAddr(bc.in)
+			b.ReportAllocs()
+			for b.Loop() {
+				prefix, err = netutil.ExtractReversedAddr(bc.in)
 			}
 
-			require.NotNil(b, prefixSink)
-			require.NoError(b, errSink)
+			require.NotNil(b, prefix)
+			require.NoError(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkExtractReversedAddr/ipv4_root-12					7489261		146.5 ns/op		0 B/op	0 allocs/op
-	// BenchmarkExtractReversedAddr/ipv4_subnet-12					5592540		229.5 ns/op		0 B/op	0 allocs/op
-	// BenchmarkExtractReversedAddr/ipv4_subnet_within_domain-12	4316827		275.6 ns/op		0 B/op	0 allocs/op
-	// BenchmarkExtractReversedAddr/ipv6_root-12					8141828		145.8 ns/op		0 B/op	0 allocs/op
-	// BenchmarkExtractReversedAddr/ipv6_subnet-12					1359026		867.2 ns/op		0 B/op	0 allocs/op
-	// BenchmarkExtractReversedAddr/ipv6_subnet_within_domain-12	1000000		1025 ns/op		0 B/op	0 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkExtractReversedAddr
+	//	BenchmarkExtractReversedAddr/ipv4_root
+	//	BenchmarkExtractReversedAddr/ipv4_root-16         	 9361261	       126.9 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv4_subnet
+	//	BenchmarkExtractReversedAddr/ipv4_subnet-16       	 4520908	       228.4 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv4_subnet_within_domain
+	//	BenchmarkExtractReversedAddr/ipv4_subnet_within_domain-16         	 4670204	       261.5 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_root
+	//	BenchmarkExtractReversedAddr/ipv6_root-16                         	 8703597	       135.5 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_subnet
+	//	BenchmarkExtractReversedAddr/ipv6_subnet-16                       	 1464615	       815.5 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_subnet_within_domain
+	//	BenchmarkExtractReversedAddr/ipv6_subnet_within_domain-16         	 1228610	       954.9 ns/op	       0 B/op	       0 allocs/op
 }

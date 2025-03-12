@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// Common sinks for benchmarks.
-var (
-	sinkBool bool
-)
-
 // Common constants for tests.
 const (
 	randStrLen = 8

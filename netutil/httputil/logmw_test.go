@@ -104,13 +104,12 @@ func BenchmarkLogMiddleware(b *testing.B) {
 	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
 
 	b.Run("enabled", func(b *testing.B) {
-		logHdlr := slogutil.NewLevelHandler(slog.LevelInfo, slogutil.DiscardHandler{})
+		logHdlr := slogutil.NewLevelHandler(slog.LevelInfo, slog.DiscardHandler)
 		mw := httputil.NewLogMiddleware(slog.New(logHdlr), slog.LevelInfo)
 		h := mw.Wrap(httputil.HealthCheckHandler)
 
 		b.ReportAllocs()
-		b.ResetTimer()
-		for range b.N {
+		for b.Loop() {
 			h.ServeHTTP(w, r)
 		}
 	})
@@ -120,8 +119,7 @@ func BenchmarkLogMiddleware(b *testing.B) {
 		h := mw.Wrap(httputil.HealthCheckHandler)
 
 		b.ReportAllocs()
-		b.ResetTimer()
-		for range b.N {
+		for b.Loop() {
 			h.ServeHTTP(w, r)
 		}
 	})
@@ -131,6 +129,9 @@ func BenchmarkLogMiddleware(b *testing.B) {
 	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil/httputil
 	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkLogMiddleware/enabled-16         	  807336	      1900 ns/op	     128 B/op	       6 allocs/op
-	//	BenchmarkLogMiddleware/disabled-16        	 1672407	       743.0 ns/op	      88 B/op	       4 allocs/op
+	//	BenchmarkLogMiddleware
+	//	BenchmarkLogMiddleware/enabled
+	//	BenchmarkLogMiddleware/enabled-16         	 1000000	      1622 ns/op	     128 B/op	       6 allocs/op
+	//	BenchmarkLogMiddleware/disabled
+	//	BenchmarkLogMiddleware/disabled-16        	 1423170	       811.7 ns/op	      88 B/op	       4 allocs/op
 }

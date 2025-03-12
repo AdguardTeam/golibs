@@ -571,24 +571,28 @@ func BenchmarkValidateDomainName(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var err error
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				errSink = netutil.ValidateDomainName(bc.in)
+			for b.Loop() {
+				err = netutil.ValidateDomainName(bc.in)
 			}
 
-			require.NoError(b, errSink)
+			require.NoError(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkValidateDomainName/common-12		10058613	109.4 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateDomainName/long_names-12	4830151		246.2 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateDomainName/long_labels-12	4775589		246.7 ns/op		0 B/op	0 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkValidateDomainName
+	//	BenchmarkValidateDomainName/common
+	//	BenchmarkValidateDomainName/common-16         	13883317	        85.97 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateDomainName/long_names
+	//	BenchmarkValidateDomainName/long_names-16     	 8274099	       142.7 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateDomainName/long_labels
+	//	BenchmarkValidateDomainName/long_labels-16    	 5193171	       229.5 ns/op	       0 B/op	       0 allocs/op
 }
 
 func BenchmarkIsValidHostnameLabel(b *testing.B) {
@@ -616,25 +620,30 @@ func BenchmarkIsValidHostnameLabel(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var got bool
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				boolSink = netutil.IsValidHostnameLabel(bc.in)
+			for b.Loop() {
+				got = netutil.IsValidHostnameLabel(bc.in)
 			}
 
-			bc.want(b, boolSink)
+			bc.want(b, got)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkIsValidHostnameLabel/valid_short-12		99108642	12.58 ns/op		0 B/op	0 allocs/op
-	// BenchmarkIsValidHostnameLabel/valid_long-12		8952439		140.7 ns/op		0 B/op	0 allocs/op
-	// BenchmarkIsValidHostnameLabel/invalid_short-12	330907425	3.817 ns/op		0 B/op	0 allocs/op
-	// BenchmarkIsValidHostnameLabel/invalid_long-12	8770068		133.4 ns/op		0 B/op	0 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkIsValidHostnameLabel
+	//	BenchmarkIsValidHostnameLabel/valid_short
+	//	BenchmarkIsValidHostnameLabel/valid_short-16         	226464375	         5.114 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostnameLabel/valid_long
+	//	BenchmarkIsValidHostnameLabel/valid_long-16          	24387102	        47.21 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostnameLabel/invalid_short
+	//	BenchmarkIsValidHostnameLabel/invalid_short-16       	404997958	         2.557 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostnameLabel/invalid_long
+	//	BenchmarkIsValidHostnameLabel/invalid_long-16        	21934094	        51.47 ns/op	       0 B/op	       0 allocs/op
 }
 
 func BenchmarkValidateSRVDomainName(b *testing.B) {
@@ -654,24 +663,28 @@ func BenchmarkValidateSRVDomainName(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var err error
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				errSink = netutil.ValidateSRVDomainName(bc.in)
+			for b.Loop() {
+				err = netutil.ValidateSRVDomainName(bc.in)
 			}
 
-			require.NoError(b, errSink)
+			require.NoError(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkValidateSRVDomainName/common-12			8900175		132.9 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateSRVDomainName/long_names-12		5012017		236.0 ns/op		0 B/op	0 allocs/op
-	// BenchmarkValidateSRVDomainName/long_labels-12	1534950		757.6 ns/op		0 B/op	0 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkValidateSRVDomainName
+	//	BenchmarkValidateSRVDomainName/common
+	//	BenchmarkValidateSRVDomainName/common-16         	12360364	        97.25 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateSRVDomainName/long_names
+	//	BenchmarkValidateSRVDomainName/long_names-16     	 8374941	       141.2 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateSRVDomainName/long_labels
+	//	BenchmarkValidateSRVDomainName/long_labels-16    	 2283667	       483.9 ns/op	       0 B/op	       0 allocs/op
 }
 
 func BenchmarkValidateHostname(b *testing.B) {
@@ -711,28 +724,36 @@ func BenchmarkValidateHostname(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var err error
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				errSink = netutil.ValidateHostname(bc.in)
+			for b.Loop() {
+				err = netutil.ValidateHostname(bc.in)
 			}
 
-			bc.want(b, errSink)
+			bc.want(b, err)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkValidateHostname/common-12		7973626		127.9 ns/op		0 B/op		0 allocs/op
-	// BenchmarkValidateHostname/good_short-12	11739956	102.7 ns/op		0 B/op		0 allocs/op
-	// BenchmarkValidateHostname/good_long-12	1778172		723.7 ns/op		0 B/op		0 allocs/op
-	// BenchmarkValidateHostname/good_idna-12	466024		2397 ns/op		216 B/op	6 allocs/op
-	// BenchmarkValidateHostname/bad_short-12	5950212		201.4 ns/op		168 B/op	4 allocs/op
-	// BenchmarkValidateHostname/bad_long-12	1426054		877.4 ns/op		96 B/op		2 allocs/op
-	// BenchmarkValidateHostname/bad_idna-12	9367690		123.5 ns/op		80 B/op		2 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkValidateHostname
+	//	BenchmarkValidateHostname/common
+	//	BenchmarkValidateHostname/common-16         	11950093	        98.83 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateHostname/good_short
+	//	BenchmarkValidateHostname/good_short-16     	12399717	        94.78 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateHostname/good_long
+	//	BenchmarkValidateHostname/good_long-16      	 2437651	       458.3 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkValidateHostname/good_idna
+	//	BenchmarkValidateHostname/good_idna-16      	  237970	      4357 ns/op	     216 B/op	       6 allocs/op
+	//	BenchmarkValidateHostname/bad_short
+	//	BenchmarkValidateHostname/bad_short-16      	 2553793	       462.6 ns/op	     168 B/op	       4 allocs/op
+	//	BenchmarkValidateHostname/bad_long
+	//	BenchmarkValidateHostname/bad_long-16       	  958098	      1228 ns/op	      96 B/op	       2 allocs/op
+	//	BenchmarkValidateHostname/bad_idna
+	//	BenchmarkValidateHostname/bad_idna-16       	 4453160	       259.4 ns/op	      80 B/op	       2 allocs/op
 }
 
 func BenchmarkIsValidHostname(b *testing.B) {
@@ -772,28 +793,36 @@ func BenchmarkIsValidHostname(b *testing.B) {
 
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
+			var got bool
 			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				boolSink = netutil.IsValidHostname(bc.in)
+			for b.Loop() {
+				got = netutil.IsValidHostname(bc.in)
 			}
 
-			bc.want(b, boolSink)
+			bc.want(b, got)
 		})
 	}
 
-	// goos: darwin
-	// goarch: amd64
-	// pkg: github.com/AdguardTeam/golibs/netutil
-	// cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-	// BenchmarkIsValidHostname/common-12			12472970	90.50 ns/op		0 B/op		0 allocs/op
-	// BenchmarkIsValidHostname/good_short-12		17173087	71.27 ns/op		0 B/op		0 allocs/op
-	// BenchmarkIsValidHostname/good_long-12		1949978		624.3 ns/op		0 B/op		0 allocs/op
-	// BenchmarkIsValidHostname/good_idna-12		536984		2201 ns/op		216 B/op	6 allocs/op
-	// BenchmarkIsValidHostname/bad_short-12		36260581	37.20 ns/op		0 B/op		0 allocs/op
-	// BenchmarkIsValidHostname/bad_long-12			1912574		639.4 ns/op		0 B/op		0 allocs/op
-	// BenchmarkIsValidHostname/bad_idna-12			16072608	74.95 ns/op		32 B/op		1 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkIsValidHostname
+	//	BenchmarkIsValidHostname/common
+	//	BenchmarkIsValidHostname/common-16         	15910483	        75.20 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostname/good_short
+	//	BenchmarkIsValidHostname/good_short-16     	15677844	        74.37 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostname/good_long
+	//	BenchmarkIsValidHostname/good_long-16      	 3425068	       344.1 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostname/good_idna
+	//	BenchmarkIsValidHostname/good_idna-16      	  311358	      3992 ns/op	     216 B/op	       6 allocs/op
+	//	BenchmarkIsValidHostname/bad_short
+	//	BenchmarkIsValidHostname/bad_short-16      	27769028	        40.98 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostname/bad_long
+	//	BenchmarkIsValidHostname/bad_long-16       	 3439100	       348.4 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidHostname/bad_idna
+	//	BenchmarkIsValidHostname/bad_idna-16       	 5983546	       180.6 ns/op	      32 B/op	       1 allocs/op
 }
 
 func FuzzIsValidHostname(f *testing.F) {

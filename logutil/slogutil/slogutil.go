@@ -206,3 +206,8 @@ func newBufferedTextHandler(l int, handlerOpts *slog.HandlerOptions) (h *buffere
 func (h *bufferedTextHandler) reset() {
 	h.buffer.Reset()
 }
+
+// NewDiscardLogger returns a new logger that uses [slog.DiscardHandler].
+func NewDiscardLogger() (l *slog.Logger) {
+	return slog.New(slog.DiscardHandler)
+}

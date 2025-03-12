@@ -163,6 +163,7 @@ const (
 	AdminToken   = "Admin-Token"
 	TrueClientIP = "True-Client-Ip"
 
+	XClientID           = "X-Clientid"
 	XConnectingIP       = "X-Connecting-Ip"
 	XContentTypeOptions = "X-Content-Type-Options"
 	XError              = "X-Error"

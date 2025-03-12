@@ -93,8 +93,8 @@ func (mw *LogMiddleware) logFinished(
 	}
 }
 
-// attrsSlicePtr returns a pointer to an slice with the attributes from the request
-// set.  The callers should defer returning the slice back to the pool.
+// attrsSlicePtr returns a pointer to a slice with the attributes from the
+// request set.  Callers should defer returning attrsPtr back to the pool.
 func (mw *LogMiddleware) attrsSlicePtr(r *http.Request) (attrsPtr *[]slog.Attr) {
 	attrsPtr = mw.attrPool.Get()
 

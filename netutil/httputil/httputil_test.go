@@ -21,11 +21,6 @@ const (
 	testBody = string(httputil.HealthCheckHandler)
 )
 
-// Common sinks for benchmark results.
-var (
-	reqSink *http.Request
-)
-
 func BenchmarkCopyRequestTo(b *testing.B) {
 	ctx := context.Background()
 
@@ -34,14 +29,14 @@ func BenchmarkCopyRequestTo(b *testing.B) {
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 	require.NoError(b, err)
 
+	var req *http.Request
 	b.ReportAllocs()
-	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		func() {
-			reqSink = reqPool.Get()
-			defer func() { reqPool.Put(reqSink) }()
+			req = reqPool.Get()
+			defer func() { reqPool.Put(req) }()
 
-			httputil.CopyRequestTo(ctx, reqSink, r)
+			httputil.CopyRequestTo(ctx, req, r)
 		}()
 	}
 
@@ -49,7 +44,7 @@ func BenchmarkCopyRequestTo(b *testing.B) {
 	err = r.Write(wantBuf)
 	require.NoError(b, err)
 
-	err = reqSink.Write(gotBuf)
+	err = req.Write(gotBuf)
 	require.NoError(b, err)
 
 	require.Equal(b, wantBuf.Bytes(), gotBuf.Bytes())
@@ -59,5 +54,6 @@ func BenchmarkCopyRequestTo(b *testing.B) {
 	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil/httputil
 	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkCopyRequestTo-16    	34533667	        31.93 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkCopyRequestTo
+	//	BenchmarkCopyRequestTo-16    	33426297	        34.33 ns/op	       0 B/op	       0 allocs/op
 }

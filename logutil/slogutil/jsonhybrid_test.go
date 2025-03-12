@@ -84,17 +84,20 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 		slog.String("string", "abc"),
 	)
 
+	var err error
+
 	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		errSink = h.Handle(ctx, r)
+	for b.Loop() {
+		err = h.Handle(ctx, r)
 	}
 
-	require.NoError(b, errSink)
+	require.NoError(b, err)
 
-	//  goos: darwin
-	//  goarch: arm64
-	//  pkg: github.com/AdguardTeam/golibs/logutil/slogutil
-	//  cpu: Apple M1 Pro
-	//  BenchmarkJSONHybridHandler_Handle-8   	 1992794	       602.4 ns/op	      48 B/op	       1 allocs/op
+	// Most recent results:
+	//	goos: linux
+	//	goarch: amd64
+	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
+	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
+	//	BenchmarkJSONHybridHandler_Handle
+	//	BenchmarkJSONHybridHandler_Handle-16    	 1000000	      1453 ns/op	      48 B/op	       1 allocs/op
 }

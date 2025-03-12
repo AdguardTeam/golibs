@@ -23,18 +23,19 @@ func BenchmarkAdGuardLegacyHandler_Handle(b *testing.B) {
 		slog.String("string", "abc"),
 	)
 
+	var err error
 	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		errSink = h.Handle(ctx, r)
+	for b.Loop() {
+		err = h.Handle(ctx, r)
 	}
 
-	require.NoError(b, errSink)
+	require.NoError(b, err)
 
-	// Most recent results, on a ThinkPad X13 with a Ryzen Pro 7 CPU:
+	// Most recent results:
 	//	goos: linux
 	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
 	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkAdGuardLegacyHandler_Handle-16    	  100437	     13357 ns/op	     361 B/op	      14 allocs/op
+	//	BenchmarkAdGuardLegacyHandler_Handle
+	//	BenchmarkAdGuardLegacyHandler_Handle-16    	 1000000	      2070 ns/op	     208 B/op	       9 allocs/op
 }

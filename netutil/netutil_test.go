@@ -21,7 +21,5 @@ var (
 
 // Typed sinks for benchmarks.
 var (
-	boolSink   bool
-	errSink    error
-	prefixSink netip.Prefix
+	boolSink bool
 )
