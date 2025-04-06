@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/syslog"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -210,14 +211,37 @@ func writeLog(levelStr, funcName, format string, args ...any) {
 		buf.WriteString(fmt.Sprintf("%d#%d ", os.Getpid(), goroutineID()))
 	}
 
-	buf.WriteString(fmt.Sprintf("[%s] ", levelStr))
+	if w, ok := Writer().(*syslog.Writer); ok {
+		if len(funcName) != 0 {
+			buf.WriteString(fmt.Sprintf("%s(): ", funcName))
+		}
 
-	if len(funcName) != 0 {
-		buf.WriteString(fmt.Sprintf("%s(): ", funcName))
+		buf.WriteString(fmt.Sprintf(format, args...))
+
+		switch levelStr {
+		case "debug":
+			w.Debug(buf.String())
+		case "error":
+			w.Err(buf.String())
+		case "fatal":
+			w.Alert(buf.String())
+		case "info":
+			w.Info(buf.String())
+		case "panic":
+			w.Emerg(buf.String())
+		default:
+			w.Info(buf.String())
+		}
+	} else {
+		buf.WriteString(fmt.Sprintf("[%s] ", levelStr))
+
+		if len(funcName) != 0 {
+			buf.WriteString(fmt.Sprintf("%s(): ", funcName))
+		}
+
+		buf.WriteString(fmt.Sprintf(format, args...))
+		log.Println(buf.String())
 	}
-
-	buf.WriteString(fmt.Sprintf(format, args...))
-	log.Println(buf.String())
 }
 
 // StdLog returns a Go standard library logger that writes everything to logs
