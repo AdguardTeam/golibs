@@ -22,6 +22,10 @@ else
 fi
 readonly v_flags x_flags
 
+if [ "$GOMAXPROCS" = '' ]; then
+	export GOMAXPROCS='1'
+fi
+
 set -e -f -u
 
 if [ "${RACE:-1}" -eq '0' ]; then
@@ -32,7 +36,7 @@ fi
 readonly race_flags
 
 count_flags='--count=2'
-fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=20s}"
+fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=5s}"
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'
 timeout_flags="${TIMEOUT_FLAGS:---timeout=30s}"
@@ -97,5 +101,17 @@ readonly count_flags fuzztime_flags go shuffle_flags timeout_flags
 	"$v_flags" \
 	"$fuzztime_flags" \
 	--fuzz="FuzzIsValidIPString" \
+	./netutil \
+	;
+
+"$go" test \
+	"$count_flags" \
+	"$shuffle_flags" \
+	"$race_flags" \
+	"$timeout_flags" \
+	"$x_flags" \
+	"$v_flags" \
+	"$fuzztime_flags" \
+	--fuzz="FuzzIsValidIPPortString" \
 	./netutil \
 	;

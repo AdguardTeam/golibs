@@ -37,7 +37,9 @@ shuffle_flags='--shuffle=on'
 timeout_flags="${TIMEOUT_FLAGS:---timeout=5m}"
 readonly count_flags go shuffle_flags timeout_flags
 
-"$go" test \
+env \
+	GOMAXPROCS="${GOMAXPROCS:-1}" \
+	"$go" test \
 	"$count_flags" \
 	"$shuffle_flags" \
 	"$race_flags" \
@@ -47,4 +49,5 @@ readonly count_flags go shuffle_flags timeout_flags
 	--bench='.' \
 	--benchmem \
 	--run='^$' \
-	./...
+	./... \
+	;

@@ -353,3 +353,160 @@ func FuzzIsValidIPString(f *testing.F) {
 		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
 	})
 }
+
+func TestIsValidIPPortString(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want assert.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: assert.True,
+		name: "good_ipv4",
+		in:   "0.0.0.0:80",
+	}, {
+		want: assert.True,
+		name: "good_ipv6",
+		in:   "[2001:db8::]:80",
+	}, {
+		want: assert.True,
+		name: "good_ipv6_zone",
+		in:   "[fd7a:115c:a1e0:ab12:4843:cd96:626b:430b%eth0]:80",
+	}, {
+		want: assert.False,
+		name: "not_ip",
+		in:   strings.Repeat("a", 256),
+	}, {
+		want: assert.False,
+		name: "bad_ipv4",
+		in:   "1.2.3",
+	}, {
+		want: assert.False,
+		name: "bad_ipv4_long",
+		in:   "255.255.255.256",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6",
+		in:   "2001:db8:::",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_long",
+		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_empty_zone",
+		in:   "[::%]:80",
+	}, {
+		want: assert.False,
+		name: "bad_no_port",
+		in:   "0.0.0.0",
+	}, {
+		want: assert.False,
+		name: "bad_invalid_port",
+		in:   "0.0.0.0:999999",
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, netutil.IsValidIPPortString(tc.in))
+		})
+	}
+}
+
+func BenchmarkIsValidIPPortString(b *testing.B) {
+	benchCases := []struct {
+		want require.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: require.True,
+		name: "good_ipv4",
+		in:   "255.255.255.255:80",
+	}, {
+		want: require.True,
+		name: "good_ipv6",
+		in:   "[fd7a:115c:a1e0:ab12:4843:cd96:626b:430b%eth0]:80",
+	}, {
+		want: require.False,
+		name: "not_ip",
+		in:   strings.Repeat("a", 256),
+	}, {
+		want: require.False,
+		name: "bad_ipv4",
+		in:   "255.255.255.256",
+	}, {
+		want: require.False,
+		name: "bad_ipv6",
+		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
+	}, {
+		want: require.False,
+		name: "bad_ipv6_empty_zone",
+		in:   "[::%]:80",
+	}, {
+		want: require.False,
+		name: "bad_ipv4_invalid_port",
+		in:   "0.0.0.0:999999",
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			var got bool
+			b.ReportAllocs()
+			for b.Loop() {
+				got = netutil.IsValidIPPortString(bc.in)
+			}
+
+			bc.want(b, got)
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: Apple M1 Pro
+	//	BenchmarkIsValidIPPortString/good_ipv4-8         	22942002	        52.63 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/good_ipv6-8         	11768151	       103.8 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/not_ip-8            	12354528	       100.5 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv4-8          	134999154	         8.817 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	146192818	         8.105 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	77866458	        15.42 ns/op	       0 B/op	       0 allocs/op
+	//. BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	91257355	        13.39 ns/op	       0 B/op	       0 allocs/op
+}
+
+func FuzzIsValidIPPortString(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		":80",
+		":",
+		"192.0.2.1",
+		"192.0.2.1:80",
+		"192.0.2.1:080",
+		"192.0.2.1:-1",
+		"192.0.2.1:999999",
+		"2001:db8::68",
+		"001:db8:a1e0:ab12:4843:cd96:626b:ffff:80",
+		"[001:db8:a1e0:ab12:4843:cd96:626b:ffff]:80",
+		"[001:db8:a1e0:ab12:4843:cd96:626b:ffff]:080",
+		"[fd7a:115c:a1e0:ab12:4843:cd96:626b:430b%eth0]:80",
+		"[2001:db8::68]:80",
+		"[:80",
+		"[]:80",
+		"[:]:80",
+		"[::]:80",
+		"[::%]:80",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidIPPortString(input)
+		_, err := netip.ParseAddrPort(input)
+
+		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
+	})
+}

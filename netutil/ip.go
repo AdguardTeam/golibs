@@ -302,3 +302,63 @@ func countIPv6FieldRunes(s string) (n int) {
 
 	return len(s)
 }
+
+// IsValidIPPortString returns true if s is a valid IP port string.  It
+// replicates the behavior of [netip.ParseAddrPort], but doesn't allocate.
+//
+// TODO(d.kolyshev): Consider using isValidIPv4String/isValidIPv6String funcs.
+func IsValidIPPortString(s string) (ok bool) {
+	ip, port, ok := splitAddrPort(s)
+	if !ok {
+		return false
+	}
+
+	if !isUint16(port) {
+		return false
+	}
+
+	return IsValidIPString(ip)
+}
+
+// splitAddrPort splits s into an IP address string and a port string.  It
+// splits strings shaped like "foo:bar" or "[foo]:bar", without further
+// validating the substrings.
+func splitAddrPort(s string) (ip, port string, ok bool) {
+	i := strings.LastIndexByte(s, ':')
+	if i == -1 {
+		return "", "", false
+	}
+
+	ip, port = s[:i], s[i+1:]
+	if ip == "" || port == "" {
+		return "", "", false
+	}
+
+	if strings.Contains(ip, ":") {
+		if !strings.HasPrefix(ip, "[") || !strings.HasSuffix(ip, "]") {
+			return "", "", false
+		}
+
+		ip = ip[1 : len(ip)-1]
+	}
+
+	return ip, port, true
+}
+
+// isUint16 return true if s represents an unsigned integer in the base of 10
+// and bit size 16.  It doesn't allocate.
+func isUint16(s string) (ok bool) {
+	var n uint64
+	for _, b := range s {
+		if b < '0' || b > '9' {
+			return false
+		}
+
+		n = n*10 + uint64(b-'0')
+		if n > math.MaxUint16 {
+			return false
+		}
+	}
+
+	return true
+}
