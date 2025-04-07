@@ -104,9 +104,11 @@ blocklist_imports() {
 # NOTE:  Flag -H for grep is non-POSIX but all of Busybox, GNU, macOS, and
 # OpenBSD support it.
 method_const() {
+	# NOTE: File ./redisutil/redisutil.go is excluded, since it uses "GET" as a
+	# Redis command.
 	find . \
 		-type 'f' \
-		-name '*.go' \
+		'(' -name '*.go' '!' -path './redisutil/redisutil.go' ')' \
 		-exec \
 		'grep' \
 		'-H' \
@@ -199,6 +201,7 @@ run_linter fieldalignment \
 	./mathutil/ \
 	./netutil/... \
 	./osutil/ \
+	./redisutil/ \
 	./service/ \
 	./stringutil/ \
 	./syncutil/ \
