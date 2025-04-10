@@ -142,6 +142,122 @@ func TestValidateIP(t *testing.T) {
 	}
 }
 
+func TestIsValidIPPrefixString(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want assert.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: assert.True,
+		name: "good_ipv4",
+		in:   testIPv4Prefix.String(),
+	}, {
+		want: assert.True,
+		name: "good_ipv6",
+		in:   testIPv6Prefix.String(),
+	}, {
+		want: assert.False,
+		name: "bad_ip",
+		in:   "1.2.3/32",
+	}, {
+		want: assert.False,
+		name: "bad_empty",
+		in:   testIPv4.String() + "",
+	}, {
+		want: assert.False,
+		name: "bad_slash",
+		in:   testIPv4.String() + "/",
+	}, {
+		want: assert.False,
+		name: "bad_long",
+		in:   testIPv4.String() + "/1111",
+	}, {
+		want: assert.False,
+		name: "bad_invalid",
+		in:   testIPv4.String() + "/!",
+	}, {
+		want: assert.False,
+		name: "bad_overflow",
+		in:   testIPv4.String() + "/129",
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, netutil.IsValidIPPrefixString(tc.in))
+		})
+	}
+}
+
+func BenchmarkIsValidIPPrefixString(b *testing.B) {
+	benchCases := []struct {
+		want require.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: require.True,
+		name: "good_ipv4",
+		in:   testIPv4Prefix.String(),
+	}, {
+		want: require.True,
+		name: "good_ipv6",
+		in:   testIPv6Prefix.String(),
+	}, {
+		want: require.False,
+		name: "bad_ip",
+		in:   "1.2.3/32",
+	}, {
+		want: require.False,
+		name: "bad_empty",
+		in:   testIPv4.String() + "",
+	}, {
+		want: require.False,
+		name: "bad_slash",
+		in:   testIPv4.String() + "/",
+	}, {
+		want: require.False,
+		name: "bad_long",
+		in:   testIPv4.String() + "/1111",
+	}, {
+		want: require.False,
+		name: "bad_invalid",
+		in:   testIPv4.String() + "/!",
+	}, {
+		want: require.False,
+		name: "bad_overflow",
+		in:   testIPv4.String() + "/129",
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			var got bool
+			b.ReportAllocs()
+			for b.Loop() {
+				got = netutil.IsValidIPPrefixString(bc.in)
+			}
+
+			bc.want(b, got)
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: Apple M1 Pro
+	//	BenchmarkIsValidIPPrefixString/good_ipv4-8         	25691799	        46.52 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/good_ipv6-8         	32215845	        36.65 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ip-8            	37615539	        31.49 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_empty-8         	238303496	         5.031 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_slash-8         	231570877	         5.195 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_long-8          	230433328	         5.207 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_invalid-8       	173494770	         6.915 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_overflow-8      	147474506	         8.135 ns/op       0 B/op	       0 allocs/op
+}
+
 func TestIsValidIPString(t *testing.T) {
 	t.Parallel()
 
