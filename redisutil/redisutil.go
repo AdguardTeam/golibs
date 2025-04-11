@@ -1,4 +1,18 @@
 // Package redisutil contains common utilities for working with Redis.
+//
+// # Integration testing
+//
+// To test with a real Redis database, call the tests with the environment
+// variable TEST_REDIS_PORT set to the port of your database.
+//
+// The tests use the database at index 15, which is chosed because it's the
+// largest database index on most instances.  The instance should also have the
+// master role.
+//
+// NOTE:  The database is flushed between tests, so make sure that that database
+// is not used for storing important data.
+//
+// TODO(a.garipov):  !!  Add non-integration tests.
 package redisutil
 
 import "time"
@@ -13,6 +27,7 @@ const (
 const (
 	CmdDEL      = "DEL"
 	CmdFCALL    = "FCALL"
+	CmdFLUSHDB  = "FLUSHDB"
 	CmdFUNCTION = "FUNCTION"
 	CmdGET      = "GET"
 	CmdROLE     = "ROLE"
@@ -21,9 +36,17 @@ const (
 
 // Parameter constants.
 const (
-	ParamLoad    = "LOAD"
-	ParamMs      = "PX"
-	ParamReplace = "REPLACE"
+	ParamASYNC   = "ASYNC"
+	ParamLOAD    = "LOAD"
+	ParamNX      = "NX"
+	ParamPX      = "PX"
+	ParamREPLACE = "REPLACE"
+	ParamSYNC    = "SYNC"
+)
+
+// Response constants.
+const (
+	RespOK = "OK"
 )
 
 // Error string constants.

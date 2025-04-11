@@ -10,20 +10,25 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// Pool is a warpper around [redis.Pool] with metrics and additional options.
-//
-// TODO(a.garipov):  !!  Add fakeredis.Conn for tests.
-//
-// TODO(a.garipov):  !!  Find ways of integration testing.
-//
-// TODO(a.garipov):  !!  Make interface?
-type Pool struct {
+// Pool is a pool of Redis connections.
+type Pool interface {
+	// Get returns a connection from the pool.  If the context expires before
+	// the connection is complete, an error must be returned; any expiration on
+	// the context must not affect the returned connection.  If the function
+	// completes without error, then the application should close the returned
+	// connection.
+	Get(ctx context.Context) (c redis.Conn, err error)
+}
+
+// DefaultPool is a warpper around [redis.DefaultPool] with metrics and
+// additional options.
+type DefaultPool struct {
 	metrics PoolMetrics
 	pool    *redis.Pool
 }
 
-// PoolConfig is the configuration for the Redis pool.
-type PoolConfig struct {
+// DefaultPoolConfig is the configuration for the default Redis pool.
+type DefaultPoolConfig struct {
 	// Logger is used to log the operation of the Redis pool.  If nil,
 	// [slog.Default] is used.
 	Logger *slog.Logger
@@ -70,9 +75,9 @@ type ConnectionTester interface {
 	TestConnection(ctx context.Context, c redis.Conn, lastUsed time.Time) (err error)
 }
 
-// NewPool returns a new properly initialized *Pool.  c should not be nil and
-// should be valid.
-func NewPool(c *PoolConfig) (kv *Pool, err error) {
+// NewPool returns a new properly initialized *DefaultPool.  c should not be nil
+// and should be valid.
+func NewPool(c *DefaultPoolConfig) (p *DefaultPool, err error) {
 	err = validate.NotNil("c", c)
 	if err != nil {
 		return nil, err
@@ -91,7 +96,7 @@ func NewPool(c *PoolConfig) (kv *Pool, err error) {
 		checkConn = c.ConnectionTester.TestConnection
 	}
 
-	return &Pool{
+	return &DefaultPool{
 		metrics: c.Metrics,
 		pool: &redis.Pool{
 			DialContext:         c.Dialer.DialContext,
@@ -105,12 +110,12 @@ func NewPool(c *PoolConfig) (kv *Pool, err error) {
 	}, nil
 }
 
-// GetContext returns a connection from the pool and also updates the pool
-// metrics.  If the context expires before the connection is complete, an error
-// is returned; any expiration on the context will not affect the returned
-// connection.  If the function completes without error, then the application
-// should close the returned connection.
-func (p *Pool) GetContext(ctx context.Context) (c redis.Conn, err error) {
+// Get returns a connection from the pool and also updates the pool metrics.  If
+// the context expires before the connection is complete, an error is returned;
+// any expiration on the context will not affect the returned connection.  If
+// the function completes without error, then the application should close the
+// returned connection.
+func (p *DefaultPool) Get(ctx context.Context) (c redis.Conn, err error) {
 	c, err = p.pool.GetContext(ctx)
 
 	stats := p.pool.Stats()

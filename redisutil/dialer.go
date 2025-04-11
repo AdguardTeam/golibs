@@ -67,6 +67,8 @@ func NewDefaultDialer(c *DefaultDialerConfig) (d *DefaultDialer, err error) {
 	}
 
 	switch c.Network {
+	case "":
+		c.Network = "ip"
 	case "ip", "ip4", "ip6":
 		// Go on.
 	default:
