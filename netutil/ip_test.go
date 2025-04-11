@@ -158,6 +158,10 @@ func TestIsValidIPPrefixString(t *testing.T) {
 		name: "good_ipv6",
 		in:   testIPv6Prefix.String(),
 	}, {
+		want: assert.True,
+		name: "good_ipv4_zero",
+		in:   testIPv4.String() + "/0",
+	}, {
 		want: assert.False,
 		name: "bad_ip",
 		in:   "1.2.3/8",
@@ -280,6 +284,7 @@ func FuzzIsValidIPPrefixString(f *testing.F) {
 		"",
 		" ",
 		"192.0.2.1",
+		"192.0.2.1/0",
 		"2001:db8::68",
 		"1.2.3.4/",
 		"1.2.3.4/1",

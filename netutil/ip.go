@@ -141,9 +141,6 @@ func IsValidIPPrefixString(s string) (ok bool) {
 	}
 
 	ipStr, bitStr := s[:idx], s[idx+1:]
-	if bitStr == "" || len(bitStr) > 3 || bitStr[0] < '1' {
-		return false
-	}
 
 	ok, isV6, hasZone := isValidIPString(ipStr)
 	if !ok || hasZone {
@@ -161,6 +158,14 @@ func IsValidIPPrefixString(s string) (ok bool) {
 // isValidBitsString returns true if s is a valid string representation of
 // prefix bits.
 func isValidBitsString(s string, maxBits int) (ok bool) {
+	if s == "" || len(s) > 3 {
+		return false
+	}
+
+	if len(s) > 1 && s[0] < '1' {
+		return false
+	}
+
 	bits := 0
 	for _, c := range s {
 		if c < '0' || c > '9' {
