@@ -264,15 +264,15 @@ func BenchmarkIsValidIPPrefixString(b *testing.B) {
 	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
 	//	cpu: Apple M1 Pro
-	//	BenchmarkIsValidIPPrefixString/good_ipv4-8         	25691799	        46.52 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/good_ipv6-8         	32215845	        36.65 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_ip-8            	37615539	        31.49 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_empty-8         	238303496	         5.031 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_slash-8         	231570877	         5.195 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_long-8          	230433328	         5.207 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_invalid-8       	173494770	         6.915 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_overflow-8      	147474506	         8.135 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPrefixString/bad_ipv6_zone-8     	197646211	         6.041 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/good_ipv4-8         	30457303	        38.20 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/good_ipv6-8         	30970671	        38.35 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ip-8            	41173383	        28.90 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_empty-8         	253745834	         4.704 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_slash-8         	547222551	         2.190 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_long-8          	294629487	         4.068 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_invalid-8       	479071878	         2.503 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_overflow-8      	147477753	         8.134 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ipv6_zone-8     	127818718	         9.386 ns/op       0 B/op	       0 allocs/op
 }
 
 func FuzzIsValidIPPrefixString(f *testing.F) {

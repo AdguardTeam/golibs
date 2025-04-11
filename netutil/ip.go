@@ -135,11 +135,12 @@ func ValidateIP(ip net.IP) (err error) {
 // IsValidIPPrefixString is a best-effort check to determine if s is a valid
 // CIDR before using [netip.ParsePrefix], aimed at reducing allocations.
 func IsValidIPPrefixString(s string) (ok bool) {
-	ipStr, bitStr, ok := strings.Cut(s, "/")
-	if !ok {
+	idx := strings.LastIndexByte(s, '/')
+	if idx == -1 {
 		return false
 	}
 
+	ipStr, bitStr := s[:idx], s[idx+1:]
 	if bitStr == "" || len(bitStr) > 3 || bitStr[0] < '1' {
 		return false
 	}
