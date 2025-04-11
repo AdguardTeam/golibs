@@ -154,20 +154,34 @@ func IsValidIPPrefixString(s string) (ok bool) {
 		bits = bits*10 + int(c-'0')
 	}
 
-	if bits > 128 {
-		return false
-	}
-
 	if strings.Contains(ipStr, "%") {
 		return false
 	}
 
-	return IsValidIPString(ipStr)
+	ok, isV6 := isValidIPString(ipStr)
+	if !ok {
+		return false
+	}
+
+	maxBits := 32
+	if isV6 {
+		maxBits = 128
+	}
+
+	return bits <= maxBits
 }
 
 // IsValidIPString returns true if s is a valid IPv4 or IPv6 address string
 // representation as accepted by [netip.ParseAddr].
 func IsValidIPString(s string) (ok bool) {
+	ok, _ = isValidIPString(s)
+
+	return ok
+}
+
+// isValidIPString returns true if s is a valid IPv4 or IPv6 address string
+// representation as accepted by [netip.ParseAddr].
+func isValidIPString(s string) (ok, isV6 bool) {
 	// maxSignificant is the maximum number of significant characters in a field
 	// of an IPv6 address.  There is no need to search for separator longer than
 	// this number of bytes.
@@ -179,21 +193,21 @@ func IsValidIPString(s string) (ok bool) {
 	for i, significant := 0, 0; i < strLen && significant <= maxSignificant; i++ {
 		switch s[i] {
 		case '.':
-			return isValidIPv4String(s)
+			return isValidIPv4String(s), false
 		case ':':
 			withoutZone, zone, hasZone := strings.Cut(s, "%")
 			if hasZone && zone == "" {
 				// Zone cannot be empty.
-				return false
+				return false, true
 			}
 
-			return isValidIPv6String(withoutZone)
+			return isValidIPv6String(withoutZone), true
 		default:
 			significant++
 		}
 	}
 
-	return false
+	return false, false
 }
 
 // isValidIPv4String returns true if s is a valid IPv4 address string
