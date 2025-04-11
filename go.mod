@@ -1,6 +1,6 @@
 module github.com/AdguardTeam/golibs
 
-go 1.24.1
+go 1.24.2
 
 require (
 	github.com/getsentry/sentry-go v0.31.1
