@@ -145,21 +145,8 @@ func IsValidIPPrefixString(s string) (ok bool) {
 		return false
 	}
 
-	bits := 0
-	for _, c := range bitStr {
-		if c < '0' || c > '9' {
-			return false
-		}
-
-		bits = bits*10 + int(c-'0')
-	}
-
-	if strings.Contains(ipStr, "%") {
-		return false
-	}
-
-	ok, isV6 := isValidIPString(ipStr)
-	if !ok {
+	ok, isV6, hasZone := isValidIPString(ipStr)
+	if !ok || hasZone {
 		return false
 	}
 
@@ -168,20 +155,35 @@ func IsValidIPPrefixString(s string) (ok bool) {
 		maxBits = 128
 	}
 
+	return isValidBitsString(bitStr, maxBits)
+}
+
+// isValidBitsString returns true if s is a valid string representation of
+// prefix bits.
+func isValidBitsString(s string, maxBits int) (ok bool) {
+	bits := 0
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+
+		bits = bits*10 + int(c-'0')
+	}
+
 	return bits <= maxBits
 }
 
 // IsValidIPString returns true if s is a valid IPv4 or IPv6 address string
 // representation as accepted by [netip.ParseAddr].
 func IsValidIPString(s string) (ok bool) {
-	ok, _ = isValidIPString(s)
+	ok, _, _ = isValidIPString(s)
 
 	return ok
 }
 
 // isValidIPString returns true if s is a valid IPv4 or IPv6 address string
 // representation as accepted by [netip.ParseAddr].
-func isValidIPString(s string) (ok, isV6 bool) {
+func isValidIPString(s string) (ok, isV6, isZone bool) {
 	// maxSignificant is the maximum number of significant characters in a field
 	// of an IPv6 address.  There is no need to search for separator longer than
 	// this number of bytes.
@@ -193,21 +195,21 @@ func isValidIPString(s string) (ok, isV6 bool) {
 	for i, significant := 0, 0; i < strLen && significant <= maxSignificant; i++ {
 		switch s[i] {
 		case '.':
-			return isValidIPv4String(s), false
+			return isValidIPv4String(s), false, false
 		case ':':
 			withoutZone, zone, hasZone := strings.Cut(s, "%")
 			if hasZone && zone == "" {
 				// Zone cannot be empty.
-				return false, true
+				return false, true, hasZone
 			}
 
-			return isValidIPv6String(withoutZone), true
+			return isValidIPv6String(withoutZone), true, hasZone
 		default:
 			significant++
 		}
 	}
 
-	return false, false
+	return false, false, false
 }
 
 // isValidIPv4String returns true if s is a valid IPv4 address string
