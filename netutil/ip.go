@@ -140,7 +140,7 @@ func IsValidIPPrefixString(s string) (ok bool) {
 		return false
 	}
 
-	if bitStr == "" || len(bitStr) > 3 {
+	if bitStr == "" || len(bitStr) > 3 || bitStr[0] < '1' {
 		return false
 	}
 
@@ -154,6 +154,10 @@ func IsValidIPPrefixString(s string) (ok bool) {
 	}
 
 	if bits > 128 {
+		return false
+	}
+
+	if strings.Contains(ipStr, "%") {
 		return false
 	}
 
