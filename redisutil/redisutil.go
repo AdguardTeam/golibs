@@ -5,7 +5,7 @@
 // To test with a real Redis database, call the tests with the environment
 // variable TEST_REDIS_PORT set to the port of your database.
 //
-// The tests use the database at index 15, which is chosed because it's the
+// The tests use the database at index 15, which is chosen because it's the
 // largest database index on most instances.  The instance should also have the
 // master role.
 //

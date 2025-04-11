@@ -38,9 +38,11 @@ func NewRoleChecker(c *RoleCheckerConfig) (rc *RoleChecker, err error) {
 		c = &RoleCheckerConfig{}
 	}
 
-	c.Logger = cmp.Or(c.Logger, slog.Default())
-	c.Role = cmp.Or(c.Role, RoleMaster)
+	if c.Logger == nil {
+		c.Logger = slog.Default()
+	}
 
+	c.Role = cmp.Or(c.Role, RoleMaster)
 	err = c.Role.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("c.Role: %w", err)

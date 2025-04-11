@@ -1,7 +1,6 @@
 package redisutil
 
 import (
-	"cmp"
 	"context"
 	"log/slog"
 	"time"
@@ -20,7 +19,7 @@ type Pool interface {
 	Get(ctx context.Context) (c redis.Conn, err error)
 }
 
-// DefaultPool is a warpper around [redis.DefaultPool] with metrics and
+// DefaultPool is a wrapper around [redis.DefaultPool] with metrics and
 // additional options.
 type DefaultPool struct {
 	metrics PoolMetrics
@@ -88,8 +87,13 @@ func NewPool(c *DefaultPoolConfig) (p *DefaultPool, err error) {
 		return nil, err
 	}
 
-	c.Logger = cmp.Or(c.Logger, slog.Default())
-	c.Metrics = cmp.Or[PoolMetrics](c.Metrics, EmptyPoolMetrics{})
+	if c.Logger == nil {
+		c.Logger = slog.Default()
+	}
+
+	if c.Metrics == nil {
+		c.Metrics = EmptyPoolMetrics{}
+	}
 
 	var checkConn func(context.Context, redis.Conn, time.Time) error
 	if c.ConnectionTester != nil {

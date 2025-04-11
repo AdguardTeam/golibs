@@ -56,7 +56,7 @@ const ErrNotPositive Error = "not positive"
 // For a value that is not a valid enum or sum type value, use [ErrBadEnumValue].
 const ErrOutOfRange Error = "out of range"
 
-// ErrUnexpectedValue indicates that a value that was suppsed to be absent has
+// ErrUnexpectedValue indicates that a value that was supposed to be absent has
 // been provided.  For example, an unnecessary property in a JSON or YAML
 // object.
 const ErrUnexpectedValue Error = "unexpected value"
