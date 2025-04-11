@@ -160,7 +160,7 @@ func TestIsValidIPPrefixString(t *testing.T) {
 	}, {
 		want: assert.False,
 		name: "bad_ip",
-		in:   "1.2.3/32",
+		in:   "1.2.3/8",
 	}, {
 		want: assert.False,
 		name: "bad_empty",
@@ -179,8 +179,20 @@ func TestIsValidIPPrefixString(t *testing.T) {
 		in:   testIPv4.String() + "/!",
 	}, {
 		want: assert.False,
-		name: "bad_overflow",
-		in:   testIPv4.String() + "/129",
+		name: "bad_ipv4_bits",
+		in:   testIPv4.String() + "/33",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_bits",
+		in:   testIPv6.String() + "/129",
+	}, {
+		want: assert.False,
+		name: "bad_bits_leading_zeroes",
+		in:   testIPv6.String() + "/012",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_zone",
+		in:   testIPv6.String() + "%eth0/12",
 	}}
 
 	for _, tc := range testCases {
@@ -229,6 +241,10 @@ func BenchmarkIsValidIPPrefixString(b *testing.B) {
 		want: require.False,
 		name: "bad_overflow",
 		in:   testIPv4.String() + "/129",
+	}, {
+		want: require.False,
+		name: "bad_ipv6_zone",
+		in:   testIPv6.String() + "%eth0/12",
 	}}
 
 	for _, bc := range benchCases {
@@ -256,6 +272,35 @@ func BenchmarkIsValidIPPrefixString(b *testing.B) {
 	//	BenchmarkIsValidIPPrefixString/bad_long-8          	230433328	         5.207 ns/op       0 B/op	       0 allocs/op
 	//	BenchmarkIsValidIPPrefixString/bad_invalid-8       	173494770	         6.915 ns/op       0 B/op	       0 allocs/op
 	//	BenchmarkIsValidIPPrefixString/bad_overflow-8      	147474506	         8.135 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ipv6_zone-8     	197646211	         6.041 ns/op       0 B/op	       0 allocs/op
+}
+
+func FuzzIsValidIPPrefixString(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"192.0.2.1",
+		"2001:db8::68",
+		"1.2.3.4/",
+		"1.2.3.4/1",
+		"1.2.3.4/12",
+		"1.2.3.4/128",
+		"1.2.3.4/!",
+		"1.2.3.4/012",
+		"2001:db8::68/32",
+		"2001:db8::68/256",
+		"2001:db8::68/1024",
+		"2001:db8::68%eth0/32",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidIPPrefixString(input)
+		_, err := netip.ParsePrefix(input)
+
+		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
+	})
 }
 
 func TestIsValidIPString(t *testing.T) {
