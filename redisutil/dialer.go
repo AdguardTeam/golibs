@@ -28,6 +28,12 @@ type DefaultDialerConfig struct {
 	// valid.
 	Addr *netutil.HostPort
 
+	// Resolver is used to resolve the hostname.  If nil, a default pure-Go
+	// [*net.Resolver] is used.
+	//
+	// TODO(a.garipov):  Add the [netutil.Resolver] interface?
+	Resolver *net.Resolver
+
 	// Network is the network to dial.  If empty, "ip" is used.  If not empty,
 	// must be one of:
 	//   - "ip"
@@ -42,9 +48,10 @@ type DefaultDialerConfig struct {
 
 // DefaultDialer is the default [Dialer].
 type DefaultDialer struct {
-	addr  *netutil.HostPort
-	net   string
-	dbIdx int
+	addr     *netutil.HostPort
+	resolver *net.Resolver
+	net      string
+	dbIdx    int
 }
 
 // NewDefaultDialer returns a properly initialized default dialer.
@@ -66,6 +73,12 @@ func NewDefaultDialer(c *DefaultDialerConfig) (d *DefaultDialer, err error) {
 		errs = append(errs, err)
 	}
 
+	if c.Resolver == nil {
+		c.Resolver = &net.Resolver{
+			PreferGo: true,
+		}
+	}
+
 	switch c.Network {
 	case "":
 		c.Network = "ip"
@@ -80,9 +93,10 @@ func NewDefaultDialer(c *DefaultDialerConfig) (d *DefaultDialer, err error) {
 	}
 
 	return &DefaultDialer{
-		addr:  c.Addr,
-		net:   c.Network,
-		dbIdx: int(c.DBIndex),
+		addr:     c.Addr,
+		resolver: c.Resolver,
+		net:      c.Network,
+		dbIdx:    int(c.DBIndex),
 	}, nil
 }
 
@@ -91,11 +105,7 @@ var _ Dialer = (*DefaultDialer)(nil)
 
 // DialContext implements the [Dialer] interface for *DefaultDialer.
 func (d *DefaultDialer) DialContext(ctx context.Context) (conn redis.Conn, err error) {
-	r := &net.Resolver{
-		PreferGo: true,
-	}
-
-	ips, err := r.LookupNetIP(ctx, d.net, d.addr.Host)
+	ips, err := d.resolver.LookupNetIP(ctx, d.net, d.addr.Host)
 	if err != nil {
 		return nil, fmt.Errorf("looking up: %w", err)
 	} else if len(ips) == 0 {

@@ -23,6 +23,12 @@ const testTimeout = 1 * time.Second
 // running.
 const testPortEnvVarName = "TEST_REDIS_PORT"
 
+// Key and value constants.
+const (
+	testKey   = "key"
+	testValue = "value"
+)
+
 // Redis pool configuration constants for common tests.
 const (
 	testIdleTimeout     = 30 * time.Second
@@ -37,10 +43,10 @@ const (
 // testLogger is the common logger for tests.
 var testLogger = slogutil.NewDiscardLogger()
 
-// newDialer returns a *redisutil.DefaultDialer for tests or skips the test if
-// [testPortEnvVarName] is not set.  It selects a database at [testDBIndex] and
-// flushes it after the test.
-func newDialer(tb testing.TB) (d *redisutil.DefaultDialer) {
+// newIntegrationDialer returns a *redisutil.DefaultDialer for tests or skips
+// the test if [testPortEnvVarName] is not set.  It selects a database at
+// [testDBIndex] and flushes it after the test.
+func newIntegrationDialer(tb testing.TB) (d *redisutil.DefaultDialer) {
 	tb.Helper()
 
 	portStr := os.Getenv(testPortEnvVarName)
@@ -77,13 +83,13 @@ func newDialer(tb testing.TB) (d *redisutil.DefaultDialer) {
 	return d
 }
 
-// newPool returns a *redisutil.DefaultPool for tests or skips the test if
-// [testPortEnvVarName] is not set.  It selects a database at [testDBIndex] and
-// flushes it after the test.
-func newPool(tb testing.TB) (p *redisutil.DefaultPool) {
+// newIntegrationPool returns a *redisutil.DefaultPool for tests or skips the
+// test if [testPortEnvVarName] is not set.  It selects a database at
+// [testDBIndex] and flushes it after the test.
+func newIntegrationPool(tb testing.TB) (p *redisutil.DefaultPool) {
 	tb.Helper()
 
-	dialer := newDialer(tb)
+	dialer := newIntegrationDialer(tb)
 	p, err := redisutil.NewPool(&redisutil.DefaultPoolConfig{
 		Logger:          testLogger,
 		Dialer:          dialer,
@@ -91,6 +97,7 @@ func newPool(tb testing.TB) (p *redisutil.DefaultPool) {
 		IdleTimeout:     testIdleTimeout,
 		MaxActive:       testMaxActive,
 		MaxIdle:         textMaxIdle,
+		Wait:            true,
 	})
 	require.NoError(tb, err)
 

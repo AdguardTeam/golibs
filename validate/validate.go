@@ -151,7 +151,7 @@ func LessThan[T cmp.Ordered](name string, a, b T) (err error) {
 //
 // TODO(a.garipov):  Find ways of extending to other nilable types.
 func Nil[T any](name string, v *T) (err error) {
-	if v == nil {
+	if v != nil {
 		return fmt.Errorf("%s: %w", name, errors.ErrUnexpectedValue)
 	}
 

@@ -17,6 +17,9 @@ type Pool interface {
 	// completes without error, then the application should close the returned
 	// connection.
 	Get(ctx context.Context) (c redis.Conn, err error)
+
+	// Close must release the resources used by the pool.
+	Close() (err error)
 }
 
 // DefaultPool is a wrapper around [redis.DefaultPool] with metrics and
@@ -114,11 +117,11 @@ func NewPool(c *DefaultPoolConfig) (p *DefaultPool, err error) {
 	}, nil
 }
 
-// Get returns a connection from the pool and also updates the pool metrics.  If
-// the context expires before the connection is complete, an error is returned;
-// any expiration on the context will not affect the returned connection.  If
-// the function completes without error, then the application should close the
-// returned connection.
+// type check
+var _ Pool = (*DefaultPool)(nil)
+
+// Get implements the [Pool] interface for *DefaultPool.  It returns a
+// connection from the pool and also updates the pool metrics.
 func (p *DefaultPool) Get(ctx context.Context) (c redis.Conn, err error) {
 	c, err = p.pool.GetContext(ctx)
 
@@ -131,6 +134,9 @@ func (p *DefaultPool) Get(ctx context.Context) (c redis.Conn, err error) {
 
 	return c, nil
 }
+
+// Close implements the [Pool] interface for *DefaultPool.
+func (p *DefaultPool) Close() (err error) { return p.pool.Close() }
 
 // PoolMetrics is an interface that is used for the collection of the Redis pool
 // statistics.

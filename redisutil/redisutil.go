@@ -11,11 +11,12 @@
 //
 // NOTE:  The database is flushed between tests, so make sure that that database
 // is not used for storing important data.
-//
-// TODO(a.garipov):  !!  Add non-integration tests.
 package redisutil
 
 import "time"
+
+// DefaultPort is the default Redis port
+const DefaultPort = 6379
 
 // Redis-related limits.
 const (

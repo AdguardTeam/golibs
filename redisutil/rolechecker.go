@@ -84,7 +84,7 @@ func (c *RoleChecker) TestConnection(
 
 	roleData, ok := values[0].([]byte)
 	if !ok {
-		return fmt.Errorf("want type string, got %T(%[1]v)", values[0])
+		return fmt.Errorf("want []byte, got %T(%[1]v)", values[0])
 	}
 
 	if !bytes.Equal(roleData, c.roleData) {
