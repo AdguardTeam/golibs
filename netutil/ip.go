@@ -152,30 +152,39 @@ func IsValidIPPrefixString(s string) (ok bool) {
 		maxBits = IPv6BitLen
 	}
 
-	return isValidBitsString(bitStr, maxBits)
+	// #nosec G115 -- maxBits is one of the constants.
+	return isUintString(bitStr, uint64(maxBits), false)
 }
 
-// isValidBitsString returns true if s is a valid string representation of
-// prefix bits.
-func isValidBitsString(s string, maxBits int) (ok bool) {
-	if s == "" || len(s) > 3 {
+// isUintString returns true if s represents an unsigned integer in the base of
+// 10 and bit size maxVal.  It doesn't allocate.
+func isUintString(s string, maxVal uint64, allowLeadingZeros bool) (ok bool) {
+	switch l := len(s); l {
+	case 0:
+		return false
+	case 1:
+		return s[0] >= '0' && s[0] <= '9'
+	default:
+		// Go on.
+	}
+
+	if !allowLeadingZeros && s[0] == '0' {
 		return false
 	}
 
-	if len(s) > 1 && s[0] < '1' {
-		return false
-	}
-
-	bits := 0
-	for _, c := range s {
-		if c < '0' || c > '9' {
+	var n uint64
+	for _, b := range s {
+		if b < '0' || b > '9' {
 			return false
 		}
 
-		bits = bits*10 + int(c-'0')
+		n = n*10 + uint64(b-'0')
+		if n > maxVal {
+			return false
+		}
 	}
 
-	return bits <= maxBits
+	return true
 }
 
 // IsValidIPString returns true if s is a valid IPv4 or IPv6 address string
@@ -238,25 +247,7 @@ func isValidIPv4String(s string) (ok bool) {
 // isIPv4Label reports whether label is a valid label for an IPv4 address, i.e.
 // a decimal number in the range [0, 255] with no leading zeros.
 func isIPv4Label(label string) (ok bool) {
-	switch l := len(label); {
-	case l < 1, l > 3:
-		return false
-	case l == 1:
-		return label[0] >= '0' && label[0] <= '9'
-	case label[0] == '0':
-		return false
-	default:
-		val := 0
-		for _, c := range label {
-			if c < '0' || c > '9' {
-				return false
-			}
-
-			val = val*10 + int(c-'0')
-		}
-
-		return val <= math.MaxUint8
-	}
+	return isUintString(label, math.MaxUint8, false)
 }
 
 // maxIPv6FieldsNum is the maximum number of fields in an IPv6 address.
@@ -369,7 +360,7 @@ func IsValidIPPortString(s string) (ok bool) {
 		return false
 	}
 
-	if !isUint16(port) {
+	if !isUintString(port, math.MaxUint16, true) {
 		return false
 	}
 
@@ -399,22 +390,4 @@ func splitAddrPort(s string) (ip, port string, ok bool) {
 	}
 
 	return ip, port, true
-}
-
-// isUint16 return true if s represents an unsigned integer in the base of 10
-// and bit size 16.  It doesn't allocate.
-func isUint16(s string) (ok bool) {
-	var n uint64
-	for _, b := range s {
-		if b < '0' || b > '9' {
-			return false
-		}
-
-		n = n*10 + uint64(b-'0')
-		if n > math.MaxUint16 {
-			return false
-		}
-	}
-
-	return true
 }
