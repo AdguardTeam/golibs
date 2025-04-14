@@ -186,3 +186,169 @@ func BenchmarkPrefix_UnmarshalText_errors(b *testing.B) {
 	//	BenchmarkPrefix_UnmarshalText_errors/bad_ip
 	//	BenchmarkPrefix_UnmarshalText_errors/bad_ip-16           	 5339067	       199.9 ns/op	      64 B/op	       2 allocs/op
 }
+
+func TestIsValidIPPrefixString(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want assert.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: assert.True,
+		name: "good_ipv4",
+		in:   testIPv4Prefix.String(),
+	}, {
+		want: assert.True,
+		name: "good_ipv6",
+		in:   testIPv6Prefix.String(),
+	}, {
+		want: assert.True,
+		name: "good_ipv4_zero",
+		in:   testIPv4.String() + "/0",
+	}, {
+		want: assert.False,
+		name: "bad_ip",
+		in:   "1.2.3/8",
+	}, {
+		want: assert.False,
+		name: "bad_empty",
+		in:   testIPv4.String() + "",
+	}, {
+		want: assert.False,
+		name: "bad_slash",
+		in:   testIPv4.String() + "/",
+	}, {
+		want: assert.False,
+		name: "bad_long",
+		in:   testIPv4.String() + "/1111",
+	}, {
+		want: assert.False,
+		name: "bad_invalid",
+		in:   testIPv4.String() + "/!",
+	}, {
+		want: assert.False,
+		name: "bad_ipv4_bits",
+		in:   testIPv4.String() + "/33",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_bits",
+		in:   testIPv6.String() + "/129",
+	}, {
+		want: assert.False,
+		name: "bad_bits_leading_zeroes",
+		in:   testIPv6.String() + "/012",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_zone",
+		in:   testIPv6.String() + "%eth0/12",
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, netutil.IsValidIPPrefixString(tc.in))
+		})
+	}
+}
+
+func BenchmarkIsValidIPPrefixString(b *testing.B) {
+	benchCases := []struct {
+		want require.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: require.True,
+		name: "good_ipv4",
+		in:   testIPv4Prefix.String(),
+	}, {
+		want: require.True,
+		name: "good_ipv6",
+		in:   testIPv6Prefix.String(),
+	}, {
+		want: require.False,
+		name: "bad_ip",
+		in:   "1.2.3/32",
+	}, {
+		want: require.False,
+		name: "bad_empty",
+		in:   testIPv4.String() + "",
+	}, {
+		want: require.False,
+		name: "bad_slash",
+		in:   testIPv4.String() + "/",
+	}, {
+		want: require.False,
+		name: "bad_long",
+		in:   testIPv4.String() + "/1111",
+	}, {
+		want: require.False,
+		name: "bad_invalid",
+		in:   testIPv4.String() + "/!",
+	}, {
+		want: require.False,
+		name: "bad_overflow",
+		in:   testIPv4.String() + "/129",
+	}, {
+		want: require.False,
+		name: "bad_ipv6_zone",
+		in:   testIPv6.String() + "%eth0/12",
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			var got bool
+			b.ReportAllocs()
+			for b.Loop() {
+				got = netutil.IsValidIPPrefixString(bc.in)
+			}
+
+			bc.want(b, got)
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: Apple M1 Pro
+	//	BenchmarkIsValidIPPrefixString/good_ipv4-8         	25224192	        41.01 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/good_ipv6-8         	34011074	        35.29 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ip-8            	43467367	        26.75 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_empty-8         	250258578	         4.809 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_slash-8         	30908748	        38.80 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_long-8          	28030369	        42.61 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_invalid-8       	30037076	        39.82 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_overflow-8      	27973848	        41.42 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPrefixString/bad_ipv6_zone-8     	39114808	        30.37 ns/op	       0 B/op	       0 allocs/op
+}
+
+func FuzzIsValidIPPrefixString(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"192.0.2.1",
+		"192.0.2.1/0",
+		"2001:db8::68",
+		"1.2.3.4/",
+		"1.2.3.4/1",
+		"1.2.3.4/12",
+		"1.2.3.4/128",
+		"1.2.3.4/!",
+		"1.2.3.4/012",
+		"2001:db8::68/32",
+		"2001:db8::68/256",
+		"2001:db8::68/1024",
+		"2001:db8::68%eth0/32",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidIPPrefixString(input)
+		_, err := netip.ParsePrefix(input)
+
+		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
+	})
+}

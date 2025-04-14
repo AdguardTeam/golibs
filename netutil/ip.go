@@ -132,30 +132,6 @@ func ValidateIP(ip net.IP) (err error) {
 	}
 }
 
-// IsValidIPPrefixString is a best-effort check to determine if s is a valid
-// CIDR before using [netip.ParsePrefix], aimed at reducing allocations.
-func IsValidIPPrefixString(s string) (ok bool) {
-	idx := strings.LastIndexByte(s, '/')
-	if idx == -1 {
-		return false
-	}
-
-	ipStr, bitStr := s[:idx], s[idx+1:]
-
-	ok, isV6, hasZone := isValidIPString(ipStr)
-	if !ok || hasZone {
-		return false
-	}
-
-	maxBits := IPv4BitLen
-	if isV6 {
-		maxBits = IPv6BitLen
-	}
-
-	// #nosec G115 -- maxBits is one of the constants.
-	return isUintString(bitStr, uint64(maxBits), false)
-}
-
 // isUintString returns true if s represents an unsigned integer in the base of
 // 10 and bit size maxVal.  It doesn't allocate.
 func isUintString(s string, maxVal uint64, allowLeadingZeros bool) (ok bool) {
