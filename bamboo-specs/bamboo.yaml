@@ -14,7 +14,7 @@
     # exact patch version as opposed to a minor one to make sure that this exact
     # version is actually used and not whatever the docker daemon on the CI has
     # cached a few months ago.
-    'dockerGo': 'adguard/go-builder:1.24.2--1'
+    'dockerGo': 'adguard/go-builder:1.24.2--2'
 
 'stages':
   - 'Go Lint':
@@ -97,7 +97,31 @@
 
                 set -e -f -u -x
 
-                make VERBOSE=1 go-deps go-bench go-test go-fuzz
+                export TEST_REDIS_PORT=6379
+                readonly TEST_REDIS_PORT
+
+                readonly redis_server_pidfile='redis-server.pid'
+
+                redis-server \
+                    --daemonize yes \
+                    --pidfile "$redis_server_pidfile" \
+                    --port "$TEST_REDIS_PORT" \
+                    ;
+
+                make VERBOSE=1 \
+                    go-deps \
+                    go-test \
+                    ;
+
+                redis_server_pid="$(head -n 1 "$redis_server_pidfile")"
+                readonly redis_server_pid
+
+                kill "$redis_server_pid"
+
+                make VERBOSE=1 \
+                    go-fuzz \
+                    go-bench \
+                    ;
     'final-tasks':
       - 'clean'
     'requirements':

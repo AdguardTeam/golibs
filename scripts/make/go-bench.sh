@@ -31,11 +31,12 @@ else
 fi
 readonly race_flags
 
+benchtime_flags="${BENCHTIME_FLAGS:---benchtime=100ms}"
 count_flags='--count=2'
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'
 timeout_flags="${TIMEOUT_FLAGS:---timeout=5m}"
-readonly count_flags go shuffle_flags timeout_flags
+readonly benchtime_flags count_flags go shuffle_flags timeout_flags
 
 env \
 	GOMAXPROCS="${GOMAXPROCS:-1}" \
@@ -48,6 +49,7 @@ env \
 	"$v_flags" \
 	--bench='.' \
 	--benchmem \
+	"$benchtime_flags" \
 	--run='^$' \
 	./... \
 	;

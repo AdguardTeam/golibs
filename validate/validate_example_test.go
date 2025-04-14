@@ -115,6 +115,18 @@ func ExampleLessThan() {
 	// foo: out of range: must be less than 0, got 1
 }
 
+func ExampleNil() {
+	var p *int
+	fmt.Println(validate.Nil("p", p))
+
+	p = new(int)
+	fmt.Println(validate.Nil("p", p))
+
+	// Output:
+	// <nil>
+	// p: unexpected value
+}
+
 func ExampleNotNegative() {
 	fmt.Println(validate.NotNegative("foo", 1))
 	fmt.Println(validate.NotNegative("foo", 0))
