@@ -304,31 +304,20 @@ func BenchmarkIsValidIPString(b *testing.B) {
 	}
 
 	// Most recent results:
-	//	goos: linux
-	//	goarch: amd64
+	//	goos: darwin
+	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
-	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkIsValidIPString
-	//	BenchmarkIsValidIPString/good_ipv4
-	//	BenchmarkIsValidIPString/good_ipv4-16         	37119586	        32.15 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv4_long
-	//	BenchmarkIsValidIPString/good_ipv4_long-16    	27509986	        46.18 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv6
-	//	BenchmarkIsValidIPString/good_ipv6-16         	30892100	        39.84 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv6_long
-	//	BenchmarkIsValidIPString/good_ipv6_long-16    	12195068	        97.35 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/not_ip
-	//	BenchmarkIsValidIPString/not_ip-16            	193018126	         5.861 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/zeroes
-	//	BenchmarkIsValidIPString/zeroes-16            	200002129	         5.724 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv4
-	//	BenchmarkIsValidIPString/bad_ipv4-16          	50295312	        25.04 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv4_long
-	//	BenchmarkIsValidIPString/bad_ipv4_long-16     	26103091	        45.21 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv6
-	//	BenchmarkIsValidIPString/bad_ipv6-16          	27687589	        42.35 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv6_long
-	//	BenchmarkIsValidIPString/bad_ipv6_long-16     	10751766	       109.3 ns/op	       0 B/op	       0 allocs/op
+	//	cpu: Apple M1 Pro
+	//	BenchmarkIsValidIPString/good_ipv4-8         	27406671	        38.20 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv4_long-8    	26174536	        46.11 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv6-8         	42662936	        28.06 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv6_long-8    	16096101	        73.73 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/not_ip-8            	250333886	         4.787 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/zeroes-8            	253709800	         4.730 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv4-8          	47662234	        25.10 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv4_long-8     	25186911	        46.31 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv6-8          	36421348	        32.93 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv6_long-8     	13938940	        85.72 ns/op	       0 B/op	       0 allocs/op
 }
 
 func FuzzIsValidIPString(f *testing.F) {
@@ -468,13 +457,13 @@ func BenchmarkIsValidIPPortString(b *testing.B) {
 	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
 	//	cpu: Apple M1 Pro
-	//	BenchmarkIsValidIPPortString/good_ipv4-8         	22942002	        52.63 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/good_ipv6-8         	11768151	       103.8 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/not_ip-8            	12354528	       100.5 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv4-8          	134999154	         8.817 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	146192818	         8.105 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	77866458	        15.42 ns/op	       0 B/op	       0 allocs/op
-	//. BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	91257355	        13.39 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/good_ipv4-8         	22089954	        54.78 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/good_ipv6-8         	11841247	        99.40 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/not_ip-8            	12694914	        93.64 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv4-8          	147498169	         8.133 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	153041434	         7.854 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	80768196	        14.71 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	94037748	        12.51 ns/op	       0 B/op	       0 allocs/op
 }
 
 func FuzzIsValidIPPortString(f *testing.F) {
