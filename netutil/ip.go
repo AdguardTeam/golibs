@@ -192,10 +192,12 @@ func isValidIPString(s string) (ok, isV6, hasZone bool) {
 			withoutZone, zone, hasZone = strings.Cut(s, "%")
 			if hasZone && zone == "" {
 				// Zone cannot be empty.
-				return false, true, hasZone
+				return false, false, false
 			}
 
-			return isValidIPv6String(withoutZone), true, hasZone
+			ok = isValidIPv6String(withoutZone)
+
+			return ok, ok, ok && hasZone
 		default:
 			significant++
 		}
