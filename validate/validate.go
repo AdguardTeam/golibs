@@ -143,6 +143,21 @@ func LessThan[T cmp.Ordered](name string, a, b T) (err error) {
 	return nil
 }
 
+// Nil returns an error if v is not nil.  The underlying error of err is
+// [errors.ErrUnexpectedValue].
+//
+// For checking against emptiness (comparing with the zero value), prefer
+// [Empty].
+//
+// TODO(a.garipov):  Find ways of extending to other nilable types.
+func Nil[T any](name string, v *T) (err error) {
+	if v != nil {
+		return fmt.Errorf("%s: %w", name, errors.ErrUnexpectedValue)
+	}
+
+	return nil
+}
+
 // NoGreaterThan returns an error if v is greater than max.  The underlying
 // error of err is [errors.ErrOutOfRange].
 //
