@@ -181,7 +181,11 @@ func hasValidMACFragments(s string) (ok bool) {
 	}
 
 	n := (len(s) + 1) / 3
-	if n != 6 && n != 8 && n != 20 {
+
+	switch n {
+	case 6, 8, 20:
+		// Go on.
+	default:
 		return false
 	}
 
@@ -204,7 +208,10 @@ func hasValidMACLongFragments(s string) (ok bool) {
 	}
 
 	n := 2 * (len(s) + 1) / 5
-	if n != 6 && n != 8 && n != 20 {
+	switch n {
+	case 6, 8, 20:
+		// Go on.
+	default:
 		return false
 	}
 
@@ -237,7 +244,7 @@ func startsWith2Hex(s string, e byte) (ok bool) {
 		return false
 	}
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if !isValidHexChar(s[i]) {
 			return false
 		}
