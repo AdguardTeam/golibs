@@ -244,6 +244,68 @@ func TestIsValidIPString(t *testing.T) {
 	}
 }
 
+func TestIsValidIPPortString(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		want assert.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: assert.True,
+		name: "good_ipv4",
+		in:   "0.0.0.0:80",
+	}, {
+		want: assert.True,
+		name: "good_ipv6",
+		in:   "[2001:db8::]:80",
+	}, {
+		want: assert.True,
+		name: "good_ipv6_zone",
+		in:   "[fd7a:115c:a1e0:ab12:4843:cd96:626b:430b%eth0]:80",
+	}, {
+		want: assert.False,
+		name: "not_ip",
+		in:   strings.Repeat("a", 256),
+	}, {
+		want: assert.False,
+		name: "bad_ipv4",
+		in:   "1.2.3",
+	}, {
+		want: assert.False,
+		name: "bad_ipv4_long",
+		in:   "255.255.255.256",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6",
+		in:   "2001:db8:::",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_long",
+		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
+	}, {
+		want: assert.False,
+		name: "bad_ipv6_empty_zone",
+		in:   "[::%]:80",
+	}, {
+		want: assert.False,
+		name: "bad_no_port",
+		in:   "0.0.0.0",
+	}, {
+		want: assert.False,
+		name: "bad_invalid_port",
+		in:   "0.0.0.0:999999",
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tc.want(t, netutil.IsValidIPPortString(tc.in))
+		})
+	}
+}
+
 func BenchmarkIsValidIPString(b *testing.B) {
 	benchCases := []struct {
 		want require.BoolAssertionFunc
@@ -320,91 +382,6 @@ func BenchmarkIsValidIPString(b *testing.B) {
 	//	BenchmarkIsValidIPString/bad_ipv6_long-8     	13938940	        85.72 ns/op	       0 B/op	       0 allocs/op
 }
 
-func FuzzIsValidIPString(f *testing.F) {
-	for _, seed := range []string{
-		"",
-		" ",
-		"192.0.2.1",
-		"2001:db8::68",
-		"::ffff:192.168.140.255",
-		"1.2.3",
-		"1::2.3",
-		"000000::",
-		"0:00000::",
-	} {
-		f.Add(seed)
-	}
-
-	f.Fuzz(func(t *testing.T, input string) {
-		ok := netutil.IsValidIPString(input)
-		_, err := netip.ParseAddr(input)
-
-		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
-	})
-}
-
-func TestIsValidIPPortString(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		want assert.BoolAssertionFunc
-		name string
-		in   string
-	}{{
-		want: assert.True,
-		name: "good_ipv4",
-		in:   "0.0.0.0:80",
-	}, {
-		want: assert.True,
-		name: "good_ipv6",
-		in:   "[2001:db8::]:80",
-	}, {
-		want: assert.True,
-		name: "good_ipv6_zone",
-		in:   "[fd7a:115c:a1e0:ab12:4843:cd96:626b:430b%eth0]:80",
-	}, {
-		want: assert.False,
-		name: "not_ip",
-		in:   strings.Repeat("a", 256),
-	}, {
-		want: assert.False,
-		name: "bad_ipv4",
-		in:   "1.2.3",
-	}, {
-		want: assert.False,
-		name: "bad_ipv4_long",
-		in:   "255.255.255.256",
-	}, {
-		want: assert.False,
-		name: "bad_ipv6",
-		in:   "2001:db8:::",
-	}, {
-		want: assert.False,
-		name: "bad_ipv6_long",
-		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
-	}, {
-		want: assert.False,
-		name: "bad_ipv6_empty_zone",
-		in:   "[::%]:80",
-	}, {
-		want: assert.False,
-		name: "bad_no_port",
-		in:   "0.0.0.0",
-	}, {
-		want: assert.False,
-		name: "bad_invalid_port",
-		in:   "0.0.0.0:999999",
-	}}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			tc.want(t, netutil.IsValidIPPortString(tc.in))
-		})
-	}
-}
-
 func BenchmarkIsValidIPPortString(b *testing.B) {
 	benchCases := []struct {
 		want require.BoolAssertionFunc
@@ -464,6 +441,29 @@ func BenchmarkIsValidIPPortString(b *testing.B) {
 	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	153041434	         7.854 ns/op	       0 B/op	       0 allocs/op
 	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	80768196	        14.71 ns/op	       0 B/op	       0 allocs/op
 	//	BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	94037748	        12.51 ns/op	       0 B/op	       0 allocs/op
+}
+
+func FuzzIsValidIPString(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"192.0.2.1",
+		"2001:db8::68",
+		"::ffff:192.168.140.255",
+		"1.2.3",
+		"1::2.3",
+		"000000::",
+		"0:00000::",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidIPString(input)
+		_, err := netip.ParseAddr(input)
+
+		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
+	})
 }
 
 func FuzzIsValidIPPortString(f *testing.F) {
