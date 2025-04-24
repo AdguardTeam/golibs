@@ -18,8 +18,3 @@ var (
 	testIPv4Addr = netip.MustParseAddr("1.2.3.4")
 	testIPv6Addr = netip.MustParseAddr("1234::cdef")
 )
-
-// Typed sinks for benchmarks.
-var (
-	boolSink bool
-)

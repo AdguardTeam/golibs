@@ -196,8 +196,8 @@ func isSpecialPurposeV6(ip [16]byte) (ok bool) {
 		}
 	default:
 		ok = string(ip[:6]) == "\x26\x20\x00\x4F\x80\x00" ||
-			string(ip[:6]) == "\x01\x00\x00\x00\x00\x00" ||
-			ip[0] == 0xFC
+			string(ip[:8]) == "\x01\x00\x00\x00\x00\x00\x00\x00" ||
+			ip[0] == 0xFC || ip[0] == 0xFD
 	}
 
 	return ok || isLocallyServedV6(ip)

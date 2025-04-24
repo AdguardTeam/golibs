@@ -100,6 +100,18 @@ readonly count_flags fuzztime_flags go shuffle_flags timeout_flags
 	"$x_flags" \
 	"$v_flags" \
 	"$fuzztime_flags" \
+	--fuzz="FuzzIsValidIPPortString" \
+	./netutil \
+	;
+
+"$go" test \
+	"$count_flags" \
+	"$shuffle_flags" \
+	"$race_flags" \
+	"$timeout_flags" \
+	"$x_flags" \
+	"$v_flags" \
+	"$fuzztime_flags" \
 	--fuzz="FuzzIsValidIPString" \
 	./netutil \
 	;
@@ -112,6 +124,18 @@ readonly count_flags fuzztime_flags go shuffle_flags timeout_flags
 	"$x_flags" \
 	"$v_flags" \
 	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidIPPortString" \
+	--fuzz="FuzzSubnetSet_Contains_v4" \
+	./netutil \
+	;
+
+"$go" test \
+	"$count_flags" \
+	"$shuffle_flags" \
+	"$race_flags" \
+	"$timeout_flags" \
+	"$x_flags" \
+	"$v_flags" \
+	"$fuzztime_flags" \
+	--fuzz="FuzzSubnetSet_Contains_v6" \
 	./netutil \
 	;
