@@ -133,30 +133,6 @@ func IsImmediateSubdomain(domain, top string) (ok bool) {
 	return IsSubdomain(domain, top) && strings.Count(domain, ".") == strings.Count(top, ".")+1
 }
 
-// ValidateMAC returns an error if mac is not a valid EUI-48, EUI-64, or
-// 20-octet InfiniBand link-layer address.
-//
-// Any error returned will have the underlying type of [*AddrError].
-func ValidateMAC(mac net.HardwareAddr) (err error) {
-	defer makeAddrError(&err, mac.String(), AddrKindMAC)
-
-	switch l := len(mac); l {
-	case 0:
-		return &LengthError{
-			Kind:   AddrKindMAC,
-			Length: 0,
-		}
-	case 6, 8, 20:
-		return nil
-	default:
-		return &LengthError{
-			Kind:    AddrKindMAC,
-			Allowed: []int{6, 8, 20},
-			Length:  l,
-		}
-	}
-}
-
 // MaxDomainLabelLen is the maximum allowed length of a domain name label
 // according to [RFC 1035].
 //

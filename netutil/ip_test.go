@@ -244,116 +244,6 @@ func TestIsValidIPString(t *testing.T) {
 	}
 }
 
-func BenchmarkIsValidIPString(b *testing.B) {
-	benchCases := []struct {
-		want require.BoolAssertionFunc
-		name string
-		in   string
-	}{{
-		want: require.True,
-		name: "good_ipv4",
-		in:   "0.0.0.0",
-	}, {
-		want: require.True,
-		name: "good_ipv4_long",
-		in:   "255.255.255.255",
-	}, {
-		want: require.True,
-		name: "good_ipv6",
-		in:   "2001:db8::",
-	}, {
-		want: require.True,
-		name: "good_ipv6_long",
-		in:   "2001:db8:a1e0:ab12:4843:cd96:626b::",
-	}, {
-		want: require.False,
-		name: "not_ip",
-		in:   strings.Repeat("a", 256),
-	}, {
-		want: require.False,
-		name: "zeroes",
-		in:   strings.Repeat("0", 256),
-	}, {
-		want: require.False,
-		name: "bad_ipv4",
-		in:   "1.2.3",
-	}, {
-		want: require.False,
-		name: "bad_ipv4_long",
-		in:   "255.255.255.256",
-	}, {
-		want: require.False,
-		name: "bad_ipv6",
-		in:   "2001:db8:::",
-	}, {
-		want: require.False,
-		name: "bad_ipv6_long",
-		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
-	}}
-
-	for _, bc := range benchCases {
-		b.Run(bc.name, func(b *testing.B) {
-			var got bool
-			b.ReportAllocs()
-			for b.Loop() {
-				got = netutil.IsValidIPString(bc.in)
-			}
-
-			bc.want(b, got)
-		})
-	}
-
-	// Most recent results:
-	//	goos: linux
-	//	goarch: amd64
-	//	pkg: github.com/AdguardTeam/golibs/netutil
-	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkIsValidIPString
-	//	BenchmarkIsValidIPString/good_ipv4
-	//	BenchmarkIsValidIPString/good_ipv4-16         	37119586	        32.15 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv4_long
-	//	BenchmarkIsValidIPString/good_ipv4_long-16    	27509986	        46.18 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv6
-	//	BenchmarkIsValidIPString/good_ipv6-16         	30892100	        39.84 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/good_ipv6_long
-	//	BenchmarkIsValidIPString/good_ipv6_long-16    	12195068	        97.35 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/not_ip
-	//	BenchmarkIsValidIPString/not_ip-16            	193018126	         5.861 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/zeroes
-	//	BenchmarkIsValidIPString/zeroes-16            	200002129	         5.724 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv4
-	//	BenchmarkIsValidIPString/bad_ipv4-16          	50295312	        25.04 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv4_long
-	//	BenchmarkIsValidIPString/bad_ipv4_long-16     	26103091	        45.21 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv6
-	//	BenchmarkIsValidIPString/bad_ipv6-16          	27687589	        42.35 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPString/bad_ipv6_long
-	//	BenchmarkIsValidIPString/bad_ipv6_long-16     	10751766	       109.3 ns/op	       0 B/op	       0 allocs/op
-}
-
-func FuzzIsValidIPString(f *testing.F) {
-	for _, seed := range []string{
-		"",
-		" ",
-		"192.0.2.1",
-		"2001:db8::68",
-		"::ffff:192.168.140.255",
-		"1.2.3",
-		"1::2.3",
-		"000000::",
-		"0:00000::",
-	} {
-		f.Add(seed)
-	}
-
-	f.Fuzz(func(t *testing.T, input string) {
-		ok := netutil.IsValidIPString(input)
-		_, err := netip.ParseAddr(input)
-
-		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
-	})
-}
-
 func TestIsValidIPPortString(t *testing.T) {
 	t.Parallel()
 
@@ -416,6 +306,82 @@ func TestIsValidIPPortString(t *testing.T) {
 	}
 }
 
+func BenchmarkIsValidIPString(b *testing.B) {
+	benchCases := []struct {
+		want require.BoolAssertionFunc
+		name string
+		in   string
+	}{{
+		want: require.True,
+		name: "good_ipv4",
+		in:   "0.0.0.0",
+	}, {
+		want: require.True,
+		name: "good_ipv4_long",
+		in:   "255.255.255.255",
+	}, {
+		want: require.True,
+		name: "good_ipv6",
+		in:   "2001:db8::",
+	}, {
+		want: require.True,
+		name: "good_ipv6_long",
+		in:   "2001:db8:a1e0:ab12:4843:cd96:626b::",
+	}, {
+		want: require.False,
+		name: "not_ip",
+		in:   strings.Repeat("a", 256),
+	}, {
+		want: require.False,
+		name: "zeroes",
+		in:   strings.Repeat("0", 256),
+	}, {
+		want: require.False,
+		name: "bad_ipv4",
+		in:   "1.2.3",
+	}, {
+		want: require.False,
+		name: "bad_ipv4_long",
+		in:   "255.255.255.256",
+	}, {
+		want: require.False,
+		name: "bad_ipv6",
+		in:   "2001:db8:::",
+	}, {
+		want: require.False,
+		name: "bad_ipv6_long",
+		in:   "2001:db8:a1e0:ab12:4843:cd96:626b:ffff:ffff",
+	}}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			var got bool
+			b.ReportAllocs()
+			for b.Loop() {
+				got = netutil.IsValidIPString(bc.in)
+			}
+
+			bc.want(b, got)
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/netutil
+	//	cpu: Apple M1 Pro
+	//	BenchmarkIsValidIPString/good_ipv4-8         	27406671	        38.20 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv4_long-8    	26174536	        46.11 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv6-8         	42662936	        28.06 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/good_ipv6_long-8    	16096101	        73.73 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/not_ip-8            	250333886	         4.787 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/zeroes-8            	253709800	         4.730 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv4-8          	47662234	        25.10 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv4_long-8     	25186911	        46.31 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv6-8          	36421348	        32.93 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPString/bad_ipv6_long-8     	13938940	        85.72 ns/op	       0 B/op	       0 allocs/op
+}
+
 func BenchmarkIsValidIPPortString(b *testing.B) {
 	benchCases := []struct {
 		want require.BoolAssertionFunc
@@ -468,13 +434,36 @@ func BenchmarkIsValidIPPortString(b *testing.B) {
 	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
 	//	cpu: Apple M1 Pro
-	//	BenchmarkIsValidIPPortString/good_ipv4-8         	22942002	        52.63 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/good_ipv6-8         	11768151	       103.8 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/not_ip-8            	12354528	       100.5 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv4-8          	134999154	         8.817 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	146192818	         8.105 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	77866458	        15.42 ns/op	       0 B/op	       0 allocs/op
-	//. BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	91257355	        13.39 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/good_ipv4-8         	22089954	        54.78 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/good_ipv6-8         	11841247	        99.40 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/not_ip-8            	12694914	        93.64 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv4-8          	147498169	         8.133 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6-8          	153041434	         7.854 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv6_empty_zone-8         	80768196	        14.71 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidIPPortString/bad_ipv4_invalid_port-8       	94037748	        12.51 ns/op	       0 B/op	       0 allocs/op
+}
+
+func FuzzIsValidIPString(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		" ",
+		"192.0.2.1",
+		"2001:db8::68",
+		"::ffff:192.168.140.255",
+		"1.2.3",
+		"1::2.3",
+		"000000::",
+		"0:00000::",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		ok := netutil.IsValidIPString(input)
+		_, err := netip.ParseAddr(input)
+
+		require.Equalf(t, err == nil, ok, "input: %q, error: %v", input, err)
+	})
 }
 
 func FuzzIsValidIPPortString(f *testing.F) {

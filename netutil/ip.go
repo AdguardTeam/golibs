@@ -132,9 +132,49 @@ func ValidateIP(ip net.IP) (err error) {
 	}
 }
 
+// isUintString returns true if s represents an unsigned integer in the base of
+// 10 and bit size maxVal.  It doesn't allocate.
+func isUintString(s string, maxVal uint64, allowLeadingZeros bool) (ok bool) {
+	switch l := len(s); l {
+	case 0:
+		return false
+	case 1:
+		return s[0] >= '0' && s[0] <= '9'
+	default:
+		// Go on.
+	}
+
+	if !allowLeadingZeros && s[0] == '0' {
+		return false
+	}
+
+	var n uint64
+	for _, b := range s {
+		if b < '0' || b > '9' {
+			return false
+		}
+
+		n = n*10 + uint64(b-'0')
+		if n > maxVal {
+			return false
+		}
+	}
+
+	return true
+}
+
 // IsValidIPString returns true if s is a valid IPv4 or IPv6 address string
 // representation as accepted by [netip.ParseAddr].
 func IsValidIPString(s string) (ok bool) {
+	ok, _, _ = isValidIPString(s)
+
+	return ok
+}
+
+// isValidIPString returns true if s is a valid IPv4 or IPv6 address string
+// representation as accepted by [netip.ParseAddr].  isV6 and hasZone indicate
+// whether the address is IPv6 and has an IPv6 zone.
+func isValidIPString(s string) (ok, isV6, hasZone bool) {
 	// maxSignificant is the maximum number of significant characters in a field
 	// of an IPv6 address.  There is no need to search for separator longer than
 	// this number of bytes.
@@ -146,21 +186,24 @@ func IsValidIPString(s string) (ok bool) {
 	for i, significant := 0, 0; i < strLen && significant <= maxSignificant; i++ {
 		switch s[i] {
 		case '.':
-			return isValidIPv4String(s)
+			return isValidIPv4String(s), false, false
 		case ':':
-			withoutZone, zone, hasZone := strings.Cut(s, "%")
+			var withoutZone, zone string
+			withoutZone, zone, hasZone = strings.Cut(s, "%")
 			if hasZone && zone == "" {
 				// Zone cannot be empty.
-				return false
+				return false, false, false
 			}
 
-			return isValidIPv6String(withoutZone)
+			ok = isValidIPv6String(withoutZone)
+
+			return ok, ok, ok && hasZone
 		default:
 			significant++
 		}
 	}
 
-	return false
+	return false, false, false
 }
 
 // isValidIPv4String returns true if s is a valid IPv4 address string
@@ -182,25 +225,7 @@ func isValidIPv4String(s string) (ok bool) {
 // isIPv4Label reports whether label is a valid label for an IPv4 address, i.e.
 // a decimal number in the range [0, 255] with no leading zeros.
 func isIPv4Label(label string) (ok bool) {
-	switch l := len(label); {
-	case l < 1, l > 3:
-		return false
-	case l == 1:
-		return label[0] >= '0' && label[0] <= '9'
-	case label[0] == '0':
-		return false
-	default:
-		val := 0
-		for _, c := range label {
-			if c < '0' || c > '9' {
-				return false
-			}
-
-			val = val*10 + int(c-'0')
-		}
-
-		return val <= math.MaxUint8
-	}
+	return isUintString(label, math.MaxUint8, false)
 }
 
 // maxIPv6FieldsNum is the maximum number of fields in an IPv6 address.
@@ -313,7 +338,7 @@ func IsValidIPPortString(s string) (ok bool) {
 		return false
 	}
 
-	if !isUint16(port) {
+	if !isUintString(port, math.MaxUint16, true) {
 		return false
 	}
 
@@ -343,22 +368,4 @@ func splitAddrPort(s string) (ip, port string, ok bool) {
 	}
 
 	return ip, port, true
-}
-
-// isUint16 return true if s represents an unsigned integer in the base of 10
-// and bit size 16.  It doesn't allocate.
-func isUint16(s string) (ok bool) {
-	var n uint64
-	for _, b := range s {
-		if b < '0' || b > '9' {
-			return false
-		}
-
-		n = n*10 + uint64(b-'0')
-		if n > math.MaxUint16 {
-			return false
-		}
-	}
-
-	return true
 }

@@ -771,21 +771,14 @@ func BenchmarkExtractReversedAddr(b *testing.B) {
 	}
 
 	// Most recent results:
-	//	goos: linux
-	//	goarch: amd64
+	//	goos: darwin
+	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
-	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkExtractReversedAddr
-	//	BenchmarkExtractReversedAddr/ipv4_root
-	//	BenchmarkExtractReversedAddr/ipv4_root-16         	 9361261	       126.9 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkExtractReversedAddr/ipv4_subnet
-	//	BenchmarkExtractReversedAddr/ipv4_subnet-16       	 4520908	       228.4 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkExtractReversedAddr/ipv4_subnet_within_domain
-	//	BenchmarkExtractReversedAddr/ipv4_subnet_within_domain-16         	 4670204	       261.5 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkExtractReversedAddr/ipv6_root
-	//	BenchmarkExtractReversedAddr/ipv6_root-16                         	 8703597	       135.5 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkExtractReversedAddr/ipv6_subnet
-	//	BenchmarkExtractReversedAddr/ipv6_subnet-16                       	 1464615	       815.5 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkExtractReversedAddr/ipv6_subnet_within_domain
-	//	BenchmarkExtractReversedAddr/ipv6_subnet_within_domain-16         	 1228610	       954.9 ns/op	       0 B/op	       0 allocs/op
+	//	cpu: Apple M1 Pro
+	//	BenchmarkExtractReversedAddr/ipv4_root-8         	13283544	        89.83 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv4_subnet-8       	 7445521	       160.6 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv4_subnet_within_domain-8         	 5402799	       220.6 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_root-8                         	13672136	        87.12 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_subnet-8                       	 1000000	      1019 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkExtractReversedAddr/ipv6_subnet_within_domain-8         	 1000000	      1038 ns/op	       0 B/op	       0 allocs/op
 }

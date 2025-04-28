@@ -404,7 +404,7 @@ func indexFirstV6Label(domain string) (idx int) {
 	idx = len(domain) - len(arpaV6Suffix) + 1
 	for labelsNum := 0; labelsNum < net.IPv6len*2 && idx > 0; labelsNum++ {
 		curIdx := idx - len("a.")
-		if curIdx > 1 && domain[curIdx-1] != '.' || fromHexByte(domain[curIdx]) == 0xff {
+		if curIdx > 1 && domain[curIdx-1] != '.' || !isValidHexString(domain[curIdx:curIdx+1]) {
 			break
 		}
 

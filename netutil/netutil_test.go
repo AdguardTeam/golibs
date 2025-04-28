@@ -17,4 +17,7 @@ var (
 
 	testIPv4Addr = netip.MustParseAddr("1.2.3.4")
 	testIPv6Addr = netip.MustParseAddr("1234::cdef")
+
+	testIPv4Prefix = netip.MustParsePrefix("1.2.3.4/32")
+	testIPv6Prefix = netip.MustParsePrefix("1234::cdef/128")
 )

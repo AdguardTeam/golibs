@@ -1,7 +1,6 @@
 package netutil_test
 
 import (
-	"net"
 	"net/url"
 	"strings"
 	"testing"
@@ -26,69 +25,6 @@ func TestCloneURL(t *testing.T) {
 	clone := netutil.CloneURL(u)
 	assert.Equal(t, u, clone)
 	assert.NotSame(t, u, clone)
-}
-
-func TestValidateMAC(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name       string
-		wantErrMsg string
-		wantErrAs  any
-		in         net.HardwareAddr
-	}{{
-		name:       "success_eui_48",
-		wantErrMsg: "",
-		wantErrAs:  nil,
-		in:         net.HardwareAddr{0x00, 0x01, 0x02, 0x03, 0x04, 0x05},
-	}, {
-		name:       "success_eui_64",
-		wantErrMsg: "",
-		wantErrAs:  nil,
-		in:         net.HardwareAddr{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07},
-	}, {
-		name:       "success_infiniband",
-		wantErrMsg: "",
-		wantErrAs:  nil,
-		in: net.HardwareAddr{
-			0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-			0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-			0x10, 0x11, 0x12, 0x13,
-		},
-	}, {
-		name:       "error_nil",
-		wantErrMsg: `bad mac address "": mac address is empty`,
-		wantErrAs:  new(*netutil.LengthError),
-		in:         nil,
-	}, {
-		name:       "error_empty",
-		wantErrMsg: `bad mac address "": mac address is empty`,
-		wantErrAs:  new(*netutil.LengthError),
-		in:         net.HardwareAddr{},
-	}, {
-		name: "error_bad",
-		wantErrMsg: `bad mac address "00:01:02:03": ` +
-			`bad mac address length 4, allowed: [6 8 20]`,
-		wantErrAs: new(*netutil.LengthError),
-		in:        net.HardwareAddr{0x00, 0x01, 0x02, 0x03},
-	}}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			err := netutil.ValidateMAC(tc.in)
-			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
-
-			if tc.wantErrAs != nil {
-				require.Error(t, err)
-
-				assert.ErrorAs(t, err, new(*netutil.AddrError))
-				assert.ErrorAs(t, err, tc.wantErrAs)
-			}
-		})
-	}
 }
 
 func TestJoinHostPort(t *testing.T) {
