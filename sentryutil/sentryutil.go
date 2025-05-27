@@ -55,7 +55,7 @@ func ReportPanics() {
 	panic(v)
 }
 
-// SetDefaultLogger sets the default Sentry logger to l with prefix p and level
+// SetDefaultLogger sets [sentry.DebugLogger] to l with prefix p and level
 // debug.  If p is empty, [DefaultLoggerPrefix] is used.
 func SetDefaultLogger(l *slog.Logger, p string) {
 	p = cmp.Or(p, DefaultLoggerPrefix)
@@ -65,5 +65,5 @@ func SetDefaultLogger(l *slog.Logger, p string) {
 		handler: l.Handler(),
 	}
 
-	sentry.Logger = slog.NewLogLogger(h, slog.LevelDebug)
+	sentry.DebugLogger = slog.NewLogLogger(h, slog.LevelDebug)
 }
