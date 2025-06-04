@@ -23,7 +23,7 @@ fi
 readonly v_flags x_flags
 
 if [ "$GOMAXPROCS" = '' ]; then
-	export GOMAXPROCS='1'
+	export GOMAXPROCS='2'
 fi
 
 set -e -f -u
@@ -36,7 +36,7 @@ fi
 readonly race_flags
 
 count_flags='--count=2'
-fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=5s}"
+fuzztime_flags="${FUZZTIME_FLAGS:---fuzztime=10s}"
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'
 timeout_flags="${TIMEOUT_FLAGS:---timeout=30s}"

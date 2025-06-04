@@ -84,6 +84,16 @@ func EmptySlice[T any](name string, v []T) (err error) {
 	return nil
 }
 
+// Equal returns an error if got is not equal to want.  The underlying error of
+// err is [errors.ErrNotEqual].
+func Equal[T comparable](name string, got, want T) (err error) {
+	if got != want {
+		return fmt.Errorf("%s: %w: got %v, want %v", name, errors.ErrNotEqual, got, want)
+	}
+
+	return nil
+}
+
 // GreaterThan returns an error if a is less than or equal to b.  The underlying
 // error of err is [errors.ErrOutOfRange].
 //

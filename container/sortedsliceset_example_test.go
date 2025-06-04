@@ -31,11 +31,11 @@ func ExampleSortedSliceSet() {
 	ok = set.Has(x)
 	fmt.Printf("%s contains %v is %t\n", set, x, ok)
 
-	set.Range(func(n int) (cont bool) {
+	for n := range set.Range {
 		fmt.Printf("got value %d\n", n)
 
-		return false
-	})
+		break
+	}
 
 	set = container.NewSortedSliceSet(x)
 	fmt.Printf("%s has length %d\n", set, set.Len())
@@ -132,11 +132,9 @@ func ExampleSortedSliceSet_nil() {
 	func() {
 		defer setPanicked()
 
-		set.Range(func(n int) (cont bool) {
+		for n := range set.Range {
 			fmt.Printf("got value %d\n", n)
-
-			return true
-		})
+		}
 	}()
 	fmt.Printf("panic after range: %t\n", panicked)
 

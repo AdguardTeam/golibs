@@ -21,7 +21,7 @@ func TestChanSemaphore(t *testing.T) {
 	ctx := context.Background()
 	current := &atomic.Int64{}
 
-	for i := 0; i < numGoroutine; i++ {
+	for range numGoroutine {
 		err := s.Acquire(ctx)
 		require.NoError(t, err)
 
@@ -46,7 +46,7 @@ func TestEmptySemaphore(t *testing.T) {
 	ctx := context.Background()
 	current := &atomic.Int64{}
 
-	for i := 0; i < numGoroutine; i++ {
+	for range numGoroutine {
 		err := s.Acquire(ctx)
 		require.NoError(t, err)
 

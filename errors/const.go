@@ -44,6 +44,10 @@ const ErrNoValue Error = "no value"
 // ErrNotEmpty indicates that a value that must be empty isn't.
 const ErrNotEmpty Error = "not empty"
 
+// ErrNotEqual indicates that the provided value is not equal to the required
+// one.
+const ErrNotEqual Error = "not equal to expected value"
+
 // ErrNotPositive indicates that the provided value is negative or zero when it
 // should be greater than zero.
 //

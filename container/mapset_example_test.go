@@ -36,11 +36,11 @@ func ExampleMapSet() {
 	ok = set.Has(x)
 	fmt.Printf("%s contains %v is %t\n", container.MapSetToString(set), x, ok)
 
-	set.Range(func(n int) (cont bool) {
+	for n := range set.Range {
 		fmt.Printf("got value %d\n", n)
 
-		return false
-	})
+		break
+	}
 
 	set = container.NewMapSet(x)
 	fmt.Printf("%s has length %d\n", container.MapSetToString(set), set.Len())
@@ -137,11 +137,9 @@ func ExampleMapSet_nil() {
 	func() {
 		defer setPanicked()
 
-		set.Range(func(n int) (cont bool) {
+		for n := range set.Range {
 			fmt.Printf("got value %d\n", n)
-
-			return true
-		})
+		}
 	}()
 	fmt.Printf("panic after range: %t\n", panicked)
 

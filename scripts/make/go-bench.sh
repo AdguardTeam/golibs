@@ -39,7 +39,7 @@ timeout_flags="${TIMEOUT_FLAGS:---timeout=5m}"
 readonly benchtime_flags count_flags go shuffle_flags timeout_flags
 
 env \
-	GOMAXPROCS="${GOMAXPROCS:-1}" \
+	GOMAXPROCS="${GOMAXPROCS:-2}" \
 	"$go" test \
 	"$count_flags" \
 	"$shuffle_flags" \

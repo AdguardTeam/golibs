@@ -69,6 +69,15 @@ func ExampleEmpty() {
 	// <nil>
 }
 
+func ExampleEqual() {
+	fmt.Println(validate.Equal("foo", "bar", "baz"))
+	fmt.Println(validate.Equal("foo", "bar", "bar"))
+
+	// Output:
+	// foo: not equal to expected value: got bar, want baz
+	// <nil>
+}
+
 func ExampleEmptySlice() {
 	fmt.Println(validate.EmptySlice("foo", []int{1}))
 	fmt.Println(validate.EmptySlice("foo", []int(nil)))

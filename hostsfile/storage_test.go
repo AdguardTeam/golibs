@@ -96,11 +96,9 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, ds)
 
-		ds.RangeAddrs(func(_ string, _ []netip.Addr) (ok bool) {
+		for range ds.RangeAddrs {
 			require.Fail(t, "should not be called")
-
-			return false
-		})
+		}
 	})
 
 	t.Run("reader", func(t *testing.T) {
@@ -182,15 +180,13 @@ func TestDefaultStorage_range(t *testing.T) {
 
 		names := maps.Clone(wantHosts)
 
-		ds.RangeAddrs(func(name string, addrs []netip.Addr) (ok bool) {
+		for name, addrs := range ds.RangeAddrs {
 			got, ok := names[name]
 			require.True(t, ok)
 			require.Equal(t, got, addrs)
 
 			delete(names, name)
-
-			return len(names) > 0
-		})
+		}
 
 		require.Empty(t, names)
 	})
@@ -200,15 +196,13 @@ func TestDefaultStorage_range(t *testing.T) {
 
 		addrs := maps.Clone(wantAddrs)
 
-		ds.RangeNames(func(addr netip.Addr, names []string) (ok bool) {
+		for addr, names := range ds.RangeNames {
 			got, ok := addrs[addr]
 			require.True(t, ok)
 			require.Equal(t, got, names)
 
 			delete(addrs, addr)
-
-			return len(addrs) > 0
-		})
+		}
 
 		require.Empty(t, addrs)
 	})
@@ -216,13 +210,13 @@ func TestDefaultStorage_range(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		t.Parallel()
 
-		empty.RangeAddrs(func(_ string, _ []netip.Addr) (ok bool) {
-			return assert.Fail(t, "should not be called")
-		})
+		for range empty.RangeAddrs {
+			assert.Fail(t, "should not be called")
+		}
 
-		empty.RangeNames(func(_ netip.Addr, _ []string) (ok bool) {
-			return assert.Fail(t, "should not be called")
-		})
+		for range empty.RangeNames {
+			assert.Fail(t, "should not be called")
+		}
 	})
 }
 
