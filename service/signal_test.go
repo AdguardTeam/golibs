@@ -47,26 +47,29 @@ func TestSignalHandler(t *testing.T) {
 		},
 	}
 
-	var gotChan chan<- os.Signal
-	var gotSig []os.Signal
+	refr := &fakeservice.Refresher{
+		OnRefresh: func(_ context.Context) (err error) { panic("not implemented") },
+	}
+
+	var controlCh chan<- os.Signal
 	sigHdlr := service.NewSignalHandler(&service.SignalHandlerConfig{
 		SignalNotifier: &fakeSignalNotifier{
 			onNotify: func(c chan<- os.Signal, sig ...os.Signal) {
-				gotChan = c
-				gotSig = sig
+				controlCh = c
 			},
 			onStop: func(_ chan<- os.Signal) { panic("not implemented") },
 		},
 		Logger:          slogutil.NewDiscardLogger(),
+		RefreshTimeout:  testTimeout,
 		ShutdownTimeout: testTimeout,
 	})
 
-	require.NotNil(t, gotChan)
-	require.NotEmpty(t, gotSig)
+	require.NotNil(t, controlCh)
 
-	sigHdlr.Add(svc)
+	sigHdlr.AddService(svc)
+	sigHdlr.AddRefresher(refr)
 
-	testutil.RequireSend(t, gotChan, gotSig[0], testTimeout)
+	testutil.RequireSend(t, controlCh, os.Interrupt, testTimeout)
 
 	status := sigHdlr.Handle(context.Background())
 	assert.Equal(t, osutil.ExitCodeSuccess, status)
