@@ -47,10 +47,6 @@ func TestSignalHandler(t *testing.T) {
 		},
 	}
 
-	refr := &fakeservice.Refresher{
-		OnRefresh: func(_ context.Context) (err error) { panic("not implemented") },
-	}
-
 	var controlCh chan<- os.Signal
 	sigHdlr := service.NewSignalHandler(&service.SignalHandlerConfig{
 		SignalNotifier: &fakeSignalNotifier{
@@ -67,7 +63,6 @@ func TestSignalHandler(t *testing.T) {
 	require.NotNil(t, controlCh)
 
 	sigHdlr.AddService(svc)
-	sigHdlr.AddRefresher(refr)
 
 	testutil.RequireSend(t, controlCh, os.Interrupt, testTimeout)
 
