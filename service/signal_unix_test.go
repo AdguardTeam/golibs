@@ -18,6 +18,16 @@ import (
 )
 
 func TestSignalHandler_unix(t *testing.T) {
+	shutdownCh := make(chan struct{})
+	svc := &fakeservice.Service{
+		OnStart: func(_ context.Context) (err error) { panic("not implemented") },
+		OnShutdown: func(_ context.Context) (err error) {
+			close(shutdownCh)
+
+			return nil
+		},
+	}
+
 	refrCh := make(chan struct{})
 	refr := &fakeservice.Refresher{
 		OnRefresh: func(_ context.Context) (err error) {
@@ -42,12 +52,19 @@ func TestSignalHandler_unix(t *testing.T) {
 
 	require.NotNil(t, controlCh)
 
+	sigHdlr.AddService(svc)
 	sigHdlr.AddRefresher(refr)
 
+	go func() {
+		pt := &testutil.PanicT{}
+
+		status := sigHdlr.Handle(context.Background())
+		assert.Equal(pt, osutil.ExitCodeSuccess, status)
+	}()
+
 	testutil.RequireSend(t, controlCh, os.Signal(unix.SIGHUP), testTimeout)
-
-	status := sigHdlr.Handle(context.Background())
-	assert.Equal(t, osutil.ExitCodeSuccess, status)
-
 	testutil.RequireReceive(t, refrCh, testTimeout)
+
+	testutil.RequireSend(t, controlCh, os.Interrupt, testTimeout)
+	testutil.RequireReceive(t, shutdownCh, testTimeout)
 }

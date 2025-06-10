@@ -131,7 +131,7 @@ func (h *SignalHandler) Handle(ctx context.Context) (status osutil.ExitCode) {
 			ctx, cancel = context.WithTimeout(ctx, h.refreshTimeout)
 			defer cancel()
 
-			return h.reconfigure(ctx)
+			h.reconfigure(ctx)
 		} else if osutil.IsShutdownSignal(sig) {
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, h.shutdownTimeout)
@@ -145,12 +145,11 @@ func (h *SignalHandler) Handle(ctx context.Context) (status osutil.ExitCode) {
 	panic("unexpected close of h.signal")
 }
 
-// reconfigure starts refreshing all refreshers.  status is
-// [osutil.ExitCodeSuccess] on success and [osutil.ExitCodeFailure] on error.
-func (h *SignalHandler) reconfigure(ctx context.Context) (status osutil.ExitCode) {
+// reconfigure refreshes all added refreshers.
+func (h *SignalHandler) reconfigure(ctx context.Context) {
 	h.logger.InfoContext(ctx, "reconfiguring")
 
-	status = osutil.ExitCodeSuccess
+	errCount := 0
 	for i := len(h.refreshers) - 1; i >= 0; i-- {
 		r := h.refreshers[i]
 		err := r.Refresh(ctx)
@@ -158,14 +157,11 @@ func (h *SignalHandler) reconfigure(ctx context.Context) (status osutil.ExitCode
 			continue
 		}
 
+		errCount++
 		h.logger.ErrorContext(ctx, "refreshing", "idx", i, slogutil.KeyError, err)
-
-		status = osutil.ExitCodeFailure
 	}
 
-	h.logger.InfoContext(ctx, "reconfigured", "status", status)
-
-	return status
+	h.logger.InfoContext(ctx, "reconfigured", "errors", errCount)
 }
 
 // shutdown gracefully shuts down all services.  status is
