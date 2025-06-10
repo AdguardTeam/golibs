@@ -8,6 +8,7 @@ import (
 	"github.com/AdguardTeam/golibs/redisutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakeredis"
+	"github.com/AdguardTeam/golibs/testutil/redistest"
 	"github.com/gomodule/redigo/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -59,10 +60,10 @@ func TestDefaultPool_Get(t *testing.T) {
 		Logger:           testLogger,
 		Dialer:           dialer,
 		ConnectionTester: connTester,
-		MaxConnLifetime:  testMaxConnLifetime,
-		IdleTimeout:      testIdleTimeout,
-		MaxActive:        testMaxActive,
-		MaxIdle:          textMaxIdle,
+		MaxConnLifetime:  redistest.MaxConnLifetime,
+		IdleTimeout:      redistest.IdleTimeout,
+		MaxActive:        redistest.MaxActive,
+		MaxIdle:          redistest.MaxIdle,
 		Wait:             true,
 	})
 	require.NoError(t, err)
@@ -83,7 +84,7 @@ func TestDefaultPool_Get(t *testing.T) {
 }
 
 func TestDefaultPool_Get_integration(t *testing.T) {
-	p := newIntegrationPool(t)
+	p := redistest.NewPool(t, nil)
 
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	c, err := p.Get(ctx)

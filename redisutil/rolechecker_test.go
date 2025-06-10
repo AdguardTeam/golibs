@@ -8,6 +8,7 @@ import (
 	"github.com/AdguardTeam/golibs/redisutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakeredis"
+	"github.com/AdguardTeam/golibs/testutil/redistest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -68,7 +69,8 @@ func TestRoleChecker_TestConnection(t *testing.T) {
 }
 
 func TestRoleChecker_TestConnection_integration(t *testing.T) {
-	d := newIntegrationDialer(t)
+	d := redistest.NewDialer(t, nil)
+	redistest.FlushOnCleanup(t, d)
 
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	c, err := d.DialContext(ctx)
