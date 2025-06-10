@@ -31,6 +31,7 @@ const (
 	CmdFLUSHDB  = "FLUSHDB"
 	CmdFUNCTION = "FUNCTION"
 	CmdGET      = "GET"
+	CmdPTTL     = "PTTL"
 	CmdROLE     = "ROLE"
 	CmdSET      = "SET"
 )
@@ -38,6 +39,7 @@ const (
 // Parameter constants.
 const (
 	ParamASYNC   = "ASYNC"
+	ParamEX      = "EX"
 	ParamLOAD    = "LOAD"
 	ParamNX      = "NX"
 	ParamPX      = "PX"
