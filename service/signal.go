@@ -35,14 +35,15 @@ type SignalHandlerConfig struct {
 	// If nil, [slog.Default] with [SignalHandlerPrefix] is used.
 	Logger *slog.Logger
 
-	// RefreshTimeout is the timeout used to shut down all services gracefully.
-	//
-	// If zero, [SignalHandlerShutdownTimeout] is used.
-	RefreshTimeout time.Duration
-
-	// ShutdownTimeout is the timeout used to shut down all services gracefully.
+	// RefreshTimeout is the timeout used to refresh all added refreshers.
 	//
 	// If zero, [SignalHandlerRefreshTimeout] is used.
+	RefreshTimeout time.Duration
+
+	// ShutdownTimeout is the timeout used to shut down all added services
+	// gracefully.
+	//
+	// If zero, [SignalHandlerShutdownTimeout] is used.
 	ShutdownTimeout time.Duration
 }
 
@@ -107,7 +108,7 @@ func (h *SignalHandler) AddService(svcs ...Interface) {
 //
 // It must not be called concurrently with [Handle].
 //
-// Deprecated: Use AddService instead.
+// Deprecated: Use [SignalHandler.AddService] instead.
 func (h *SignalHandler) Add(svcs ...Interface) {
 	h.AddService(svcs...)
 }
