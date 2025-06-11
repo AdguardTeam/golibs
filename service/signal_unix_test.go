@@ -1,10 +1,9 @@
-//go:build unix
-
 package service_test
 
 import (
 	"context"
 	"os"
+	"syscall"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
@@ -14,7 +13,6 @@ import (
 	"github.com/AdguardTeam/golibs/testutil/fakeservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sys/unix"
 )
 
 func TestSignalHandler_unix(t *testing.T) {
@@ -62,7 +60,7 @@ func TestSignalHandler_unix(t *testing.T) {
 		assert.Equal(pt, osutil.ExitCodeSuccess, status)
 	}()
 
-	testutil.RequireSend(t, controlCh, os.Signal(unix.SIGHUP), testTimeout)
+	testutil.RequireSend(t, controlCh, os.Signal(syscall.SIGHUP), testTimeout)
 	testutil.RequireReceive(t, refrCh, testTimeout)
 
 	testutil.RequireSend(t, controlCh, os.Interrupt, testTimeout)

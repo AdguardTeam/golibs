@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
@@ -149,19 +150,16 @@ func (h *SignalHandler) Handle(ctx context.Context) (status osutil.ExitCode) {
 func (h *SignalHandler) reconfigure(ctx context.Context) {
 	h.logger.InfoContext(ctx, "reconfiguring")
 
-	errCount := 0
-	for i := len(h.refreshers) - 1; i >= 0; i-- {
-		r := h.refreshers[i]
+	for i, r := range slices.Backward(h.refreshers) {
 		err := r.Refresh(ctx)
 		if err == nil {
 			continue
 		}
 
-		errCount++
 		h.logger.ErrorContext(ctx, "refreshing", "idx", i, slogutil.KeyError, err)
 	}
 
-	h.logger.InfoContext(ctx, "reconfigured", "errors", errCount)
+	h.logger.InfoContext(ctx, "reconfigured")
 }
 
 // shutdown gracefully shuts down all services.  status is
@@ -170,8 +168,7 @@ func (h *SignalHandler) shutdown(ctx context.Context) (status osutil.ExitCode) {
 	h.logger.InfoContext(ctx, "shutting down")
 
 	status = osutil.ExitCodeSuccess
-	for i := len(h.services) - 1; i >= 0; i-- {
-		s := h.services[i]
+	for i, s := range slices.Backward(h.services) {
 		err := s.Shutdown(ctx)
 		if err == nil {
 			continue
