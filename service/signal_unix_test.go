@@ -1,3 +1,5 @@
+//go:build unix
+
 package service_test
 
 import (
@@ -12,36 +14,24 @@ import (
 	"github.com/AdguardTeam/golibs/testutil/fakeservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sys/unix"
 )
 
-// fakeSignalNotifier is a fake [osutil.SignalNotifier] implementation for
-// tests.
-type fakeSignalNotifier struct {
-	onNotify func(c chan<- os.Signal, sig ...os.Signal)
-	onStop   func(c chan<- os.Signal)
-}
-
-// type check
-var _ osutil.SignalNotifier = (*fakeSignalNotifier)(nil)
-
-// Notify implements the [osutil.SignalNotifier] interface for
-// *fakeSignalNotifier.
-func (s *fakeSignalNotifier) Notify(c chan<- os.Signal, sig ...os.Signal) {
-	s.onNotify(c, sig...)
-}
-
-// Stop implements the [osutil.SignalNotifier] interface for
-// *fakeSignalNotifier.
-func (s *fakeSignalNotifier) Stop(c chan<- os.Signal) {
-	s.onStop(c)
-}
-
-func TestSignalHandler(t *testing.T) {
+func TestSignalHandler_unix(t *testing.T) {
 	shutdownCh := make(chan struct{})
 	svc := &fakeservice.Service{
 		OnStart: func(_ context.Context) (err error) { panic("not implemented") },
 		OnShutdown: func(_ context.Context) (err error) {
 			close(shutdownCh)
+
+			return nil
+		},
+	}
+
+	refrCh := make(chan struct{})
+	refr := &fakeservice.Refresher{
+		OnRefresh: func(_ context.Context) (err error) {
+			close(refrCh)
 
 			return nil
 		},
@@ -63,11 +53,18 @@ func TestSignalHandler(t *testing.T) {
 	require.NotNil(t, controlCh)
 
 	sigHdlr.AddService(svc)
+	sigHdlr.AddRefresher(refr)
+
+	go func() {
+		pt := &testutil.PanicT{}
+
+		status := sigHdlr.Handle(context.Background())
+		assert.Equal(pt, osutil.ExitCodeSuccess, status)
+	}()
+
+	testutil.RequireSend(t, controlCh, os.Signal(unix.SIGHUP), testTimeout)
+	testutil.RequireReceive(t, refrCh, testTimeout)
 
 	testutil.RequireSend(t, controlCh, os.Interrupt, testTimeout)
-
-	status := sigHdlr.Handle(context.Background())
-	assert.Equal(t, osutil.ExitCodeSuccess, status)
-
 	testutil.RequireReceive(t, shutdownCh, testTimeout)
 }
