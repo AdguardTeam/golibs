@@ -198,7 +198,7 @@ run_linter fieldalignment \
 	./ioutil/ \
 	./log/ \
 	./logutil/... \
-	./mathutil/ \
+	./mathutil/... \
 	./netutil/... \
 	./osutil/ \
 	./redisutil/ \

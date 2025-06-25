@@ -5,6 +5,7 @@
 package sentrytest
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -13,10 +14,11 @@ import (
 
 // Transport is a [sentry.Transport] implementation for tests.
 type Transport struct {
-	OnClose     func()
-	OnConfigure func(opts sentry.ClientOptions)
-	OnFlush     func(timeout time.Duration) (ok bool)
-	OnSendEvent func(e *sentry.Event)
+	OnClose            func()
+	OnConfigure        func(opts sentry.ClientOptions)
+	OnFlush            func(timeout time.Duration) (ok bool)
+	OnFlushWithContext func(ctx context.Context) (ok bool)
+	OnSendEvent        func(e *sentry.Event)
 }
 
 // type check
@@ -37,6 +39,12 @@ func (t *Transport) Flush(timeout time.Duration) (ok bool) {
 	return t.OnFlush(timeout)
 }
 
+// FlushWithContext implements the [sentry.Transport] interface for the
+// *Transport.
+func (t *Transport) FlushWithContext(ctx context.Context) (ok bool) {
+	return t.OnFlushWithContext(ctx)
+}
+
 // SendEvent implements the [sentry.Transport] interface for the *Transport.
 func (t *Transport) SendEvent(e *sentry.Event) {
 	t.OnSendEvent(e)
@@ -53,6 +61,9 @@ func NewTransport() (tst *Transport) {
 		},
 		OnFlush: func(timeout time.Duration) (_ bool) {
 			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).Flush(%v)", timeout))
+		},
+		OnFlushWithContext: func(_ context.Context) (_ bool) {
+			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).FlushWithContext()"))
 		},
 		OnSendEvent: func(e *sentry.Event) {
 			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).SendEvent(%v)", e))
