@@ -16,7 +16,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"google.golang.org/grpc"
 )
 
@@ -87,13 +87,9 @@ func Init(ctx context.Context, c *Config) (svc service.Interface, err error) {
 	}
 
 	// Use the provided service name, since the env one may be incorrect.
-	res, err := resource.Merge(
-		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName(c.ServiceName),
-		),
-	)
+	defRes := resource.Default()
+	svcNameRes := resource.NewWithAttributes(defRes.SchemaURL(), semconv.ServiceName(c.ServiceName))
+	res, err := resource.Merge(defRes, svcNameRes)
 	if err != nil {
 		return nil, fmt.Errorf("creating otel resource: %w", err)
 	}
