@@ -105,15 +105,6 @@ func (h *SignalHandler) AddService(svcs ...Interface) {
 	h.services = append(h.services, svcs...)
 }
 
-// Add adds a services to the signal handler.
-//
-// It must not be called concurrently with [Handle].
-//
-// Deprecated: Use [SignalHandler.AddService] instead.
-func (h *SignalHandler) Add(svcs ...Interface) {
-	h.AddService(svcs...)
-}
-
 // Handle processes signals from the handler's [osutil.SignalNotifier].  It
 // blocks until a termination signal is received, after which it shuts down all
 // services.  ctx is used for logging and serves as the base for the shutdown
