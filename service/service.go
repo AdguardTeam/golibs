@@ -14,7 +14,7 @@ type unit = struct{}
 
 // Interface is the interface for long-running services.
 type Interface interface {
-	// Start starts the service.  ctx is used for cancelation.
+	// Start starts the service.  ctx is used for cancellation.
 	//
 	// It is recommended that Start returns only after the service has
 	// completely finished its initialization.  If that cannot be done, the

@@ -40,7 +40,7 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 	const numGoroutine = 1_000
 
 	wg := &sync.WaitGroup{}
-	for i := 0; i < numGoroutine; i++ {
+	for i := range numGoroutine {
 		wg.Add(1)
 
 		go func(i int) {
@@ -62,13 +62,18 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 	slices.Sort(hybridOutputStrings)
 	slices.Sort(textOutputStrings)
 
-	for i := 0; i < numGoroutine; i++ {
+	const (
+		prefix = `{"severity":"NORMAL","message":"level=INFO msg=\"test message\" `
+		suffix = `"}`
+	)
+
+	for i := range numGoroutine {
 		textString := textOutputStrings[i]
 		expectedString := strings.Replace(textString, `level=INFO msg="test message" `, "", 1)
 
-		jsonString := hybridOutputStrings[i]
-		gotString := strings.Replace(jsonString, `{"severity":"NORMAL","message":"level=INFO msg=\"test message\" `, "", 1)
-		gotString = strings.Replace(gotString, `"}`, "", 1)
+		gotString := hybridOutputStrings[i]
+		gotString = strings.TrimPrefix(gotString, prefix)
+		gotString = strings.TrimSuffix(gotString, suffix)
 
 		assert.Equal(t, expectedString, gotString)
 	}

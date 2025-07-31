@@ -6,13 +6,13 @@ import "io"
 // to its underlying writer and then ignores the rest.
 type TruncatedWriter struct {
 	w      io.Writer
-	limit  uint
-	offset uint
+	limit  uint64
+	offset uint64
 }
 
-// NewTruncatedWriter returns a new truncated writer.  It wraps the given writer
-// w the way it writes up to the given limit and then ignores the rest.
-func NewTruncatedWriter(w io.Writer, limit uint) (tw *TruncatedWriter) {
+// NewTruncatedWriter returns a new truncated writer.  It wraps w so that it
+// writes up to limit bytes and then ignores the rest.
+func NewTruncatedWriter(w io.Writer, limit uint64) (tw *TruncatedWriter) {
 	return &TruncatedWriter{
 		w:     w,
 		limit: limit,
@@ -31,7 +31,7 @@ func (w *TruncatedWriter) Write(b []byte) (n int, err error) {
 		return n, nil
 	}
 
-	idx := min(uint(n), remaining)
+	idx := min(uint64(n), remaining)
 
 	// TODO(e.burkov): As the actual number of written bytes could be less then
 	// idx, consider returning this actual number.

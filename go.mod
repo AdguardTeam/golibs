@@ -3,6 +3,7 @@ module github.com/AdguardTeam/golibs
 go 1.24.5
 
 require (
+	github.com/c2h5oh/datasize v0.0.0-20231215233829-aa82cc1e6500
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/getsentry/sentry-go v0.34.1
 	github.com/gomodule/redigo v1.9.2

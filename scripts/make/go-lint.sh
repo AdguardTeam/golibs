@@ -200,7 +200,7 @@ run_linter fieldalignment \
 	./logutil/... \
 	./mathutil/... \
 	./netutil/... \
-	./osutil/ \
+	./osutil/... \
 	./redisutil/ \
 	./service/ \
 	./stringutil/ \

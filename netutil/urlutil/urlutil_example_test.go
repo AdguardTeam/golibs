@@ -41,7 +41,7 @@ func ExampleRedactUserinfoInURLError() {
 	c := &http.Client{
 		Timeout: 1 * time.Second,
 		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+			DialContext: func(_ context.Context, _, _ string) (conn net.Conn, err error) {
 				return nil, errors.Error("test error")
 			},
 		},

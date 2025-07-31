@@ -50,15 +50,17 @@ func TestPrefix_UnmarshalText(t *testing.T) {
 		name:       "bad_ipv4",
 		in:         "1.2.3.4.5",
 	}, {
-		want:       netip.Prefix{},
-		wantErrMsg: `ParseAddr("1234:::cdef"): each colon-separated field must have at least one digit (at ":cdef")`,
-		name:       "bad_ipv6",
-		in:         "1234:::cdef",
+		want: netip.Prefix{},
+		wantErrMsg: `ParseAddr("1234:::cdef"): ` +
+			`each colon-separated field must have at least one digit (at ":cdef")`,
+		name: "bad_ipv6",
+		in:   "1234:::cdef",
 	}, {
-		want:       netip.Prefix{},
-		wantErrMsg: `netip.ParsePrefix("1.2.3.4//16"): ParseAddr("1.2.3.4/"): unexpected character (at "/")`,
-		name:       "bad_cidr",
-		in:         "1.2.3.4//16",
+		want: netip.Prefix{},
+		wantErrMsg: `netip.ParsePrefix("1.2.3.4//16"): ParseAddr("1.2.3.4/"): ` +
+			`unexpected character (at "/")`,
+		name: "bad_cidr",
+		in:   "1.2.3.4//16",
 	}, {
 		want:       netip.PrefixFrom(netip.MustParseAddr("::ffff:1.2.3.4"), 96),
 		wantErrMsg: "",
@@ -72,7 +74,6 @@ func TestPrefix_UnmarshalText(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

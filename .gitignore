@@ -11,6 +11,8 @@
 #
 # Only build, run, and test outputs here.  Sorted.  With negations at the
 # bottom to make sure they take effect.
+*.exe
 *.out
 *.test
 /bin/
+/test-reports/
