@@ -6,7 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/AdguardTeam/golibs/errors"
-	"github.com/AdguardTeam/golibs/testutil/fakefs"
+	"github.com/AdguardTeam/golibs/testutil/fakeio/fakefs"
 )
 
 func Example() {

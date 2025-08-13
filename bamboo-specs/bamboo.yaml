@@ -1,9 +1,8 @@
 ---
-# This comment is used to simplify checking local copies of the
-# Makefile.  Bump this number every time a significant change is made to
-# this Makefile.
+# This comment is used to simplify checking local copies of the Bamboo spec.
+# Bump this number every time a significant change is made to this spec.
 #
-# AdGuard-Project-Version: 1
+# AdGuard-Project-Version: 8
 'version': 2
 'plan':
     'project-key': 'GO'
@@ -14,7 +13,7 @@
     # exact patch version as opposed to a minor one to make sure that this exact
     # version is actually used and not whatever the docker daemon on the CI has
     # cached a few months ago.
-    'dockerGo': 'adguard/go-builder:1.24.5--2'
+    'dockerGo': 'adguard/go-builder:1.24.6--1'
 
 'stages':
   - 'Go Lint':
@@ -78,13 +77,19 @@
 
                 make VERBOSE=1 go-tools md-lint sh-lint txt-lint
 
-
 'Test':
     'docker':
         'image': '${bamboo.dockerGo}'
         'volumes':
             '${system.GO_CACHE_DIR}': '${bamboo.cacheGo}'
             '${system.GO_PKG_CACHE_DIR}': '${bamboo.cacheGoPkg}'
+    'final-tasks':
+      - 'test-parser':
+          # The default pattern, '**/test-reports/*.xml', works, so don't set
+          # the test-results property.
+          'type': 'junit'
+          'ignore-time': true
+      - 'clean'
     'key': 'TEST'
     'tasks':
       - 'checkout':
@@ -108,10 +113,16 @@
                     --port "$TEST_REDIS_PORT" \
                     ;
 
-                make VERBOSE=1 \
+                make \
+                    TEST_REPORTS_DIR="./test-reports/" \
+                    VERBOSE=1 \
+                    go-tools \
                     go-deps \
                     go-test \
                     ;
+
+                exit_code="$(cat ./test-reports/test-exit-code.txt)"
+                readonly exit_code
 
                 redis_server_pid="$(head -n 1 "$redis_server_pidfile")"
                 readonly redis_server_pid
@@ -122,8 +133,8 @@
                     go-fuzz \
                     go-bench \
                     ;
-    'final-tasks':
-      - 'clean'
+
+                exit "$exit_code"
     'requirements':
       - 'adg-docker': true
 

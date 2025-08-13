@@ -3,7 +3,7 @@
 # This comment is used to simplify checking local copies of the script.  Bump
 # this number every time a significant change is made to this script.
 #
-# AdGuard-Project-Version: 13
+# AdGuard-Project-Version: 14
 
 verbose="${VERBOSE:-0}"
 readonly verbose
@@ -26,8 +26,8 @@ set -f -u
 
 # Simple analyzers
 
-# blocklist_imports is a simple check against unwanted packages.  The following
-# packages are banned:
+# blocklist_imports is a simple best-effort check against unwanted packages.
+# The following packages are banned:
 #
 #   *  Package errors is replaced by our own package in the
 #      github.com/AdguardTeam/golibs module.
@@ -62,8 +62,11 @@ set -f -u
 # NOTE:  Flag -H for grep is non-POSIX but all of Busybox, GNU, macOS, and
 # OpenBSD support it.
 blocklist_imports() {
+	import_or_tab="$(printf '^\\(import \\|\t\\)')"
+	readonly import_or_tab
+
 	# TODO(e.burkov):  These are temporary exclusions for some packages.
-	find . \
+	find_with_ignore \
 		-type 'f' \
 		'(' -name '*.go' '!' -name '*.pb.go' ')' \
 		'!' '(' \
@@ -71,6 +74,7 @@ blocklist_imports() {
 		-o -path './cache/list.go' \
 		-o -path './errors/errors.go' \
 		-o -path './hostsfile/storage.go' \
+		-o -path './internal/reflectutil/reflectutil.go' \
 		-o -path './log/example_test.go' \
 		-o -path './log/log.go' \
 		-o -path './logutil/slogutil/legacy*.go' \
@@ -82,17 +86,17 @@ blocklist_imports() {
 		-exec \
 		'grep' \
 		'-H' \
-		'-e' '[[:space:]]"errors"$' \
-		'-e' '[[:space:]]"github.com/AdguardTeam/golibs/log"$' \
-		'-e' '[[:space:]]"github.com/prometheus/client_golang/prometheus/promauto"$' \
-		'-e' '[[:space:]]"golang.org/x/exp/maps"$' \
-		'-e' '[[:space:]]"golang.org/x/exp/slices"$' \
-		'-e' '[[:space:]]"golang.org/x/net/context"$' \
-		'-e' '[[:space:]]"io/ioutil"$' \
-		'-e' '[[:space:]]"log"$' \
-		'-e' '[[:space:]]"reflect"$' \
-		'-e' '[[:space:]]"sort"$' \
-		'-e' '[[:space:]]"unsafe"$' \
+		'-e' "$import_or_tab"'"errors"$' \
+		'-e' "$import_or_tab"'"github.com/AdguardTeam/golibs/log"$' \
+		'-e' "$import_or_tab"'"github.com/prometheus/client_golang/prometheus/promauto"$' \
+		'-e' "$import_or_tab"'"golang.org/x/exp/maps"$' \
+		'-e' "$import_or_tab"'"golang.org/x/exp/slices"$' \
+		'-e' "$import_or_tab"'"golang.org/x/net/context"$' \
+		'-e' "$import_or_tab"'"io/ioutil"$' \
+		'-e' "$import_or_tab"'"log"$' \
+		'-e' "$import_or_tab"'"reflect"$' \
+		'-e' "$import_or_tab"'"sort"$' \
+		'-e' "$import_or_tab"'"unsafe"$' \
 		'-n' \
 		'{}' \
 		';'
@@ -106,7 +110,7 @@ blocklist_imports() {
 method_const() {
 	# NOTE: File ./redisutil/redisutil.go is excluded, since it uses "GET" as a
 	# Redis command.
-	find . \
+	find_with_ignore \
 		-type 'f' \
 		'(' -name '*.go' '!' -path './redisutil/redisutil.go' ')' \
 		-exec \
@@ -127,10 +131,11 @@ method_const() {
 # use of filenames like client_manager.go.
 underscores() {
 	underscore_files="$(
-		find . \
+		find_with_ignore \
 			-type 'f' \
 			-name '*_*.go' \
-			'!' '(' -name '*_darwin.go' \
+			'!' '(' \
+			-name '*_darwin.go' \
 			-o -name '*_generate.go' \
 			-o -name '*_linux.go' \
 			-o -name '*_others.go' \
@@ -173,7 +178,7 @@ run_linter ineffassign ./...
 
 run_linter unparam ./...
 
-find . \
+find_with_ignore \
 	-type 'f' \
 	'(' \
 	-name 'Makefile' \
