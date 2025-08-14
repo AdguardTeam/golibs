@@ -1,7 +1,7 @@
 # This comment is used to simplify checking local copies of the file.  Bump
 # this number every time a significant change is made to this file.
 #
-# AdGuard-Project-Version: 1
+# AdGuard-Project-Version: 3
 
 # Please, DO NOT put your text editors' temporary files here.  The more are
 # added, the harder it gets to maintain and manage projects' gitignores.  Put
@@ -16,3 +16,4 @@
 *.test
 /bin/
 /test-reports/
+/tmp/

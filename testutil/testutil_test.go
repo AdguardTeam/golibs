@@ -16,7 +16,7 @@ const (
 	testErrMsg = "test error"
 )
 
-// testTB is a testing.TB for tests.
+// testTB is a [testing.TB] for tests.
 type testTB struct {
 	// TB is embedded here simply to make *testTB a testing.TB without actually
 	// implementing all methods.
@@ -54,6 +54,17 @@ func (t *testTB) Name() (name string) {
 	return t.onName()
 }
 
+// newTestTB returns a new *testTB all settable methods of which panic.
+func newTestTB() (t *testTB) {
+	return &testTB{
+		onCleanup: func(f func()) { panic(testutil.UnexpectedCall(f)) },
+		onErrorf:  func(f string, args ...any) { panic(testutil.UnexpectedCall(f, args)) },
+		onFailNow: func() { panic(testutil.UnexpectedCall()) },
+		onHelper:  func() { panic(testutil.UnexpectedCall()) },
+		onName:    func() (name string) { panic(testutil.UnexpectedCall()) },
+	}
+}
+
 func TestAssertErrorMsg(t *testing.T) {
 	t.Parallel()
 
@@ -61,18 +72,16 @@ func TestAssertErrorMsg(t *testing.T) {
 		numHelper := 0
 		gotFormat := ""
 		var gotArgs []any
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf: func(format string, args ...any) {
-				gotFormat = format
-				gotArgs = args
-			},
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { return testName },
-		}
 
-		testutil.AssertErrorMsg(tt, testErrMsg, errors.Error(testErrMsg))
+		tb := newTestTB()
+		tb.onErrorf = func(format string, args ...any) {
+			gotFormat = format
+			gotArgs = args
+		}
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
+
+		testutil.AssertErrorMsg(tb, testErrMsg, errors.Error(testErrMsg))
 
 		assert.Greater(t, numHelper, 0)
 		assert.Empty(t, gotFormat)
@@ -83,18 +92,16 @@ func TestAssertErrorMsg(t *testing.T) {
 		numHelper := 0
 		gotFormat := ""
 		var gotArgs []any
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf: func(format string, args ...any) {
-				gotFormat = format
-				gotArgs = args
-			},
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { return testName },
-		}
 
-		testutil.AssertErrorMsg(tt, testErrMsg, errors.Error("wrong test error"))
+		tb := newTestTB()
+		tb.onErrorf = func(format string, args ...any) {
+			gotFormat = format
+			gotArgs = args
+		}
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
+
+		testutil.AssertErrorMsg(tb, testErrMsg, errors.Error("wrong test error"))
 
 		assert.Greater(t, numHelper, 0)
 		assert.NotEmpty(t, gotFormat)
@@ -107,15 +114,11 @@ func TestAssertErrorMsg(t *testing.T) {
 
 	t.Run("empty_msg", func(t *testing.T) {
 		numHelper := 0
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
 
-		testutil.AssertErrorMsg(tt, "", nil)
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
+
+		testutil.AssertErrorMsg(tb, "", nil)
 
 		assert.Greater(t, numHelper, 0)
 	})
@@ -165,16 +168,12 @@ func TestAssertMarshalText(t *testing.T) {
 
 	t.Run("good", func(t *testing.T) {
 		numHelper := 0
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
 
 		require.NotPanics(t, func() {
-			testutil.AssertMarshalText(tt, "good", &goodCodec{value: []byte("good")})
+			testutil.AssertMarshalText(tb, "good", &goodCodec{value: []byte("good")})
 		})
 		assert.Greater(t, numHelper, 0)
 	})
@@ -182,16 +181,14 @@ func TestAssertMarshalText(t *testing.T) {
 	t.Run("bad", func(t *testing.T) {
 		numHelper := 0
 		numErrorf := 0
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { return testName },
-		}
+
+		tb := newTestTB()
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
 
 		require.NotPanics(t, func() {
-			testutil.AssertMarshalText(tt, "bad", &badCodec{value: []byte("bad")})
+			testutil.AssertMarshalText(tb, "bad", &badCodec{value: []byte("bad")})
 		})
 		assert.Greater(t, numErrorf, 0)
 		assert.Greater(t, numHelper, 0)
@@ -203,16 +200,12 @@ func TestAssertUnmarshalText(t *testing.T) {
 
 	t.Run("good", func(t *testing.T) {
 		numHelper := 0
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
 
 		require.NotPanics(t, func() {
-			testutil.AssertUnmarshalText(tt, "good", &goodCodec{value: []byte("good")})
+			testutil.AssertUnmarshalText(tb, "good", &goodCodec{value: []byte("good")})
 		})
 		assert.Greater(t, numHelper, 0)
 	})
@@ -220,16 +213,14 @@ func TestAssertUnmarshalText(t *testing.T) {
 	t.Run("bad", func(t *testing.T) {
 		numHelper := 0
 		numErrorf := 0
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { return testName },
-		}
+
+		tb := newTestTB()
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
 
 		require.NotPanics(t, func() {
-			testutil.AssertUnmarshalText(tt, "bad", &badCodec{value: []byte("bad")})
+			testutil.AssertUnmarshalText(tb, "bad", &badCodec{value: []byte("bad")})
 		})
 		assert.Greater(t, numErrorf, 0)
 		assert.Greater(t, numHelper, 0)
@@ -248,19 +239,98 @@ func TestCleanupAndRequireSuccess(t *testing.T) {
 
 	var gotFunc func()
 	numHelper := 0
-	tt := &testTB{
-		onCleanup: func(f func()) {
-			gotFunc = f
-		},
-		onErrorf: func(_ string, _ ...any) { panic("not implemented") },
-		onHelper: func() { numHelper++ },
-		onName:   func() (name string) { return testName },
-	}
 
-	testutil.CleanupAndRequireSuccess(tt, cleanupFunc)
+	tb := newTestTB()
+	tb.onCleanup = func(f func()) {
+		gotFunc = f
+	}
+	tb.onHelper = func() { numHelper++ }
+	tb.onName = func() (name string) { return testName }
+
+	testutil.CleanupAndRequireSuccess(tb, cleanupFunc)
 
 	assert.Greater(t, numHelper, 0)
 
 	gotFunc()
 	assert.True(t, cleanupFuncCalled)
+}
+
+func TestRequireTypeAssert(t *testing.T) {
+	t.Parallel()
+
+	require.True(t, t.Run("concrete_fail", func(t *testing.T) {
+		var numErrorf, numFailNow, numHelper int
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onFailNow = func() { numFailNow++ }
+		tb.onName = func() (name string) { return testName }
+
+		const wantErrMsg = "interface conversion: interface {} is string, not int"
+
+		var v any = ""
+		assert.PanicsWithError(t, wantErrMsg, func() {
+			_ = testutil.RequireTypeAssert[int](tb, v)
+		})
+
+		assert.Equal(t, 1, numErrorf)
+		assert.Equal(t, 1, numFailNow)
+		assert.Greater(t, numHelper, 1)
+	}))
+
+	require.True(t, t.Run("concrete_success", func(t *testing.T) {
+		var numHelper int
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
+
+		var v any = 1
+		var got int
+		assert.NotPanics(t, func() {
+			got = testutil.RequireTypeAssert[int](tb, v)
+		})
+
+		assert.Equal(t, v, got)
+		assert.Greater(t, numHelper, 1)
+	}))
+
+	require.True(t, t.Run("interface_fail", func(t *testing.T) {
+		var numErrorf, numFailNow, numHelper int
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onFailNow = func() { numFailNow++ }
+		tb.onName = func() (name string) { return testName }
+
+		const wantErrMsg = "interface conversion: string is not error: missing method Error"
+
+		var v any = ""
+		assert.PanicsWithError(t, wantErrMsg, func() {
+			_ = testutil.RequireTypeAssert[error](tb, v)
+		})
+
+		assert.Equal(t, 1, numErrorf)
+		assert.Equal(t, 1, numFailNow)
+		assert.Greater(t, numHelper, 1)
+	}))
+
+	require.True(t, t.Run("interface_success", func(t *testing.T) {
+		var numHelper int
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
+		tb.onName = func() (name string) { return testName }
+
+		var v any = errors.Error("")
+		var got error
+		assert.NotPanics(t, func() {
+			got = testutil.RequireTypeAssert[error](tb, v)
+		})
+
+		assert.Equal(t, v, got)
+		assert.Greater(t, numHelper, 1)
+	}))
 }

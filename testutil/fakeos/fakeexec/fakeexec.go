@@ -3,17 +3,14 @@
 //
 // It is recommended to fill all methods that shouldn't be called with:
 //
-//	panic("not implemented")
-//
-// in the body of the test, so that if the method is called the panic backtrace
-// points to the method definition in the test.
+//	panic(testutil.UnexpectedCall(arg1, arg2))
 package fakeexec
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/AdguardTeam/golibs/osutil/executil"
+	"github.com/AdguardTeam/golibs/testutil"
 )
 
 // Command is the [executil.Command] for tests.
@@ -44,15 +41,9 @@ func (c *Command) Wait(ctx context.Context) (err error) {
 // NewCommand returns a new *Command all methods of which panic.
 func NewCommand() (c *Command) {
 	return &Command{
-		OnCancel: func(_ context.Context) (err error) {
-			panic(fmt.Errorf("unexpected call to fakeexec.(*Command).Cancel()"))
-		},
-		OnStart: func(_ context.Context) (err error) {
-			panic(fmt.Errorf("unexpected call to fakeexec.(*Command).Start()"))
-		},
-		OnWait: func(_ context.Context) (err error) {
-			panic(fmt.Errorf("unexpected call to fakeexec.(*Command).Wait()"))
-		},
+		OnCancel: func(ctx context.Context) (err error) { panic(testutil.UnexpectedCall(ctx)) },
+		OnStart:  func(ctx context.Context) (err error) { panic(testutil.UnexpectedCall(ctx)) },
+		OnWait:   func(ctx context.Context) (err error) { panic(testutil.UnexpectedCall(ctx)) },
 	}
 }
 

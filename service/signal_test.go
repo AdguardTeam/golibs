@@ -39,7 +39,7 @@ func (s *fakeSignalNotifier) Stop(c chan<- os.Signal) {
 func TestSignalHandler(t *testing.T) {
 	shutdownCh := make(chan struct{})
 	svc := &fakeservice.Service{
-		OnStart: func(_ context.Context) (err error) { panic("not implemented") },
+		OnStart: func(ctx context.Context) (err error) { panic(testutil.UnexpectedCall(ctx)) },
 		OnShutdown: func(_ context.Context) (err error) {
 			close(shutdownCh)
 
@@ -53,7 +53,7 @@ func TestSignalHandler(t *testing.T) {
 			onNotify: func(c chan<- os.Signal, sig ...os.Signal) {
 				controlCh = c
 			},
-			onStop: func(_ chan<- os.Signal) { panic("not implemented") },
+			onStop: func(ch chan<- os.Signal) { panic(testutil.UnexpectedCall(ch)) },
 		},
 		Logger:          slogutil.NewDiscardLogger(),
 		RefreshTimeout:  testTimeout,

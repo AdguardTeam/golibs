@@ -41,7 +41,6 @@ func RequireReceive[T any](t require.TestingT, ch <-chan T, timeout time.Duratio
 	case <-timer.C:
 		t.Errorf("did not receive after %s", timeout)
 		t.FailNow()
-
 	}
 
 	// Generally unreachable.

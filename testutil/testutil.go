@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/AdguardTeam/golibs/internal/reflectutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -222,10 +223,16 @@ func CleanupAndRequireSuccess(tb testing.TB, f func() (err error)) {
 
 // RequireTypeAssert is a helper that first requires the desired type and then,
 // if the type is correct, converts and returns the value.
-func RequireTypeAssert[T any](t testing.TB, v any) (res T) {
-	t.Helper()
+func RequireTypeAssert[T any](tb testing.TB, v any) (res T) {
+	tb.Helper()
 
-	require.IsType(t, res, v)
+	if reflectutil.IsInterface[T]() {
+		require.Implements(tb, (*T)(nil), v)
+
+		return v.(T)
+	}
+
+	require.IsType(tb, res, v)
 
 	return v.(T)
 }

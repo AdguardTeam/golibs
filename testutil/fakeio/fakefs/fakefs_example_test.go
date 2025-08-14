@@ -6,6 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/AdguardTeam/golibs/errors"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakeio/fakefs"
 )
 
@@ -30,7 +31,7 @@ func Example() {
 
 		// Use OnStat with a panic to signal that Stat is expected to not be
 		// called.
-		OnStat: func() (fi fs.FileInfo, err error) { panic("not implemented") },
+		OnStat: func() (fi fs.FileInfo, err error) { panic(testutil.UnexpectedCall()) },
 	}
 
 	fakeFS := &fakefs.FS{

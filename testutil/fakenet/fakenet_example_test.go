@@ -6,6 +6,7 @@ import (
 	"net"
 	"slices"
 
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakenet"
 )
 
@@ -14,14 +15,7 @@ func Example() {
 	fakeConn := &fakenet.Conn{
 		// Use OnClose with a panic to signal that Close is expected to not be
 		// called.
-		//
-		// It is not recommended to construct these fake values in helper
-		// functions (for example, newFakeConn), because then the panic
-		// backtrace in the test failure points to the helper function as
-		// opposed to this point in the code.
-		OnClose: func() (err error) {
-			panic("not implemented")
-		},
+		OnClose: func() (err error) { panic(testutil.UnexpectedCall()) },
 
 		// Other methods implemented in the same way as Close.
 
@@ -67,5 +61,5 @@ func Example() {
 
 	// Output:
 	// written: <nil> "test message"
-	// got panic: not implemented
+	// got panic: unexpected call to github.com/AdguardTeam/golibs/testutil/fakenet.(*Conn).Close()
 }

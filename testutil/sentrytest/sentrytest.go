@@ -6,9 +6,9 @@ package sentrytest
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/getsentry/sentry-go"
 )
 
@@ -53,20 +53,14 @@ func (t *Transport) SendEvent(e *sentry.Event) {
 // NewTransport returns a new *Transport all methods of which panic.
 func NewTransport() (tst *Transport) {
 	return &Transport{
-		OnClose: func() {
-			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).Close()"))
+		OnClose:     func() { panic(testutil.UnexpectedCall()) },
+		OnConfigure: func(opts sentry.ClientOptions) { panic(testutil.UnexpectedCall(opts)) },
+		OnFlush: func(timeout time.Duration) (ok bool) {
+			panic(testutil.UnexpectedCall(timeout))
 		},
-		OnConfigure: func(opts sentry.ClientOptions) {
-			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).Configure(%v)", opts))
+		OnFlushWithContext: func(ctx context.Context) (ok bool) {
+			panic(testutil.UnexpectedCall(ctx))
 		},
-		OnFlush: func(timeout time.Duration) (_ bool) {
-			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).Flush(%v)", timeout))
-		},
-		OnFlushWithContext: func(_ context.Context) (_ bool) {
-			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).FlushWithContext()"))
-		},
-		OnSendEvent: func(e *sentry.Event) {
-			panic(fmt.Errorf("unexpected call to sentrytest.(*Transport).SendEvent(%v)", e))
-		},
+		OnSendEvent: func(e *sentry.Event) { panic(testutil.UnexpectedCall(e)) },
 	}
 }

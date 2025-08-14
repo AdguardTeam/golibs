@@ -3,18 +3,15 @@
 //
 // It is recommended to fill all methods that shouldn't be called with:
 //
-//	panic("not implemented")
-//
-// in the body of the test, so that if the method is called the panic backtrace
-// points to the method definition in the test.
+//	panic(testutil.UnexpectedCall(arg1, arg2))
 package fakeredis
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/AdguardTeam/golibs/redisutil"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -64,23 +61,15 @@ func (c *Conn) Send(cmdName string, args ...any) (err error) {
 // NewConn returns a new *Conn all methods of which panic.
 func NewConn() (c *Conn) {
 	return &Conn{
-		OnClose: func() (err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Close()"))
-		},
+		OnClose: func() (err error) { panic(testutil.UnexpectedCall()) },
 		OnDo: func(cmdName string, args ...any) (reply any, err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Do(%v, %v)", cmdName, args))
+			panic(testutil.UnexpectedCall(cmdName, args))
 		},
-		OnErr: func() (err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Err()"))
-		},
-		OnFlush: func() (err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Flush()"))
-		},
-		OnReceive: func() (reply any, err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Receive()"))
-		},
+		OnErr:     func() (err error) { panic(testutil.UnexpectedCall()) },
+		OnFlush:   func() (err error) { panic(testutil.UnexpectedCall()) },
+		OnReceive: func() (reply any, err error) { panic(testutil.UnexpectedCall()) },
 		OnSend: func(cmdName string, args ...any) (err error) {
-			panic(fmt.Errorf("unexpected call to fakeredis.(*Conn).Send(%v, %v)", cmdName, args))
+			panic(testutil.UnexpectedCall(cmdName, args))
 		},
 	}
 }

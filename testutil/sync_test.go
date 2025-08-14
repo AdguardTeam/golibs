@@ -15,16 +15,12 @@ func TestRequireSend(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		var numHelper int
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
 
 		ch := make(chan struct{}, 1)
-		testutil.RequireSend(tt, ch, struct{}{}, timeout)
+		testutil.RequireSend(tb, ch, struct{}{}, timeout)
 
 		assert.Equal(t, 1, numHelper)
 		assert.Len(t, ch, 1)
@@ -32,16 +28,14 @@ func TestRequireSend(t *testing.T) {
 
 	t.Run("fail", func(t *testing.T) {
 		var numHelper, numErrorf, numFailNow int
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
-			onFailNow: func() { numFailNow++ },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onFailNow = func() { numFailNow++ }
+		tb.onHelper = func() { numHelper++ }
 
 		ch := make(chan struct{})
-		testutil.RequireSend(tt, ch, struct{}{}, timeout)
+		testutil.RequireSend(tb, ch, struct{}{}, timeout)
 
 		assert.Equal(t, 1, numHelper)
 		assert.Equal(t, 1, numErrorf)
@@ -55,18 +49,14 @@ func TestRequireReceive(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		var numHelper int
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { panic("not implemented") },
-			onFailNow: func() { panic("not implemented") },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onHelper = func() { numHelper++ }
 
 		ch := make(chan struct{}, 1)
 		ch <- struct{}{}
 
-		_, ok := testutil.RequireReceive(tt, ch, timeout)
+		_, ok := testutil.RequireReceive(tb, ch, timeout)
 		assert.True(t, ok)
 		assert.Equal(t, 1, numHelper)
 		assert.Len(t, ch, 0)
@@ -74,16 +64,14 @@ func TestRequireReceive(t *testing.T) {
 
 	t.Run("fail", func(t *testing.T) {
 		var numHelper, numErrorf, numFailNow int
-		tt := &testTB{
-			onCleanup: func(_ func()) { panic("not implemented") },
-			onErrorf:  func(_ string, _ ...any) { numErrorf++ },
-			onFailNow: func() { numFailNow++ },
-			onHelper:  func() { numHelper++ },
-			onName:    func() (name string) { panic("not implemented") },
-		}
+
+		tb := newTestTB()
+		tb.onErrorf = func(_ string, _ ...any) { numErrorf++ }
+		tb.onFailNow = func() { numFailNow++ }
+		tb.onHelper = func() { numHelper++ }
 
 		ch := make(chan struct{})
-		_, ok := testutil.RequireReceive(tt, ch, timeout)
+		_, ok := testutil.RequireReceive(tb, ch, timeout)
 		assert.False(t, ok)
 		assert.Equal(t, 1, numHelper)
 		assert.Equal(t, 1, numErrorf)

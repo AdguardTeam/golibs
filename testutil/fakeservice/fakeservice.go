@@ -3,10 +3,7 @@
 //
 // It is recommended to fill all methods that shouldn't be called with:
 //
-//	panic("not implemented")
-//
-// in the body of the test, so that if the method is called the panic backtrace
-// points to the method definition in the test.
+//	panic(testutil.UnexpectedCall(arg1, arg2))
 package fakeservice
 
 import (
