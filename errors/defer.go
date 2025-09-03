@@ -73,7 +73,7 @@ func Annotate(err error, format string, args ...any) (annotated error) {
 //
 // If returned is nil and deferred is non-nil, the returned error implements the
 // [Deferred] interface.  If both returned and deferred are non-nil, result has
-// the underlying type of [*Pair].
+// the underlying type of [Pair].
 //
 // # Warning
 //

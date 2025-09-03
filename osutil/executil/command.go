@@ -49,8 +49,7 @@ func (EmptyCommand) Start(_ context.Context) (err error) { return nil }
 // Wait implements the [Command] interface for EmptyCommand.
 func (EmptyCommand) Wait(_ context.Context) (err error) { return nil }
 
-// SystemCommand is a [Command] that uses [*exec.Cmd] to execute system
-// commands.
+// SystemCommand is a [Command] that uses [exec.Cmd] to execute system commands.
 //
 // TODO(a.garipov):  Consider actually using the context in the methods for
 // cancellation.

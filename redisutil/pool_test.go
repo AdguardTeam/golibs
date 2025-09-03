@@ -19,8 +19,8 @@ func TestDefaultPool_Get(t *testing.T) {
 
 	var isClosed bool
 	conn.OnDo = func(cmdName string, args ...any) (reply any, err error) {
-		// NOTE:  [*redis.Pool] calls conn.Do("") before putting a conn back
-		// into the pool.
+		// NOTE:  [redis.Pool] calls conn.Do("") before putting a conn back into
+		// the pool.
 		if cmdName == "" {
 			require.Empty(t, args)
 			require.False(t, isClosed)

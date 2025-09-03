@@ -122,7 +122,7 @@ func (set *MapSet[T]) Values() (values []T) {
 	return values
 }
 
-// MapSetToString converts a [*MapSet] of values of an ordered type into a
+// MapSetToString converts a [MapSet] of values of an ordered type into a
 // reproducible string.
 func MapSetToString[T constraints.Ordered](set *MapSet[T]) (s string) {
 	v := set.Values()

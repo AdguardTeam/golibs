@@ -22,7 +22,7 @@ type LogMiddleware struct {
 }
 
 // logMwAttrNum is the number of attributes used by the logger set by
-// [*LogMiddleware].
+// [LogMiddleware].
 const logMwAttrNum = 4
 
 // NewLogMiddleware returns a new *LogMiddleware with l as the base logger.

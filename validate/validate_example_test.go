@@ -8,7 +8,7 @@ import (
 	"github.com/AdguardTeam/golibs/validate"
 )
 
-// value is a simple value that returns err in [*value.Validate].
+// value is a simple value that returns err in [value.Validate].
 type value struct {
 	err error
 }

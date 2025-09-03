@@ -31,7 +31,7 @@ func Wrap(h http.Handler, middlewares ...Middleware) (wrapped http.Handler) {
 	return wrapped
 }
 
-// Router is the interface for HTTP routers, such as [*http.ServeMux].
+// Router is the interface for HTTP routers, such as [http.ServeMux].
 type Router interface {
 	// Handle registers the handler for the given pattern.
 	Handle(pattern string, h http.Handler)

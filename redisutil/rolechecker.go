@@ -14,13 +14,13 @@ import (
 )
 
 // RoleChecker is a [ConnectionTester] that simplifies checking connection
-// roles in a [*DefaultPool].
+// roles in a [DefaultPool].
 type RoleChecker struct {
 	logger   *slog.Logger
 	roleData []byte
 }
 
-// RoleCheckerConfig is the configuration structure for a [*RoleChecker].
+// RoleCheckerConfig is the configuration structure for a [RoleChecker].
 type RoleCheckerConfig struct {
 	// Logger is used to log the operation of the checker.  If nil,
 	// [slog.Default] is used.

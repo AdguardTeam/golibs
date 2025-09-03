@@ -75,7 +75,13 @@
 
                 set -e -f -u -x
 
-                make VERBOSE=1 go-tools md-lint sh-lint txt-lint
+                make \
+                    VERBOSE=1 \
+                    go-tools \
+                    md-lint \
+                    sh-lint \
+                    txt-lint \
+                    ;
 
 'Test':
     'docker':

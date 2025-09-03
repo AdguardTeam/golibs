@@ -22,14 +22,14 @@ type Dialer interface {
 	DialContext(ctx context.Context) (c redis.Conn, err error)
 }
 
-// DefaultDialerConfig is the configuration structure for a [*DefaultDialer].
+// DefaultDialerConfig is the configuration structure for a [DefaultDialer].
 type DefaultDialerConfig struct {
 	// Addr is the address of the Redis server.  It must not be nil and must be
 	// valid.
 	Addr *netutil.HostPort
 
 	// Resolver is used to resolve the hostname.  If nil, a default pure-Go
-	// [*net.Resolver] is used.
+	// [net.Resolver] is used.
 	//
 	// TODO(a.garipov):  Add the [netutil.Resolver] interface?
 	Resolver *net.Resolver
