@@ -41,14 +41,10 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 
 	wg := &sync.WaitGroup{}
 	for i := range numGoroutine {
-		wg.Add(1)
-
-		go func(i int) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			hybridLogger.Info("test message", "i", i, "attr", "abc")
 			textLogger.Info("test message", "i", i, "attr", "abc")
-		}(i)
+		})
 	}
 
 	wg.Wait()

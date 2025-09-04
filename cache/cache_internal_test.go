@@ -90,10 +90,9 @@ func TestParallel(t *testing.T) {
 	wg := sync.WaitGroup{}
 	N := 100
 	for w := 0; w != 100; w++ {
-		wg.Add(1)
-		go func(wid int) {
+		wg.Go(func() {
 			for i := 0; i != N; i++ {
-				key := []byte(fmt.Sprintf("key-%d-%d", wid, i))
+				key := fmt.Appendf(nil, "key-%d-%d", w, i)
 				val := []byte{1, 2, 3, byte(i % 255)}
 				_ = c.Set(key, val)
 
@@ -104,8 +103,7 @@ func TestParallel(t *testing.T) {
 
 				c.Del(key)
 			}
-			wg.Done()
-		}(w)
+		})
 	}
 
 	wg.Wait()

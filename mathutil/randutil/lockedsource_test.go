@@ -14,18 +14,14 @@ func TestLockedSource_race(t *testing.T) {
 	src := randutil.NewLockedSource(rand.NewPCG(0, 0))
 
 	wg := &sync.WaitGroup{}
-	wg.Add(testGoroutinesNum)
-
 	startCh := make(chan struct{})
 	for range testGoroutinesNum {
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			<-startCh
 			for range 1_000 {
 				_ = src.Uint64()
 			}
-		}()
+		})
 	}
 
 	close(startCh)

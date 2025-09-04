@@ -8,7 +8,7 @@
   "emphasis-style": {
     "style": "asterisk"
   },
-  "no-duplicate-header": {
+  "no-duplicate-heading": {
     "siblings_only": true
   },
   "no-inline-html": {
@@ -21,5 +21,6 @@
   },
   "line-length": false,
   "no-bare-urls": false,
+  "no-emphasis-as-heading": false,
   "link-fragments": false
 }

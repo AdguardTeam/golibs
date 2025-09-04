@@ -16,19 +16,15 @@ func TestReader_race(t *testing.T) {
 	reader := randutil.NewReader(randutil.MustNewSeed())
 
 	wg := &sync.WaitGroup{}
-	wg.Add(testGoroutinesNum)
-
 	startCh := make(chan struct{})
 	for range testGoroutinesNum {
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			<-startCh
 			for range 1_000 {
 				buf := make([]byte, length)
 				_, _ = reader.Read(buf)
 			}
-		}()
+		})
 	}
 
 	close(startCh)
