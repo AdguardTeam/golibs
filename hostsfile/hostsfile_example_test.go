@@ -2,6 +2,7 @@ package hostsfile_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/netip"
 	"strings"
@@ -28,7 +29,8 @@ func ExampleFuncSet() {
 	})
 
 	// Parse the hosts file.
-	err := hostsfile.Parse(set, strings.NewReader(content), nil)
+	ctx := context.Background()
+	err := hostsfile.Parse(ctx, set, strings.NewReader(content), nil)
 	fmt.Printf("error: %s\n", err)
 	fmt.Printf("records for 1.2.3.4: %q\n", names[netip.MustParseAddr("1.2.3.4")])
 	fmt.Printf("records for host3: %s\n", addrs["host3"])
@@ -42,11 +44,14 @@ func ExampleFuncSet() {
 // invalidSet is a [HandleSet] implementation that collects invalid records.
 type invalidSet []hostsfile.Record
 
+// type check
+var _ hostsfile.HandleSet = (*invalidSet)(nil)
+
 // Add implements the [Set] interface for invalidSet.
 func (s *invalidSet) Add(r *hostsfile.Record) { *s = append(*s, *r) }
 
 // AddInvalid implements the [HandleSet] interface for invalidSet.
-func (s *invalidSet) HandleInvalid(srcName string, data []byte, err error) {
+func (s *invalidSet) HandleInvalid(_ context.Context, srcName string, data []byte, err error) {
 	addrErr := &netutil.AddrError{}
 	if !errors.As(err, &addrErr) {
 		return
@@ -74,7 +79,8 @@ func ExampleHandleSet() {
 		"1.2.3.4 another.valid.host\n"
 
 	set := invalidSet{}
-	err := hostsfile.Parse(&set, strings.NewReader(content), nil)
+	ctx := context.Background()
+	err := hostsfile.Parse(ctx, &set, strings.NewReader(content), nil)
 	fmt.Printf("error: %v\n", err)
 	for _, r := range set {
 		fmt.Printf("%q\n", r.Names)

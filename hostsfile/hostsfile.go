@@ -8,7 +8,10 @@
 // [RFC-1123]: https://datatracker.ietf.org/doc/html/rfc1123
 package hostsfile
 
-import "io"
+import (
+	"context"
+	"io"
+)
 
 // NamedReader is an optional interface that may be implemented by an
 // [io.Reader] to provide the name of the data source.
@@ -47,5 +50,5 @@ type HandleSet interface {
 	// HandleInvalid unmarshals invalid records according to the err returned by
 	// [Record.UnmarshalText].  data is the original line from the hosts file,
 	// including spaces, srcName is the name of the data source, if provided.
-	HandleInvalid(srcName string, data []byte, err error)
+	HandleInvalid(ctx context.Context, srcName string, data []byte, err error)
 }

@@ -41,6 +41,7 @@ func (s *sliceSet) Add(r *hostsfile.Record) {
 func TestParse(t *testing.T) {
 	t.Parallel()
 
+	ctx := t.Context()
 	testCases := []struct {
 		name       string
 		source     io.Reader
@@ -108,7 +109,7 @@ func TestParse(t *testing.T) {
 			t.Parallel()
 
 			var recs sliceSet
-			err := hostsfile.Parse(&recs, tc.source, nil)
+			err := hostsfile.Parse(ctx, &recs, tc.source, nil)
 			testutil.AssertErrorMsg(t, tc.wantErrMsg, err)
 
 			assert.Equal(t, tc.want, []hostsfile.Record(recs))
@@ -124,7 +125,7 @@ func TestParse_fileSource(t *testing.T) {
 	testutil.CleanupAndRequireSuccess(t, f.Close)
 
 	recs := sliceSet{}
-	err = hostsfile.Parse(&recs, f, nil)
+	err = hostsfile.Parse(t.Context(), &recs, f, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, recs)
 
@@ -147,7 +148,7 @@ func TestParse_badReader(t *testing.T) {
 		},
 	}
 
-	err := hostsfile.Parse(hostsfile.DiscardSet{}, r, nil)
+	err := hostsfile.Parse(t.Context(), hostsfile.DiscardSet{}, r, nil)
 	require.ErrorIs(t, err, readErr)
 }
 
@@ -169,7 +170,7 @@ func BenchmarkParse(b *testing.B) {
 		var err error
 		b.ReportAllocs()
 		for b.Loop() {
-			err = hostsfile.Parse(set, data, buf)
+			err = hostsfile.Parse(b.Context(), set, data, buf)
 		}
 
 		require.NoError(b, err)
@@ -187,7 +188,7 @@ func BenchmarkParse(b *testing.B) {
 
 func FuzzParse(f *testing.F) {
 	f.Fuzz(func(t *testing.T, seed []byte) {
-		err := hostsfile.Parse(&validatingSet{tb: t}, bytes.NewReader(seed), nil)
+		err := hostsfile.Parse(t.Context(), &validatingSet{tb: t}, bytes.NewReader(seed), nil)
 		if err != nil {
 			// TODO(e.burkov):  Check each error when it is possible to unwrap
 			// those after migration to errors.Join.

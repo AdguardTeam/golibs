@@ -1,6 +1,7 @@
 package hostsfile_test
 
 import (
+	"context"
 	"net/netip"
 	"strings"
 	"testing"
@@ -32,7 +33,7 @@ func (s validatingSet) Add(r *hostsfile.Record) {
 var _ hostsfile.HandleSet = validatingSet{}
 
 // HandleInvalid implements the [HandleSet] interface for validatingSet.
-func (s validatingSet) HandleInvalid(_ string, data []byte, err error) {
+func (s validatingSet) HandleInvalid(_ context.Context, _ string, data []byte, err error) {
 	rec := &hostsfile.Record{}
 
 	var lineErr *hostsfile.LineError
