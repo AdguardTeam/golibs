@@ -60,9 +60,9 @@ type DefaultStorageConfig struct {
 //
 // It must be initialized with [NewDefaultStorage].
 type DefaultStorage struct {
-	// Logger is used for logging errors in the [DefaultStorage.HandleInvalid]
+	// logger is used for logging errors in the [DefaultStorage.HandleInvalid]
 	// function.
-	Logger *slog.Logger
+	logger *slog.Logger
 
 	// names maps each address to its names in original case and in original
 	// adding order without duplicates.
@@ -81,7 +81,7 @@ func NewDefaultStorage(
 	config *DefaultStorageConfig,
 ) (s *DefaultStorage, err error) {
 	s = &DefaultStorage{
-		Logger: cmp.Or(config.Logger, slog.Default()),
+		logger: cmp.Or(config.Logger, slog.Default()),
 		names:  map[netip.Addr]*namesSet{},
 		addrs:  map[string]*addrsSet{},
 	}
@@ -100,7 +100,7 @@ var _ HandleSet = (*DefaultStorage)(nil)
 
 // Add implements the [Set] interface for *DefaultStorage.  It skips records
 // without hostnames, ignores duplicates and squashes the rest.
-func (s *DefaultStorage) Add(rec *Record) {
+func (s *DefaultStorage) Add(_ context.Context, rec *Record) {
 	names := s.names[rec.Addr]
 	if names == nil {
 		names = &namesSet{
@@ -131,7 +131,7 @@ func (s *DefaultStorage) Add(rec *Record) {
 func (s *DefaultStorage) HandleInvalid(ctx context.Context, srcName string, _ []byte, err error) {
 	lineErr := &LineError{}
 	if !errors.As(err, &lineErr) {
-		s.Logger.DebugContext(ctx, "hostsfile: unexpected parsing error", slogutil.KeyError, err)
+		s.logger.DebugContext(ctx, "unexpected parsing error", slogutil.KeyError, err)
 
 		return
 	}
@@ -141,14 +141,7 @@ func (s *DefaultStorage) HandleInvalid(ctx context.Context, srcName string, _ []
 		return
 	}
 
-	s.Logger.DebugContext(
-		ctx,
-		"hostsfile: source",
-		"source_name",
-		srcName,
-		slogutil.KeyError,
-		lineErr,
-	)
+	s.logger.DebugContext(ctx, "invalid record", "source", srcName, slogutil.KeyError, lineErr)
 }
 
 // type check

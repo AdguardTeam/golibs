@@ -143,7 +143,7 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 func TestDefaultStorage_HandleInvalid(t *testing.T) {
 	t.Parallel()
 
-	ctx := t.Context()
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	ds, err := hostsfile.NewDefaultStorage(
 		ctx,
 		&hostsfile.DefaultStorageConfig{

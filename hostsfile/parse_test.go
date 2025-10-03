@@ -2,6 +2,7 @@ package hostsfile_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/netip"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/hostsfile"
@@ -17,6 +19,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// testTimeout is a common timeout for tests.
+const testTimeout = 1 * time.Second
 
 var (
 	// testIPv4 is an IPv4 address common for tests.  Do not mutate.
@@ -34,14 +39,14 @@ var testdata = os.DirFS("./testdata")
 type sliceSet []hostsfile.Record
 
 // Add implements the [Set] interface for *sliceSet.
-func (s *sliceSet) Add(r *hostsfile.Record) {
+func (s *sliceSet) Add(_ context.Context, r *hostsfile.Record) {
 	*s = append(*s, *r)
 }
 
 func TestParse(t *testing.T) {
 	t.Parallel()
 
-	ctx := t.Context()
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	testCases := []struct {
 		name       string
 		source     io.Reader
@@ -120,12 +125,14 @@ func TestParse(t *testing.T) {
 func TestParse_fileSource(t *testing.T) {
 	t.Parallel()
 
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+
 	f, err := testdata.Open("named_hosts")
 	require.NoError(t, err)
 	testutil.CleanupAndRequireSuccess(t, f.Close)
 
 	recs := sliceSet{}
-	err = hostsfile.Parse(t.Context(), &recs, f, nil)
+	err = hostsfile.Parse(ctx, &recs, f, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, recs)
 
@@ -148,7 +155,8 @@ func TestParse_badReader(t *testing.T) {
 		},
 	}
 
-	err := hostsfile.Parse(t.Context(), hostsfile.DiscardSet{}, r, nil)
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+	err := hostsfile.Parse(ctx, hostsfile.DiscardSet{}, r, nil)
 	require.ErrorIs(t, err, readErr)
 }
 
@@ -188,7 +196,8 @@ func BenchmarkParse(b *testing.B) {
 
 func FuzzParse(f *testing.F) {
 	f.Fuzz(func(t *testing.T, seed []byte) {
-		err := hostsfile.Parse(t.Context(), &validatingSet{tb: t}, bytes.NewReader(seed), nil)
+		ctx := testutil.ContextWithTimeout(t, testTimeout)
+		err := hostsfile.Parse(ctx, &validatingSet{tb: t}, bytes.NewReader(seed), nil)
 		if err != nil {
 			// TODO(e.burkov):  Check each error when it is possible to unwrap
 			// those after migration to errors.Join.

@@ -21,7 +21,7 @@ func ExampleFuncSet() {
 
 	addrs := map[string][]netip.Addr{}
 	names := map[netip.Addr][]string{}
-	set := hostsfile.FuncSet(func(r *hostsfile.Record) {
+	set := hostsfile.FuncSet(func(_ context.Context, r *hostsfile.Record) {
 		names[r.Addr] = append(names[r.Addr], r.Names...)
 		for _, name := range r.Names {
 			addrs[name] = append(addrs[name], r.Addr)
@@ -48,10 +48,10 @@ type invalidSet []hostsfile.Record
 var _ hostsfile.HandleSet = (*invalidSet)(nil)
 
 // Add implements the [Set] interface for invalidSet.
-func (s *invalidSet) Add(r *hostsfile.Record) { *s = append(*s, *r) }
+func (s *invalidSet) Add(_ context.Context, r *hostsfile.Record) { *s = append(*s, *r) }
 
-// AddInvalid implements the [HandleSet] interface for invalidSet.
-func (s *invalidSet) HandleInvalid(_ context.Context, srcName string, data []byte, err error) {
+// HandleInvalid implements the [HandleSet] interface for invalidSet.
+func (s *invalidSet) HandleInvalid(ctx context.Context, srcName string, data []byte, err error) {
 	addrErr := &netutil.AddrError{}
 	if !errors.As(err, &addrErr) {
 		return
@@ -69,7 +69,7 @@ func (s *invalidSet) HandleInvalid(_ context.Context, srcName string, data []byt
 		rec.Names = append(rec.Names, string(name))
 	}
 
-	s.Add(rec)
+	s.Add(ctx, rec)
 }
 
 func ExampleHandleSet() {

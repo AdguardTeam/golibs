@@ -25,23 +25,26 @@ type NamedReader interface {
 // Set handles successfully unmarshaled records.
 type Set interface {
 	// Add adds rec to the set.  rec should be valid.
-	Add(rec *Record)
+	Add(ctx context.Context, rec *Record)
 }
 
 // DiscardSet is a [Set] that discards all records.
 type DiscardSet struct{}
 
+// type check
+var _ Set = (*DiscardSet)(nil)
+
 // Add implements the [Set] interface for DiscardSet.
-func (DiscardSet) Add(_ *Record) {}
+func (DiscardSet) Add(_ context.Context, _ *Record) {}
 
 // FuncSet is a functional [Set] implementation.
-type FuncSet func(rec *Record)
+type FuncSet func(ctx context.Context, rec *Record)
 
 // type check
 var _ Set = FuncSet(nil)
 
 // Add implements the [Set] interface for FuncSet.
-func (f FuncSet) Add(rec *Record) { f(rec) }
+func (f FuncSet) Add(ctx context.Context, rec *Record) { f(ctx, rec) }
 
 // HandleSet is a [Set] that handles invalid records.
 type HandleSet interface {

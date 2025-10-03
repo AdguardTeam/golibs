@@ -36,6 +36,7 @@ func Parse(ctx context.Context, dst Set, src io.Reader, buf []byte) (err error) 
 	s := bufio.NewScanner(src)
 	s.Buffer(buf, bufio.MaxScanTokenSize)
 
+	// TODO(f.setrakov): Implement a stop on context cancel.
 	for lineNum := 1; s.Scan(); lineNum++ {
 		data := s.Bytes()
 		rec := &Record{Source: srcName}
@@ -44,7 +45,7 @@ func Parse(ctx context.Context, dst Set, src io.Reader, buf []byte) (err error) 
 		if err != nil {
 			handleInvalid(ctx, srcName, data, &LineError{Line: lineNum, err: err})
 		} else {
-			dst.Add(rec)
+			dst.Add(ctx, rec)
 		}
 	}
 	if err = s.Err(); err != nil {
