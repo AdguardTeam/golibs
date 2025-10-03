@@ -32,6 +32,9 @@ type orderedSet[K string | netip.Addr] struct {
 }
 
 // add adds val to os if it's not already there.
+//
+// TODO(f.setrakov): Get rid of this method and log duplicate records in
+// DefaultStorage.
 func (os *orderedSet[K]) add(key, val K) {
 	if !os.set.Has(key) {
 		os.set.Add(key)
@@ -51,7 +54,7 @@ type DefaultStorageConfig struct {
 	// function.
 	Logger *slog.Logger
 
-	// Readers will be read line by line and parsed as hostsfiles.
+	// Readers will be read line by line and parsed as hosts files.
 	Readers []io.Reader
 }
 

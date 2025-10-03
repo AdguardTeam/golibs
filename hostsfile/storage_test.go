@@ -10,15 +10,11 @@ import (
 	"testing"
 
 	"github.com/AdguardTeam/golibs/hostsfile"
-	"github.com/AdguardTeam/golibs/logutil/slogutil"
 	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakeio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// testLogger is a common logger for tests.
-var testLogger = slogutil.NewDiscardLogger()
 
 func TestDefaultStorage_lookup(t *testing.T) {
 	t.Parallel()
@@ -55,8 +51,9 @@ func TestDefaultStorage_lookup(t *testing.T) {
 	require.NoError(t, err)
 	testutil.CleanupAndRequireSuccess(t, f.Close)
 
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	ds, err := hostsfile.NewDefaultStorage(
-		t.Context(),
+		ctx,
 		&hostsfile.DefaultStorageConfig{
 			Logger:  testLogger,
 			Readers: []io.Reader{f},
@@ -103,8 +100,9 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 		require.NoError(t, err)
 		testutil.CleanupAndRequireSuccess(t, f.Close)
 
+		ctx := testutil.ContextWithTimeout(t, testTimeout)
 		ds, err := hostsfile.NewDefaultStorage(
-			t.Context(),
+			ctx,
 			&hostsfile.DefaultStorageConfig{
 				Logger:  testLogger,
 				Readers: []io.Reader{f},
@@ -127,8 +125,9 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 			},
 		}
 
+		ctx := testutil.ContextWithTimeout(t, testTimeout)
 		ds, err := hostsfile.NewDefaultStorage(
-			t.Context(),
+			ctx,
 			&hostsfile.DefaultStorageConfig{
 				Logger:  testLogger,
 				Readers: []io.Reader{r},
@@ -183,7 +182,7 @@ func TestDefaultStorage_range(t *testing.T) {
 		"4.3.2.1 yet.another.example\n"
 
 	var (
-		ctx = t.Context()
+		ctx = testutil.ContextWithTimeout(t, testTimeout)
 
 		v4Addr1 = netip.MustParseAddr("1.2.3.4")
 		v4Addr2 = netip.MustParseAddr("4.3.2.1")
@@ -273,7 +272,7 @@ func TestDefaultStorage_Equal(t *testing.T) {
 		"5.6.7.8 host.example another.example\n" +
 		"8.7.6.5 yet.another.example\n"
 
-	ctx := t.Context()
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
 
 	hs1, err := hostsfile.NewDefaultStorage(
 		ctx,
