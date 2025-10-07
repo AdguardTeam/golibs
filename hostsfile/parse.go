@@ -2,6 +2,7 @@ package hostsfile
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 
@@ -17,7 +18,7 @@ import (
 // a [HandleSet], it will be used to handle invalid records and unmarshaling
 // errors wrapped with [LineError], see [Record.UnmarshalText] for returned
 // errors.
-func Parse(dst Set, src io.Reader, buf []byte) (err error) {
+func Parse(ctx context.Context, dst Set, src io.Reader, buf []byte) (err error) {
 	var srcName string
 	nr, ok := src.(NamedReader)
 	if ok {
@@ -26,7 +27,7 @@ func Parse(dst Set, src io.Reader, buf []byte) (err error) {
 
 	var errs []error
 	// By default, collect all errors.
-	handleInvalid := func(_ string, _ []byte, err error) { errs = append(errs, err) }
+	handleInvalid := func(_ context.Context, _ string, _ []byte, err error) { errs = append(errs, err) }
 
 	if handleSet, isHandleSet := dst.(HandleSet); isHandleSet {
 		handleInvalid = handleSet.HandleInvalid
@@ -35,15 +36,16 @@ func Parse(dst Set, src io.Reader, buf []byte) (err error) {
 	s := bufio.NewScanner(src)
 	s.Buffer(buf, bufio.MaxScanTokenSize)
 
+	// TODO(f.setrakov): Implement a stop on context cancel.
 	for lineNum := 1; s.Scan(); lineNum++ {
 		data := s.Bytes()
 		rec := &Record{Source: srcName}
 
 		err = rec.UnmarshalText(data)
 		if err != nil {
-			handleInvalid(srcName, data, &LineError{Line: lineNum, err: err})
+			handleInvalid(ctx, srcName, data, &LineError{Line: lineNum, err: err})
 		} else {
-			dst.Add(rec)
+			dst.Add(ctx, rec)
 		}
 	}
 	if err = s.Err(); err != nil {

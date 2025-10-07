@@ -1,6 +1,7 @@
 package hostsfile_test
 
 import (
+	"context"
 	"net/netip"
 	"strings"
 	"testing"
@@ -24,7 +25,7 @@ type validatingSet struct {
 var _ hostsfile.Set = validatingSet{}
 
 // Add implements the [Set] interface for validatingSet.
-func (s validatingSet) Add(r *hostsfile.Record) {
+func (s validatingSet) Add(_ context.Context, r *hostsfile.Record) {
 	validateRecord(s.tb, r, nil)
 }
 
@@ -32,7 +33,7 @@ func (s validatingSet) Add(r *hostsfile.Record) {
 var _ hostsfile.HandleSet = validatingSet{}
 
 // HandleInvalid implements the [HandleSet] interface for validatingSet.
-func (s validatingSet) HandleInvalid(_ string, data []byte, err error) {
+func (s validatingSet) HandleInvalid(_ context.Context, _ string, data []byte, err error) {
 	rec := &hostsfile.Record{}
 
 	var lineErr *hostsfile.LineError
@@ -46,10 +47,8 @@ func (s validatingSet) HandleInvalid(_ string, data []byte, err error) {
 
 // validateRecord validates the given record considering the error as returned
 // by [Record.UnmarshalText].
-func validateRecord(t testing.TB, rec *hostsfile.Record, err error) {
-	if helper, ok := t.(interface{ Helper() }); ok {
-		helper.Helper()
-	}
+func validateRecord(tb testing.TB, rec *hostsfile.Record, err error) {
+	tb.Helper()
 
 	const errPref = `ParseAddr("`
 
@@ -57,26 +56,26 @@ func validateRecord(t testing.TB, rec *hostsfile.Record, err error) {
 	switch {
 	case errors.Is(err, hostsfile.ErrEmptyLine):
 		// It's either a comment or an empty line.
-		require.Nil(t, rec.Names)
-		require.False(t, rec.Addr.IsValid())
+		require.Nil(tb, rec.Names)
+		require.False(tb, rec.Addr.IsValid())
 	case errors.Is(err, hostsfile.ErrNoHosts):
 		// The only field.
-		require.Nil(t, rec.Names)
-		require.False(t, rec.Addr.IsValid())
+		require.Nil(tb, rec.Names)
+		require.False(tb, rec.Addr.IsValid())
 	case err != nil && strings.HasPrefix(err.Error(), errPref):
 		// It's an invalid IP address.
-		require.Nil(t, rec.Names)
-		require.False(t, rec.Addr.IsValid())
+		require.Nil(tb, rec.Names)
+		require.False(tb, rec.Addr.IsValid())
 	case errors.As(err, &addrErr):
 		// It's a valid IP address, but some hostnames are invalid.
-		require.NotNil(t, rec.Names)
-		require.True(t, rec.Addr.IsValid())
+		require.NotNil(tb, rec.Names)
+		require.True(tb, rec.Addr.IsValid())
 	default:
 		// Do not expect any other errors.
-		require.NoError(t, err)
+		require.NoError(tb, err)
 
-		require.True(t, rec.Addr.IsValid())
-		require.NotEmpty(t, rec.Names)
+		require.True(tb, rec.Addr.IsValid())
+		require.NotEmpty(tb, rec.Names)
 	}
 }
 

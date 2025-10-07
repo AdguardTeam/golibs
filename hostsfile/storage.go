@@ -1,15 +1,18 @@
 package hostsfile
 
 import (
+	"cmp"
+	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/netip"
 	"slices"
 	"strings"
 
 	"github.com/AdguardTeam/golibs/container"
 	"github.com/AdguardTeam/golibs/errors"
-	"github.com/AdguardTeam/golibs/log"
+	"github.com/AdguardTeam/golibs/logutil/slogutil"
 )
 
 // Storage indexes the hosts file records.
@@ -29,6 +32,9 @@ type orderedSet[K string | netip.Addr] struct {
 }
 
 // add adds val to os if it's not already there.
+//
+// TODO(f.setrakov): Get rid of this method and log duplicate records in
+// DefaultStorage.
 func (os *orderedSet[K]) add(key, val K) {
 	if !os.set.Has(key) {
 		os.set.Add(key)
@@ -42,11 +48,25 @@ type (
 	addrsSet = orderedSet[netip.Addr]
 )
 
+// DefaultStorageConfig is configuration structure for *DefaultStorage.
+type DefaultStorageConfig struct {
+	// Logger is used for logging errors in the [DefaultStorage.HandleInvalid]
+	// function.
+	Logger *slog.Logger
+
+	// Readers will be read line by line and parsed as hosts files.
+	Readers []io.Reader
+}
+
 // DefaultStorage is a [Storage] that removes duplicates.  It also implements
 // the [HandleSet] interface and therefore can be used within [Parse].
 //
 // It must be initialized with [NewDefaultStorage].
 type DefaultStorage struct {
+	// logger is used for logging errors in the [DefaultStorage.HandleInvalid]
+	// function.
+	logger *slog.Logger
+
 	// names maps each address to its names in original case and in original
 	// adding order without duplicates.
 	names map[netip.Addr]*namesSet
@@ -59,14 +79,18 @@ type DefaultStorage struct {
 // NewDefaultStorage parses data if hosts files format from readers and returns
 // a new properly initialized DefaultStorage.  readers are optional, an empty
 // storage is completely usable.
-func NewDefaultStorage(readers ...io.Reader) (s *DefaultStorage, err error) {
+func NewDefaultStorage(
+	ctx context.Context,
+	config *DefaultStorageConfig,
+) (s *DefaultStorage, err error) {
 	s = &DefaultStorage{
-		names: map[netip.Addr]*namesSet{},
-		addrs: map[string]*addrsSet{},
+		logger: cmp.Or(config.Logger, slog.Default()),
+		names:  map[netip.Addr]*namesSet{},
+		addrs:  map[string]*addrsSet{},
 	}
 
-	for i, r := range readers {
-		if err = Parse(s, r, nil); err != nil {
+	for i, r := range config.Readers {
+		if err = Parse(ctx, s, r, nil); err != nil {
 			return nil, fmt.Errorf("reader at index %d: %w", i, err)
 		}
 	}
@@ -79,7 +103,7 @@ var _ HandleSet = (*DefaultStorage)(nil)
 
 // Add implements the [Set] interface for *DefaultStorage.  It skips records
 // without hostnames, ignores duplicates and squashes the rest.
-func (s *DefaultStorage) Add(rec *Record) {
+func (s *DefaultStorage) Add(_ context.Context, rec *Record) {
 	names := s.names[rec.Addr]
 	if names == nil {
 		names = &namesSet{
@@ -107,10 +131,10 @@ func (s *DefaultStorage) Add(rec *Record) {
 
 // HandleInvalid implements the [HandleSet] interface for *DefaultStorage.  It
 // essentially ignores empty lines and logs all other errors at debug level.
-func (s *DefaultStorage) HandleInvalid(srcName string, _ []byte, err error) {
+func (s *DefaultStorage) HandleInvalid(ctx context.Context, srcName string, _ []byte, err error) {
 	lineErr := &LineError{}
 	if !errors.As(err, &lineErr) {
-		log.Debug("hostsfile: unexpected parsing error: %s", err)
+		s.logger.DebugContext(ctx, "unexpected parsing error", slogutil.KeyError, err)
 
 		return
 	}
@@ -120,7 +144,7 @@ func (s *DefaultStorage) HandleInvalid(srcName string, _ []byte, err error) {
 		return
 	}
 
-	log.Debug("hostsfile: source %q: %s", srcName, lineErr)
+	s.logger.DebugContext(ctx, "invalid record", "source", srcName, slogutil.KeyError, lineErr)
 }
 
 // type check

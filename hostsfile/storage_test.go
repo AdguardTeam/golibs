@@ -1,6 +1,7 @@
 package hostsfile_test
 
 import (
+	"io"
 	"maps"
 	"net/netip"
 	"path"
@@ -50,7 +51,14 @@ func TestDefaultStorage_lookup(t *testing.T) {
 	require.NoError(t, err)
 	testutil.CleanupAndRequireSuccess(t, f.Close)
 
-	ds, err := hostsfile.NewDefaultStorage(f)
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+	ds, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger:  testLogger,
+			Readers: []io.Reader{f},
+		},
+	)
 	require.NoError(t, err)
 
 	t.Run("ByAddr", func(t *testing.T) {
@@ -92,7 +100,14 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 		require.NoError(t, err)
 		testutil.CleanupAndRequireSuccess(t, f.Close)
 
-		ds, err := hostsfile.NewDefaultStorage(f)
+		ctx := testutil.ContextWithTimeout(t, testTimeout)
+		ds, err := hostsfile.NewDefaultStorage(
+			ctx,
+			&hostsfile.DefaultStorageConfig{
+				Logger:  testLogger,
+				Readers: []io.Reader{f},
+			},
+		)
 		require.NoError(t, err)
 		assert.NotNil(t, ds)
 
@@ -110,7 +125,14 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 			},
 		}
 
-		ds, err := hostsfile.NewDefaultStorage(r)
+		ctx := testutil.ContextWithTimeout(t, testTimeout)
+		ds, err := hostsfile.NewDefaultStorage(
+			ctx,
+			&hostsfile.DefaultStorageConfig{
+				Logger:  testLogger,
+				Readers: []io.Reader{r},
+			},
+		)
 		require.ErrorIs(t, err, assert.AnError)
 
 		assert.Nil(t, ds)
@@ -120,7 +142,13 @@ func TestNewDefaultStorage_bad(t *testing.T) {
 func TestDefaultStorage_HandleInvalid(t *testing.T) {
 	t.Parallel()
 
-	ds, err := hostsfile.NewDefaultStorage()
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+	ds, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger: testLogger,
+		},
+	)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -141,7 +169,7 @@ func TestDefaultStorage_HandleInvalid(t *testing.T) {
 		tc := tc
 
 		assert.NotPanics(t, func() {
-			ds.HandleInvalid(tc.name, nil, tc.err)
+			ds.HandleInvalid(ctx, tc.name, nil, tc.err)
 		})
 	}
 }
@@ -154,6 +182,8 @@ func TestDefaultStorage_range(t *testing.T) {
 		"4.3.2.1 yet.another.example\n"
 
 	var (
+		ctx = testutil.ContextWithTimeout(t, testTimeout)
+
 		v4Addr1 = netip.MustParseAddr("1.2.3.4")
 		v4Addr2 = netip.MustParseAddr("4.3.2.1")
 
@@ -169,10 +199,21 @@ func TestDefaultStorage_range(t *testing.T) {
 		}
 	)
 
-	ds, err := hostsfile.NewDefaultStorage(strings.NewReader(hostsStr))
+	ds, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger:  testLogger,
+			Readers: []io.Reader{strings.NewReader(hostsStr)},
+		},
+	)
 	require.NoError(t, err)
 
-	empty, err := hostsfile.NewDefaultStorage()
+	empty, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger: testLogger,
+		},
+	)
 	require.NoError(t, err)
 
 	t.Run("RangeAddrs", func(t *testing.T) {
@@ -231,13 +272,32 @@ func TestDefaultStorage_Equal(t *testing.T) {
 		"5.6.7.8 host.example another.example\n" +
 		"8.7.6.5 yet.another.example\n"
 
-	hs1, err := hostsfile.NewDefaultStorage(strings.NewReader(hosts1))
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+
+	hs1, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger:  testLogger,
+			Readers: []io.Reader{strings.NewReader(hosts1)},
+		},
+	)
 	require.NoError(t, err)
 
-	hs2, err := hostsfile.NewDefaultStorage(strings.NewReader(hosts2))
+	hs2, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger:  testLogger,
+			Readers: []io.Reader{strings.NewReader(hosts2)},
+		},
+	)
 	require.NoError(t, err)
 
-	empty, err := hostsfile.NewDefaultStorage()
+	empty, err := hostsfile.NewDefaultStorage(
+		ctx,
+		&hostsfile.DefaultStorageConfig{
+			Logger: testLogger,
+		},
+	)
 	require.NoError(t, err)
 
 	testCases := []struct {
