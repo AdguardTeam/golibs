@@ -93,15 +93,16 @@ func SplitHost(hostport string) (host string, err error) {
 	return host, nil
 }
 
-// Subdomains returns all subdomains of domain, starting from domain itself.
-// domain must be a valid, non-fully-qualified domain name.  If domain is empty,
-// Subdomains returns nil.
-func Subdomains(domain string) (sub []string) {
+// AppendSubdomains appends all subdomains of domain, starting from domain
+// itself, to orig and returns it.  domain must be a valid, non-fully-qualified
+// domain name.  If domain is empty, AppendSubdomains returns orig.
+func AppendSubdomains(orig []string, domain string) (res []string) {
+	res = orig
 	if domain == "" {
-		return nil
+		return res
 	}
 
-	sub = []string{domain}
+	res = append(res, domain)
 
 	for domain != "" {
 		i := strings.IndexByte(domain, '.')
@@ -110,10 +111,17 @@ func Subdomains(domain string) (sub []string) {
 		}
 
 		domain = domain[i+1:]
-		sub = append(sub, domain)
+		res = append(res, domain)
 	}
 
-	return sub
+	return res
+}
+
+// Subdomains returns all subdomains of domain, starting from domain itself.
+// domain must be a valid, non-fully-qualified domain name.  If domain is empty,
+// Subdomains returns nil.
+func Subdomains(domain string) (sub []string) {
+	return AppendSubdomains(nil, domain)
 }
 
 // IsSubdomain returns true if domain is a subdomain of top.  domain and top

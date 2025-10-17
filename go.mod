@@ -1,12 +1,12 @@
 module github.com/AdguardTeam/golibs
 
-go 1.25.1
+go 1.25.3
 
 require (
 	github.com/c2h5oh/datasize v0.0.0-20231215233829-aa82cc1e6500
 	github.com/caarlos0/env/v11 v11.3.1
-	github.com/getsentry/sentry-go v0.35.1
-	github.com/gomodule/redigo v1.9.2
+	github.com/getsentry/sentry-go v0.36.0
+	github.com/gomodule/redigo v1.9.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel v1.38.0
@@ -15,20 +15,18 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
-	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
-	golang.org/x/net v0.43.0
-	golang.org/x/sys v0.35.0
-	google.golang.org/grpc v1.75.0
+	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b
+	golang.org/x/net v0.46.0
+	golang.org/x/sys v0.37.0
+	google.golang.org/grpc v1.76.0
 )
 
 require (
-	cloud.google.com/go v0.121.6 // indirect
-	cloud.google.com/go/ai v0.12.1 // indirect
-	cloud.google.com/go/auth v0.16.5 // indirect
-	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
-	cloud.google.com/go/compute/metadata v0.8.0 // indirect
-	cloud.google.com/go/longrunning v0.6.7 // indirect
+	cloud.google.com/go v0.123.0 // indirect
+	cloud.google.com/go/auth v0.17.0 // indirect
+	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/anthropics/anthropic-sdk-go v1.14.0 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.4 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -37,7 +35,6 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golangci/misspell v0.7.0 // indirect
-	github.com/google/generative-ai-go v0.20.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/renameio/v2 v2.0.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
@@ -46,39 +43,41 @@ require (
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/gookit/color v1.6.0 // indirect
 	github.com/gordonklaus/ineffassign v0.2.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
 	github.com/jstemmer/go-junit-report/v2 v2.1.0 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/securego/gosec/v2 v2.22.8 // indirect
+	github.com/securego/gosec/v2 v2.22.10 // indirect
+	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/match v1.2.0 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/uudashr/gocognit v1.2.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.8.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20250819193227-8b4c13bb791b // indirect
-	golang.org/x/mod v0.27.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/telemetry v0.0.0-20250829165349-50b750f55de1 // indirect
-	golang.org/x/term v0.34.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20251009144603-d2f985daa21b // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/telemetry v0.0.0-20251014153721-24f779f6aaef // indirect
+	golang.org/x/term v0.36.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
-	google.golang.org/api v0.248.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
+	google.golang.org/genai v1.31.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251014184007-4626949a642f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251014184007-4626949a642f // indirect
+	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	mvdan.cc/editorconfig v0.3.0 // indirect
-	mvdan.cc/gofumpt v0.9.0 // indirect
+	mvdan.cc/gofumpt v0.9.1 // indirect
 	mvdan.cc/sh/v3 v3.12.0 // indirect
 	mvdan.cc/unparam v0.0.0-20250301125049-0df0534333a4 // indirect
 )
