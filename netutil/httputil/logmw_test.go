@@ -13,6 +13,7 @@ import (
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 	"github.com/AdguardTeam/golibs/netutil/httputil"
 	"github.com/AdguardTeam/golibs/testutil"
+	"github.com/AdguardTeam/golibs/testutil/fakenet/fakehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -77,27 +78,12 @@ func TestLogMiddleware(t *testing.T) {
 	}
 }
 
-// testResponseWriter is a response writer that does nothing.
-type testResponseWriter struct {
-	// hdr is the header returned by [testResponseWriter.Header].
-	hdr http.Header
-}
-
-// type check
-var _ http.ResponseWriter = testResponseWriter{}
-
-// Header returns [rw.hdr].
-func (rw testResponseWriter) Header() (hdr http.Header) { return rw.hdr }
-
-// Write does nothing and returns len(b), nil.
-func (testResponseWriter) Write(b []byte) (_ int, _ error) { return len(b), nil }
-
-// WriteHeader does nothing.
-func (testResponseWriter) WriteHeader(_ int) {}
-
 func BenchmarkLogMiddleware(b *testing.B) {
-	w := testResponseWriter{
-		hdr: http.Header{},
+	header := http.Header{}
+	w := &fakehttp.ResponseWriter{
+		OnHeader:      func() (hdr http.Header) { return header },
+		OnWrite:       func(b []byte) (n int, err error) { return len(b), nil },
+		OnWriteHeader: func(_ int) {},
 	}
 
 	ctx := context.Background()
@@ -129,9 +115,6 @@ func BenchmarkLogMiddleware(b *testing.B) {
 	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil/httputil
 	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkLogMiddleware
-	//	BenchmarkLogMiddleware/enabled
-	//	BenchmarkLogMiddleware/enabled-16         	 1000000	      1622 ns/op	     128 B/op	       6 allocs/op
-	//	BenchmarkLogMiddleware/disabled
-	//	BenchmarkLogMiddleware/disabled-16        	 1423170	       811.7 ns/op	      88 B/op	       4 allocs/op
+	//	BenchmarkLogMiddleware/enabled-16         	  892281	      1238 ns/op	     128 B/op	       6 allocs/op
+	//	BenchmarkLogMiddleware/disabled-16        	 3060346	       389.7 ns/op	      88 B/op	       4 allocs/op
 }
