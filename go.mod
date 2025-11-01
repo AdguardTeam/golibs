@@ -18,6 +18,7 @@ require (
 	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b
 	golang.org/x/net v0.46.0
 	golang.org/x/sys v0.37.0
+	golang.org/x/text v0.30.0
 	google.golang.org/grpc v1.76.0
 )
 
@@ -67,7 +68,6 @@ require (
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/telemetry v0.0.0-20251014153721-24f779f6aaef // indirect
 	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/genai v1.31.0 // indirect
