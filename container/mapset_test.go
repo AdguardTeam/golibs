@@ -9,6 +9,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func BenchmarkMapSet_Union(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewMapSet(values[:n/2]...)
+			y := container.NewMapSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				container.NewMapSet[string]().Union(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkMapSet_Union/10_strings-8         	 4378586	       283.9 ns/op	     560 B/op	       6 allocs/op
+	//	BenchmarkMapSet_Union/100_strings-8        	  689240	      1731 ns/op	    3600 B/op	       6 allocs/op
+	//	BenchmarkMapSet_Union/1000_strings-8       	   68509	     17666 ns/op	   54712 B/op	       8 allocs/op
+	//	BenchmarkMapSet_Union/10000_strings-8      	    6129	    198258 ns/op	  436969 B/op	      36 allocs/op
+	//	BenchmarkMapSet_Union/100000_strings-8     	     535	   2299617 ns/op	 3495357 B/op	     260 allocs/o
+}
+
+func BenchmarkMapSet_Intersection(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+
+			x := container.NewMapSet(values[:n/2]...)
+			y := container.NewMapSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				container.NewMapSet[string]().Intersection(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkMapSet_Intersection/10_strings-8         	 8592886	       129.8 ns/op	     104 B/op	       3 allocs/op
+	//	BenchmarkMapSet_Intersection/100_strings-8        	 1507854	       797.6 ns/op	    1936 B/op	       6 allocs/op
+	//	BenchmarkMapSet_Intersection/1000_strings-8       	  161798	      7467 ns/op	   27408 B/op	       6 allocs/op
+	//	BenchmarkMapSet_Intersection/10000_strings-8      	   12895	     93391 ns/op	  218536 B/op	      20 allocs/op
+	//	BenchmarkMapSet_Intersection/100000_strings-8     	     813	   1476321 ns/op	 1747560 B/op	     132 allocs/op
+}
+
 func BenchmarkMapSet_Add(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {
 		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {

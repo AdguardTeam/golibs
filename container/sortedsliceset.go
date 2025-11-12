@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+
+	"github.com/AdguardTeam/golibs/errors"
 )
 
 // SortedSliceSet is a simple set implementation that has a sorted set of values
@@ -129,4 +131,112 @@ func (set *SortedSliceSet[T]) Values() (values []T) {
 	}
 
 	return set.elems
+}
+
+// Union fills set with values belonging to either a or b.  set must not be nil.
+// Union returns empty set if both a and b are nil.
+func (set *SortedSliceSet[T]) Union(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil && b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	if a == nil {
+		set.elems = slices.Clone(b.elems)
+
+		return set
+	}
+
+	if b == nil {
+		set.elems = slices.Clone(a.elems)
+
+		return set
+	}
+
+	union := sortedSliceUnion(a.elems, b.elems)
+
+	set.elems = set.elems[:0]
+	set.elems = append(set.elems, union...)
+
+	return set
+}
+
+// sortedSliceUnion merges two sorted slices producing a sorted result.
+// a and b must have at least one element.
+func sortedSliceUnion[T cmp.Ordered](a, b []T) (res []T) {
+	res = make([]T, 0, len(a)+len(b))
+
+	aIdx, bIdx := 0, 0
+	for aIdx < len(a) && bIdx < len(b) {
+		if a[aIdx] < b[bIdx] {
+			res = append(res, a[aIdx])
+			aIdx++
+		} else if a[aIdx] > b[bIdx] {
+			res = append(res, b[bIdx])
+			bIdx++
+		} else {
+			res = append(res, b[bIdx])
+			aIdx++
+			bIdx++
+		}
+	}
+
+	res = append(res, a[aIdx:]...)
+	res = append(res, b[bIdx:]...)
+
+	return res
+}
+
+// Intersection fills set with values that belong both to a and b.  set must not
+// be nil.  Intersection returns empty set if one of the arguments is nil.
+func (set *SortedSliceSet[T]) Intersection(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil || b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	intersection := sortedSliceIntersection(a.elems, b.elems)
+
+	set.elems = set.elems[:0]
+	set.elems = append(set.elems, intersection...)
+
+	return set
+}
+
+// sortedSliceIntersection returns slice with values that belonging to botn b
+// and a.  res will be sorted.  a and b must have at least one element.
+func sortedSliceIntersection[T cmp.Ordered](b, a []T) (res []T) {
+	var capacity int
+	if len(b) > len(a) {
+		capacity = len(b)
+	} else {
+		capacity = len(a)
+	}
+
+	intersection := make([]T, 0, capacity)
+
+	aIdx, bIdx := 0, 0
+	for aIdx < len(a) && bIdx < len(b) {
+		if a[aIdx] < b[bIdx] {
+			aIdx++
+		} else if a[aIdx] > b[bIdx] {
+			bIdx++
+		} else {
+			intersection = append(intersection, a[aIdx])
+			aIdx++
+			bIdx++
+		}
+	}
+
+	return intersection
 }

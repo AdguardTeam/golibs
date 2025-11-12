@@ -26,6 +26,58 @@ func TestNewSortedSliceSet(t *testing.T) {
 	assert.Equal(t, []int{}, set.Values())
 }
 
+func BenchmarkSortedSliceSet_Union(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				container.NewSortedSliceSet[string]().Union(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkSortedSliceSet_Union/10_strings-8         	10063645	       118.2 ns/op	   344 B/op	     3 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100_strings-8        	 1831926	       659.4 ns/op	  3608 B/op	     3 allocs/op
+	//	BenchmarkSortedSliceSet_Union/1000_strings-8       	  177956	      6818 ns/op	 32792 B/op	     3 allocs/op
+	//	BenchmarkSortedSliceSet_Union/10000_strings-8      	   12253	     97965 ns/op	327704 B/op	     3 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100000_strings-8     	     675	   1794277 ns/op	211290 B/op	     3 allocs/op
+}
+
+func BenchmarkSortedSliceSet_Intersection(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				container.NewSortedSliceSet[string]().Intersection(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkSortedSliceSet_Intersection/10_strings-8         	16175322	        74.08 ns/op	     104 B/op	       2 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100_strings-8        	 2643220	       433.4 ns/op	     920 B/op	       2 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/1000_strings-8       	  271808	      4300 ns/op	    8216 B/op	       2 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/10000_strings-8      	   18748	     63960 ns/op	   81944 B/op	       2 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100000_strings-8     	    1370	    872709 ns/op	  802840 B/op	       2 allocs/op
+}
+
 func BenchmarkSortedSliceSet_Add(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {
 		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {

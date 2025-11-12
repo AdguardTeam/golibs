@@ -96,6 +96,40 @@ func ExampleMapSet_Equal() {
 	// nil eq nil: true
 }
 
+func ExampleMapSet_Union() {
+	a := container.NewMapSet(1, 2, 3)
+	b := container.NewMapSet(2, 3, 4)
+	set := container.NewMapSet[int]()
+
+	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", container.MapSetToString(set.Union(a, b)))
+	fmt.Printf("nils:                %s\n", container.MapSetToString(set.Union(nil, nil)))
+	fmt.Printf("nil and [2 3 4]:     %s\n", container.MapSetToString(set.Union(nil, b)))
+	fmt.Printf("[1 2 3] and nil:     %s\n", container.MapSetToString(set.Union(a, nil)))
+
+	// Output:
+	// [1 2 3] and [2 3 4]: [1 2 3 4]
+	// nils:                []
+	// nil and [2 3 4]:     [2 3 4]
+	// [1 2 3] and nil:     [1 2 3]
+}
+
+func ExampleMapSet_Intersection() {
+	a := container.NewMapSet(1, 2, 3)
+	b := container.NewMapSet(2, 3, 4)
+	set := container.NewMapSet[int]()
+
+	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", container.MapSetToString(set.Intersection(a, b)))
+	fmt.Printf("nils:                %s\n", container.MapSetToString(set.Intersection(nil, nil)))
+	fmt.Printf("nil and [2 3 4]:     %s\n", container.MapSetToString(set.Intersection(nil, b)))
+	fmt.Printf("[1 2 3] and nil:     %s\n", container.MapSetToString(set.Intersection(a, nil)))
+
+	// Output:
+	// [1 2 3] and [2 3 4]: [2 3]
+	// nils:                []
+	// nil and [2 3 4]:     []
+	// [1 2 3] and nil:     []
+}
+
 func ExampleMapSet_nil() {
 	const x = 1
 
@@ -157,6 +191,20 @@ func ExampleMapSet_nil() {
 	}()
 	fmt.Printf("panic after add: %t\n", panicked)
 
+	func() {
+		defer setPanicked()
+
+		set.Union(set, set)
+	}()
+	fmt.Printf("panic after union: %t\n", panicked)
+
+	func() {
+		defer setPanicked()
+
+		set.Intersection(set, set)
+	}()
+	fmt.Printf("panic after intersection: %t\n", panicked)
+
 	// Output:
 	//
 	// panic after clear: false
@@ -166,4 +214,6 @@ func ExampleMapSet_nil() {
 	// panic after range: false
 	// panic after values: false
 	// panic after add: true
+	// panic after union: true
+	// panic after intersection: true
 }

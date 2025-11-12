@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/AdguardTeam/golibs/errors"
 	"golang.org/x/exp/constraints"
 )
 
@@ -138,4 +139,69 @@ func MapSetToStringFunc[T comparable](set *MapSet[T], compare func(a, b T) (res 
 	slices.SortStableFunc(v, compare)
 
 	return fmt.Sprintf("%v", v)
+}
+
+// Union fills set with values belonging to either a or b.  set must not be nil.
+// Union returns empty set if both a and b are nil.
+func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil && b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	union := make(map[T]unit, a.Len()+b.Len())
+	a.Range(func(v T) (cont bool) {
+		union[v] = unit{}
+
+		return true
+	})
+
+	b.Range(func(v T) (cont bool) {
+		union[v] = unit{}
+
+		return true
+	})
+
+	set.m = union
+
+	return set
+}
+
+// Intersection fills set with values that belong both to a and b.  set must not
+// be nil.  Intersection returns empty set if one of the arguments is nil.
+func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil || b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	var capacity int
+	if a.Len() > b.Len() {
+		capacity = a.Len()
+	} else {
+		capacity = b.Len()
+	}
+
+	intersection := make(map[T]unit, capacity)
+	a.Range(func(v T) (cont bool) {
+		if b.Has(v) {
+			intersection[v] = unit{}
+		}
+
+		return true
+	})
+
+	set.m = intersection
+
+	return set
 }

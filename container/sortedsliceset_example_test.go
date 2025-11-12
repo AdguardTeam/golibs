@@ -91,6 +91,46 @@ func ExampleSortedSliceSet_Equal() {
 	// nil eq nil: true
 }
 
+func ExampleSortedSliceSet_Intersection() {
+	a := container.NewSortedSliceSet(1, 2, 3)
+	b := container.NewSortedSliceSet(2, 3, 4)
+	set := container.NewSortedSliceSet[int]()
+
+	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", set.Intersection(a, b).String())
+
+	fmt.Printf("nils:                %s\n", set.Intersection(nil, nil).String())
+
+	fmt.Printf("nil and [2 3 4]:     %s\n", set.Intersection(nil, b).String())
+
+	fmt.Printf("[1 2 3] and nil:     %s\n", set.Intersection(a, nil).String())
+
+	// Output:
+	// [1 2 3] and [2 3 4]: [2 3]
+	// nils:                []
+	// nil and [2 3 4]:     []
+	// [1 2 3] and nil:     []
+}
+
+func ExampleSortedSliceSet_Union() {
+	a := container.NewSortedSliceSet(1, 2, 3)
+	b := container.NewSortedSliceSet(2, 3, 4)
+	set := container.NewSortedSliceSet[int]()
+
+	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", set.Union(a, b).String())
+
+	fmt.Printf("nils:                %s\n", set.Union(nil, nil).String())
+
+	fmt.Printf("nil and [2 3 4]:     %s\n", set.Union(nil, b).String())
+
+	fmt.Printf("[1 2 3] and nil:     %s\n", set.Union(a, nil).String())
+
+	// Output:
+	// [1 2 3] and [2 3 4]: [1 2 3 4]
+	// nils:                []
+	// nil and [2 3 4]:     [2 3 4]
+	// [1 2 3] and nil:     [1 2 3]
+}
+
 func ExampleSortedSliceSet_nil() {
 	const x = 1
 
@@ -152,6 +192,20 @@ func ExampleSortedSliceSet_nil() {
 	}()
 	fmt.Printf("panic after add: %t\n", panicked)
 
+	func() {
+		defer setPanicked()
+
+		set.Union(set, set)
+	}()
+	fmt.Printf("panic after union: %t\n", panicked)
+
+	func() {
+		defer setPanicked()
+
+		set.Intersection(set, set)
+	}()
+	fmt.Printf("panic after intersection: %t\n", panicked)
+
 	// Output:
 	//
 	// panic after clear: false
@@ -161,4 +215,6 @@ func ExampleSortedSliceSet_nil() {
 	// panic after range: false
 	// panic after values: false
 	// panic after add: true
+	// panic after union: true
+	// panic after intersection: true
 }
