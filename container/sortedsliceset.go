@@ -19,6 +19,8 @@ type SortedSliceSet[T cmp.Ordered] struct {
 
 // NewSortedSliceSet returns a new *SortedSliceSet.  elems must not be modified
 // after calling NewSortedSliceSet.
+//
+// TODO(f.setrakov): Delegate allocation decisions to the user.
 func NewSortedSliceSet[T cmp.Ordered](elems ...T) (set *SortedSliceSet[T]) {
 	slices.Sort(elems)
 	elems = slices.Compact(elems)
@@ -133,8 +135,9 @@ func (set *SortedSliceSet[T]) Values() (values []T) {
 	return set.elems
 }
 
-// Union fills set with values belonging to either a or b.  set must not be nil.
-// Union returns empty set if both a and b are nil.
+// Union fills set with values belonging to either a or b.  This function
+// guarantees zero-allocation, but may not perform well with large sets.  Union
+// returns empty set if both a and b are nil.  set must not be nil.
 func (set *SortedSliceSet[T]) Union(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
@@ -147,53 +150,83 @@ func (set *SortedSliceSet[T]) Union(a, b *SortedSliceSet[T]) (res *SortedSliceSe
 	}
 
 	if a == nil {
-		set.elems = slices.Clone(b.elems)
+		set.elems = append(set.elems[:0], b.elems...)
 
 		return set
 	}
 
 	if b == nil {
-		set.elems = slices.Clone(a.elems)
+		set.elems = append(set.elems[:0], a.elems...)
 
 		return set
 	}
 
-	union := sortedSliceUnion(a.elems, b.elems)
+	if set == a {
+		set.addMissing(b)
 
-	set.elems = set.elems[:0]
-	set.elems = append(set.elems, union...)
+		return set
+	}
+
+	if set == b {
+		set.addMissing(a)
+
+		return set
+	}
+
+	set.union(a, b)
 
 	return set
 }
 
-// sortedSliceUnion merges two sorted slices producing a sorted result.
-// a and b must have at least one element.
-func sortedSliceUnion[T cmp.Ordered](a, b []T) (res []T) {
-	res = make([]T, 0, len(a)+len(b))
+// union merges two SortedSliceSets producing a sorted result.  set, a and b
+// must not be nil.
+func (set *SortedSliceSet[T]) union(a, b *SortedSliceSet[T]) {
+	set.elems = set.elems[:0]
 
-	aIdx, bIdx := 0, 0
-	for aIdx < len(a) && bIdx < len(b) {
-		if a[aIdx] < b[bIdx] {
-			res = append(res, a[aIdx])
-			aIdx++
-		} else if a[aIdx] > b[bIdx] {
-			res = append(res, b[bIdx])
-			bIdx++
+	i, j := 0, 0
+	for i < a.Len() && j < b.Len() {
+		if a.elems[i] < b.elems[j] {
+			set.elems = append(set.elems, a.elems[i])
+			i++
+		} else if a.elems[i] > b.elems[j] {
+			set.elems = append(set.elems, b.elems[j])
+			j++
 		} else {
-			res = append(res, b[bIdx])
-			aIdx++
-			bIdx++
+			set.elems = append(set.elems, b.elems[j])
+			i++
+			j++
 		}
 	}
 
-	res = append(res, a[aIdx:]...)
-	res = append(res, b[bIdx:]...)
-
-	return res
+	set.elems = append(set.elems, a.elems[i:]...)
+	set.elems = append(set.elems, b.elems[j:]...)
 }
 
-// Intersection fills set with values that belong both to a and b.  set must not
-// be nil.  Intersection returns empty set if one of the arguments is nil.
+// addMissing adds all the elements from other that are not present in set.  set
+// and other must not be nil.
+func (set *SortedSliceSet[T]) addMissing(other *SortedSliceSet[T]) {
+	i, j := 0, 0
+
+	for i < len(set.elems) && j < len(other.elems) {
+		if set.elems[i] < other.elems[j] {
+			i++
+		} else if set.elems[i] > other.elems[j] {
+			set.elems = append(set.elems, other.elems[j])
+			j++
+		} else {
+			i++
+			j++
+		}
+	}
+
+	set.elems = append(set.elems, other.elems[j:]...)
+	slices.Sort(set.elems)
+}
+
+// Intersection fills set with values that belong to both a and b.  This
+// function guarantees zero-allocation, but may not perform well with large
+// sets.  If you need better performance, consider using [MapSet].  Intersection
+// returns an empty set if one of the arguments is nil.  set must not be nil.
 func (set *SortedSliceSet[T]) Intersection(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
@@ -205,38 +238,58 @@ func (set *SortedSliceSet[T]) Intersection(a, b *SortedSliceSet[T]) (res *Sorted
 		return set
 	}
 
-	intersection := sortedSliceIntersection(a.elems, b.elems)
+	if set == a {
+		return set.removeMissing(b)
+	}
 
-	set.elems = set.elems[:0]
-	set.elems = append(set.elems, intersection...)
+	if set == b {
+		return set.removeMissing(a)
+	}
+
+	return set.intersection(a, b)
+}
+
+// removeMissing removes all elements from other that are not present in set.
+// set and other must not be nil.
+func (set *SortedSliceSet[T]) removeMissing(other *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
+	i, j := 0, 0
+	k := 0
+
+	for i < set.Len() && j < other.Len() {
+		if set.elems[i] < other.elems[j] {
+			i++
+		} else if set.elems[i] > other.elems[j] {
+			j++
+		} else {
+			set.elems[k] = set.elems[i]
+			k++
+			i++
+			j++
+		}
+	}
+
+	set.elems = set.elems[:k]
 
 	return set
 }
 
-// sortedSliceIntersection returns slice with values that belonging to botn b
-// and a.  res will be sorted.  a and b must have at least one element.
-func sortedSliceIntersection[T cmp.Ordered](b, a []T) (res []T) {
-	var capacity int
-	if len(b) > len(a) {
-		capacity = len(b)
-	} else {
-		capacity = len(a)
-	}
+// intersection fills set with values that belong both to b and a.  res will be
+// sorted.  set, a and b must not be nil.
+func (set *SortedSliceSet[T]) intersection(b, a *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
+	set.Clear()
 
-	intersection := make([]T, 0, capacity)
-
-	aIdx, bIdx := 0, 0
-	for aIdx < len(a) && bIdx < len(b) {
-		if a[aIdx] < b[bIdx] {
-			aIdx++
-		} else if a[aIdx] > b[bIdx] {
-			bIdx++
+	i, j := 0, 0
+	for i < a.Len() && j < b.Len() {
+		if a.elems[i] < b.elems[j] {
+			i++
+		} else if a.elems[i] > b.elems[j] {
+			j++
 		} else {
-			intersection = append(intersection, a[aIdx])
-			aIdx++
-			bIdx++
+			set.elems = append(set.elems, a.elems[i])
+			i++
+			j++
 		}
 	}
 
-	return intersection
+	return set
 }

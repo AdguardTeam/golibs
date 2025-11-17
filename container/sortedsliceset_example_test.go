@@ -92,43 +92,63 @@ func ExampleSortedSliceSet_Equal() {
 }
 
 func ExampleSortedSliceSet_Intersection() {
-	a := container.NewSortedSliceSet(1, 2, 3)
-	b := container.NewSortedSliceSet(2, 3, 4)
+	a := container.NewSortedSliceSet(1, 6, 10)
+	b := container.NewSortedSliceSet(3, 6, 12)
 	set := container.NewSortedSliceSet[int]()
 
-	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", set.Intersection(a, b).String())
+	fmt.Printf("a = [1 6 10], b = [3 6 12]\n")
 
-	fmt.Printf("nils:                %s\n", set.Intersection(nil, nil).String())
+	fmt.Printf("set = a and b:     %s\n", set.Intersection(a, b).String())
 
-	fmt.Printf("nil and [2 3 4]:     %s\n", set.Intersection(nil, b).String())
+	fmt.Printf("set = nil and nil: %s\n", set.Intersection(nil, nil).String())
 
-	fmt.Printf("[1 2 3] and nil:     %s\n", set.Intersection(a, nil).String())
+	fmt.Printf("set = nil and b:   %s\n", set.Intersection(nil, b).String())
+
+	fmt.Printf("set = a and nil:   %s\n", set.Intersection(a, nil).String())
+
+	fmt.Printf("a = a and b:       %s\n", a.Intersection(a, b))
+
+	a = container.NewSortedSliceSet(1, 6, 10)
+	fmt.Printf("b = a and b:       %s\n", b.Intersection(a, b))
 
 	// Output:
-	// [1 2 3] and [2 3 4]: [2 3]
-	// nils:                []
-	// nil and [2 3 4]:     []
-	// [1 2 3] and nil:     []
+	// a = [1 6 10], b = [3 6 12]
+	// set = a and b:     [6]
+	// set = nil and nil: []
+	// set = nil and b:   []
+	// set = a and nil:   []
+	// a = a and b:       [6]
+	// b = a and b:       [6]
 }
 
 func ExampleSortedSliceSet_Union() {
-	a := container.NewSortedSliceSet(1, 2, 3)
-	b := container.NewSortedSliceSet(2, 3, 4)
+	a := container.NewSortedSliceSet(1, 6, 10)
+	b := container.NewSortedSliceSet(3, 6, 12)
 	set := container.NewSortedSliceSet[int]()
 
-	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", set.Union(a, b).String())
+	fmt.Printf("a = [1 6 10], b = [3 6 12]\n")
 
-	fmt.Printf("nils:                %s\n", set.Union(nil, nil).String())
+	fmt.Printf("set = a and b:     %s\n", set.Union(a, b).String())
 
-	fmt.Printf("nil and [2 3 4]:     %s\n", set.Union(nil, b).String())
+	fmt.Printf("set = nil and nil: %s\n", set.Union(nil, nil).String())
 
-	fmt.Printf("[1 2 3] and nil:     %s\n", set.Union(a, nil).String())
+	fmt.Printf("set = nil and b:   %s\n", set.Union(nil, b).String())
+
+	fmt.Printf("set = a and nil:   %s\n", set.Union(a, nil).String())
+
+	fmt.Printf("a = a and b:       %s\n", a.Union(a, b))
+
+	a = container.NewSortedSliceSet(1, 6, 10)
+	fmt.Printf("b = a and b:       %s\n", b.Union(a, b))
 
 	// Output:
-	// [1 2 3] and [2 3 4]: [1 2 3 4]
-	// nils:                []
-	// nil and [2 3 4]:     [2 3 4]
-	// [1 2 3] and nil:     [1 2 3]
+	// a = [1 6 10], b = [3 6 12]
+	// set = a and b:     [1 3 6 10 12]
+	// set = nil and nil: []
+	// set = nil and b:   [3 6 12]
+	// set = a and nil:   [1 6 10]
+	// a = a and b:       [1 3 6 10 12]
+	// b = a and b:       [1 3 6 10 12]
 }
 
 func ExampleSortedSliceSet_nil() {

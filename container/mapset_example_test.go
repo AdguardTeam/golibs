@@ -97,37 +97,63 @@ func ExampleMapSet_Equal() {
 }
 
 func ExampleMapSet_Union() {
-	a := container.NewMapSet(1, 2, 3)
-	b := container.NewMapSet(2, 3, 4)
+	a := container.NewMapSet(1, 6, 10)
+	b := container.NewMapSet(3, 6, 12)
 	set := container.NewMapSet[int]()
 
-	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", container.MapSetToString(set.Union(a, b)))
-	fmt.Printf("nils:                %s\n", container.MapSetToString(set.Union(nil, nil)))
-	fmt.Printf("nil and [2 3 4]:     %s\n", container.MapSetToString(set.Union(nil, b)))
-	fmt.Printf("[1 2 3] and nil:     %s\n", container.MapSetToString(set.Union(a, nil)))
+	fmt.Printf("a = [1 6 10], b = [3 6 12]\n")
+
+	fmt.Printf("set = a and b:     %s\n", container.MapSetToString(set.Union(a, b)))
+
+	fmt.Printf("set = nil and nil: %s\n", container.MapSetToString(set.Union(nil, nil)))
+
+	fmt.Printf("set = nil and b:   %s\n", container.MapSetToString(set.Union(nil, b)))
+
+	fmt.Printf("set = a and nil:   %s\n", container.MapSetToString(set.Union(a, nil)))
+
+	fmt.Printf("a = a and b:       %s\n", container.MapSetToString(a.Union(a, b)))
+
+	a = container.NewMapSet(1, 6, 10)
+	fmt.Printf("b = a and b:       %s\n", container.MapSetToString(b.Union(a, b)))
 
 	// Output:
-	// [1 2 3] and [2 3 4]: [1 2 3 4]
-	// nils:                []
-	// nil and [2 3 4]:     [2 3 4]
-	// [1 2 3] and nil:     [1 2 3]
+	// a = [1 6 10], b = [3 6 12]
+	// set = a and b:     [1 3 6 10 12]
+	// set = nil and nil: []
+	// set = nil and b:   [3 6 12]
+	// set = a and nil:   [1 6 10]
+	// a = a and b:       [1 3 6 10 12]
+	// b = a and b:       [1 3 6 10 12]
 }
 
 func ExampleMapSet_Intersection() {
-	a := container.NewMapSet(1, 2, 3)
-	b := container.NewMapSet(2, 3, 4)
+	a := container.NewMapSet(1, 6, 10)
+	b := container.NewMapSet(3, 6, 12)
 	set := container.NewMapSet[int]()
 
-	fmt.Printf("[1 2 3] and [2 3 4]: %s\n", container.MapSetToString(set.Intersection(a, b)))
-	fmt.Printf("nils:                %s\n", container.MapSetToString(set.Intersection(nil, nil)))
-	fmt.Printf("nil and [2 3 4]:     %s\n", container.MapSetToString(set.Intersection(nil, b)))
-	fmt.Printf("[1 2 3] and nil:     %s\n", container.MapSetToString(set.Intersection(a, nil)))
+	fmt.Printf("a = [1 6 10], b = [3 6 12]\n")
+
+	fmt.Printf("set = a and b:     %s\n", container.MapSetToString(set.Intersection(a, b)))
+
+	fmt.Printf("set = nil and nil: %s\n", container.MapSetToString(set.Intersection(nil, nil)))
+
+	fmt.Printf("set = nil and b:   %s\n", container.MapSetToString(set.Intersection(nil, b)))
+
+	fmt.Printf("set = a and nil:   %s\n", container.MapSetToString(set.Intersection(a, nil)))
+
+	fmt.Printf("a = a and b:       %s\n", container.MapSetToString(a.Intersection(a, b)))
+
+	a = container.NewMapSet(1, 6, 10)
+	fmt.Printf("b = a and b:       %s\n", container.MapSetToString(b.Intersection(a, b)))
 
 	// Output:
-	// [1 2 3] and [2 3 4]: [2 3]
-	// nils:                []
-	// nil and [2 3 4]:     []
-	// [1 2 3] and nil:     []
+	// a = [1 6 10], b = [3 6 12]
+	// set = a and b:     [6]
+	// set = nil and nil: []
+	// set = nil and b:   []
+	// set = a and nil:   []
+	// a = a and b:       [6]
+	// b = a and b:       [6]
 }
 
 func ExampleMapSet_nil() {

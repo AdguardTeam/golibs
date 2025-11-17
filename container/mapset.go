@@ -17,6 +17,8 @@ type MapSet[T comparable] struct {
 }
 
 // NewMapSet returns a new map set containing values.
+//
+// TODO(f.setrakov): Delegate allocation decisions to the user.
 func NewMapSet[T comparable](values ...T) (set *MapSet[T]) {
 	set = &MapSet[T]{
 		m: make(map[T]unit, len(values)),
@@ -154,22 +156,24 @@ func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
 		return set
 	}
 
-	union := make(map[T]unit, a.Len()+b.Len())
-	a.Range(func(v T) (cont bool) {
-		union[v] = unit{}
+	if set != a && set != b {
+		set.Clear()
+	}
 
-		return true
-	})
-
-	b.Range(func(v T) (cont bool) {
-		union[v] = unit{}
-
-		return true
-	})
-
-	set.m = union
+	set.union(b)
+	set.union(a)
 
 	return set
+}
+
+// union adds all elements from other to set if they are not equal.  set
+// must not be nil.
+func (set *MapSet[T]) union(other *MapSet[T]) {
+	if other != nil && other != set {
+		for v := range other.Range {
+			set.Add(v)
+		}
+	}
 }
 
 // Intersection fills set with values that belong both to a and b.  set must not
@@ -185,23 +189,32 @@ func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
 		return set
 	}
 
-	var capacity int
-	if a.Len() > b.Len() {
-		capacity = a.Len()
-	} else {
-		capacity = b.Len()
+	if set == a {
+		return set.intersection(b)
 	}
 
-	intersection := make(map[T]unit, capacity)
-	a.Range(func(v T) (cont bool) {
+	if set == b {
+		return set.intersection(a)
+	}
+
+	set.Clear()
+
+	for v := range a.Range {
 		if b.Has(v) {
-			intersection[v] = unit{}
+			set.Add(v)
 		}
+	}
 
-		return true
-	})
+	return set
+}
 
-	set.m = intersection
+// intersection removes all elements from set that are not present in other.
+func (set *MapSet[T]) intersection(other *MapSet[T]) (res *MapSet[T]) {
+	for v := range set.Range {
+		if !other.Has(v) {
+			set.Delete(v)
+		}
+	}
 
 	return set
 }

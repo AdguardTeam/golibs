@@ -9,6 +9,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func BenchmarkMapSet_Intersection(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewMapSet(values[:n/2]...)
+			y := container.NewMapSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			set := container.NewMapSet(make([]string, 0, n)...)
+			for b.Loop() {
+				set.Intersection(x, y)
+			}
+		})
+	}
+
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings_receiver_is_x", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewMapSet(values[:n/2]...)
+			y := container.NewMapSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				x.Intersection(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//  BenchmarkMapSet_Intersection/10_strings-8         	14420484	     85.18 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/100_strings-8        	 1947295	     622.4 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/1000_strings-8       	  199666	      6118 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/10000_strings-8      	   15506	     77826 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/100000_strings-8     	     913	   1328179 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/10_strings_receiver_is_x-8         	233993522	         5.151 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/100_strings_receiver_is_x-8        	233974759	         5.138 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/1000_strings_receiver_is_x-8       	233754374	         5.128 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/10000_strings_receiver_is_x-8      	232039011	         5.171 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Intersection/100000_strings_receiver_is_x-8     	231925400	         5.153 ns/op	       0 B/op	       0 allocs/op
+}
+
 func BenchmarkMapSet_Union(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {
 		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
@@ -17,35 +62,22 @@ func BenchmarkMapSet_Union(b *testing.B) {
 			y := container.NewMapSet(values[n/2:]...)
 
 			b.ReportAllocs()
+			set := container.NewMapSet(make([]string, 0)...)
 			for b.Loop() {
-				container.NewMapSet[string]().Union(x, y)
+				set.Union(x, y)
 			}
 		})
 	}
 
-	// Most recent results:
-	//	goos: darwin
-	//	goarch: arm64
-	//	pkg: github.com/AdguardTeam/golibs/container
-	//	cpu: Apple M3
-	//	BenchmarkMapSet_Union/10_strings-8         	 4378586	       283.9 ns/op	     560 B/op	       6 allocs/op
-	//	BenchmarkMapSet_Union/100_strings-8        	  689240	      1731 ns/op	    3600 B/op	       6 allocs/op
-	//	BenchmarkMapSet_Union/1000_strings-8       	   68509	     17666 ns/op	   54712 B/op	       8 allocs/op
-	//	BenchmarkMapSet_Union/10000_strings-8      	    6129	    198258 ns/op	  436969 B/op	      36 allocs/op
-	//	BenchmarkMapSet_Union/100000_strings-8     	     535	   2299617 ns/op	 3495357 B/op	     260 allocs/o
-}
-
-func BenchmarkMapSet_Intersection(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {
-		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+		b.Run(fmt.Sprintf("%d_strings_receiver_is_x", n), func(b *testing.B) {
 			values := newRandStrs(n, randStrLen)
-
 			x := container.NewMapSet(values[:n/2]...)
 			y := container.NewMapSet(values[n/2:]...)
 
 			b.ReportAllocs()
 			for b.Loop() {
-				container.NewMapSet[string]().Intersection(x, y)
+				x.Union(x, y)
 			}
 		})
 	}
@@ -55,11 +87,16 @@ func BenchmarkMapSet_Intersection(b *testing.B) {
 	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/container
 	//	cpu: Apple M3
-	//	BenchmarkMapSet_Intersection/10_strings-8         	 8592886	       129.8 ns/op	     104 B/op	       3 allocs/op
-	//	BenchmarkMapSet_Intersection/100_strings-8        	 1507854	       797.6 ns/op	    1936 B/op	       6 allocs/op
-	//	BenchmarkMapSet_Intersection/1000_strings-8       	  161798	      7467 ns/op	   27408 B/op	       6 allocs/op
-	//	BenchmarkMapSet_Intersection/10000_strings-8      	   12895	     93391 ns/op	  218536 B/op	      20 allocs/op
-	//	BenchmarkMapSet_Intersection/100000_strings-8     	     813	   1476321 ns/op	 1747560 B/op	     132 allocs/op
+	//	BenchmarkMapSet_Union/10_strings-8         	6467498	       186.9 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/100_strings-8        	  797383	      1504 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/1000_strings-8       	   74584	     16300 ns/op	       1 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/10000_strings-8      	    6807	    175736 ns/op	     128 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/100000_strings-8     	     616	   1995085 ns/op	   11616 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/10_strings_receiver_is_x-8         	14227329	        83.86 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/100_strings_receiver_is_x-8        	 1601006	       746.0 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/1000_strings_receiver_is_x-8       	  155972	      7721 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/10000_strings_receiver_is_x-8      	   13354	     89850 ns/op	      32 B/op	       0 allocs/op
+	//	BenchmarkMapSet_Union/100000_strings_receiver_is_x-8     	    1098	   1078387 ns/op	    3183 B/op	       0 allocs/op
 }
 
 func BenchmarkMapSet_Add(b *testing.B) {
