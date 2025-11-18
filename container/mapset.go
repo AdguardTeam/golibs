@@ -144,7 +144,8 @@ func MapSetToStringFunc[T comparable](set *MapSet[T], compare func(a, b T) (res 
 }
 
 // Union fills set with values belonging to either a or b.  set must not be nil.
-// Union returns empty set if both a and b are nil.
+// Union returns empty set if both a and b are nil. If neither a nor b are equal
+// to set, then the function will rewrite the contents of set.
 func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
@@ -160,24 +161,21 @@ func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
 		set.Clear()
 	}
 
-	set.union(b)
-	set.union(a)
+	if a != nil {
+		maps.Copy(set.m, a.m)
+	}
+
+	if b != nil {
+		maps.Copy(set.m, b.m)
+	}
 
 	return set
 }
 
-// union adds all elements from other to set if they are not equal.  set
-// must not be nil.
-func (set *MapSet[T]) union(other *MapSet[T]) {
-	if other != nil && other != set {
-		for v := range other.Range {
-			set.Add(v)
-		}
-	}
-}
-
 // Intersection fills set with values that belong both to a and b.  set must not
-// be nil.  Intersection returns empty set if one of the arguments is nil.
+// be nil.  Intersection returns empty set if one of the arguments is nil.  If
+// neither a nor b are equal to set, then the function will rewrite the contents
+// of set.
 func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))

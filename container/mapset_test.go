@@ -16,8 +16,10 @@ func BenchmarkMapSet_Intersection(b *testing.B) {
 			x := container.NewMapSet(values[:n/2]...)
 			y := container.NewMapSet(values[n/2:]...)
 
+			set := container.NewMapSet(make([]string, n)...)
+			set.Clear()
+
 			b.ReportAllocs()
-			set := container.NewMapSet(make([]string, 0, n)...)
 			for b.Loop() {
 				set.Intersection(x, y)
 			}

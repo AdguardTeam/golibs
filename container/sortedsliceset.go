@@ -137,7 +137,8 @@ func (set *SortedSliceSet[T]) Values() (values []T) {
 
 // Union fills set with values belonging to either a or b.  This function
 // guarantees zero-allocation, but may not perform well with large sets.  Union
-// returns empty set if both a and b are nil.  set must not be nil.
+// returns empty set if both a and b are nil.  set must not be nil.  If neither
+// a nor b are equal to set, then the function will rewrite the contents of set.
 func (set *SortedSliceSet[T]) Union(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
@@ -227,6 +228,8 @@ func (set *SortedSliceSet[T]) addMissing(other *SortedSliceSet[T]) {
 // function guarantees zero-allocation, but may not perform well with large
 // sets.  If you need better performance, consider using [MapSet].  Intersection
 // returns an empty set if one of the arguments is nil.  set must not be nil.
+// If neither a nor b are equal to set, then the function will rewrite the
+// contents of set.
 func (set *SortedSliceSet[T]) Intersection(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
 	if set == nil {
 		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
