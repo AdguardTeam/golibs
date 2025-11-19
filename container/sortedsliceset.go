@@ -185,7 +185,7 @@ func (set *SortedSliceSet[T]) union(a, b *SortedSliceSet[T]) {
 	set.elems = set.elems[:0]
 
 	i, j := 0, 0
-	for i < a.Len() && j < b.Len() {
+	for i < len(a.elems) && j < len(b.elems) {
 		if a.elems[i] < b.elems[j] {
 			set.elems = append(set.elems, a.elems[i])
 			i++
@@ -258,7 +258,7 @@ func (set *SortedSliceSet[T]) removeMissing(other *SortedSliceSet[T]) (res *Sort
 	i, j := 0, 0
 	k := 0
 
-	for i < set.Len() && j < other.Len() {
+	for i < len(set.elems) && j < len(other.elems) {
 		if set.elems[i] < other.elems[j] {
 			i++
 		} else if set.elems[i] > other.elems[j] {
@@ -282,7 +282,7 @@ func (set *SortedSliceSet[T]) intersection(b, a *SortedSliceSet[T]) (res *Sorted
 	set.Clear()
 
 	i, j := 0, 0
-	for i < a.Len() && j < b.Len() {
+	for i < len(a.elems) && j < len(b.elems) {
 		if a.elems[i] < b.elems[j] {
 			i++
 		} else if a.elems[i] > b.elems[j] {

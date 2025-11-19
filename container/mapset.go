@@ -161,11 +161,11 @@ func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
 		set.Clear()
 	}
 
-	if a != nil {
+	if a != nil && set != a {
 		maps.Copy(set.m, a.m)
 	}
 
-	if b != nil {
+	if b != nil && set != b {
 		maps.Copy(set.m, b.m)
 	}
 
@@ -198,7 +198,7 @@ func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
 	set.Clear()
 
 	for v := range a.Range {
-		if b.Has(v) {
+		if _, ok := b.m[v]; ok {
 			set.Add(v)
 		}
 	}
@@ -207,10 +207,11 @@ func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
 }
 
 // intersection removes all elements from set that are not present in other.
+// other must not be nil.
 func (set *MapSet[T]) intersection(other *MapSet[T]) (res *MapSet[T]) {
 	for v := range set.Range {
-		if !other.Has(v) {
-			set.Delete(v)
+		if _, ok := other.m[v]; !ok {
+			delete(set.m, v)
 		}
 	}
 
