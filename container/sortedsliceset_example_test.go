@@ -98,8 +98,11 @@ func ExampleSortedSliceSet_Intersection() {
 
 	fmt.Printf("a = %s, b = %s\n", a, b)
 	fmt.Printf("set = a ∩ b:     %s\n", set.Intersection(a, b))
+	set.Clear()
 	fmt.Printf("set = nil ∩ nil: %s\n", set.Intersection(nil, nil))
+	set.Clear()
 	fmt.Printf("set = nil ∩ b:   %s\n", set.Intersection(nil, b))
+	set.Clear()
 	fmt.Printf("set = a ∩ nil:   %s\n", set.Intersection(a, nil))
 	fmt.Printf("a = a ∩ b:       %s\n", a.Intersection(a, b))
 
@@ -123,8 +126,11 @@ func ExampleSortedSliceSet_Union() {
 
 	fmt.Printf("a = %s, b = %s\n", a, b)
 	fmt.Printf("set = a ∪ b:     %s\n", set.Union(a, b))
+	set.Clear()
 	fmt.Printf("set = nil ∪ nil: %s\n", set.Union(nil, nil))
+	set.Clear()
 	fmt.Printf("set = nil ∪ b:   %s\n", set.Union(nil, b))
+	set.Clear()
 	fmt.Printf("set = a ∪ nil:   %s\n", set.Union(a, nil))
 	fmt.Printf("a = a ∪ b:       %s\n", a.Union(a, b))
 

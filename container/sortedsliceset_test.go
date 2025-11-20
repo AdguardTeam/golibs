@@ -36,6 +36,7 @@ func BenchmarkSortedSliceSet_Union(b *testing.B) {
 
 			b.ReportAllocs()
 			for b.Loop() {
+				set.Clear()
 				set.Union(x, y)
 			}
 		})
@@ -81,6 +82,7 @@ func BenchmarkSortedSliceSet_Intersection(b *testing.B) {
 
 			b.ReportAllocs()
 			for b.Loop() {
+				set.Clear()
 				set.Intersection(x, y)
 			}
 		})
