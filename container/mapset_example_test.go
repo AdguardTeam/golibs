@@ -103,11 +103,8 @@ func ExampleMapSet_Union() {
 
 	fmt.Printf("a = %s, b = %s\n", container.MapSetToString(a), container.MapSetToString(b))
 	fmt.Printf("set = a ∪ b:     %s\n", container.MapSetToString(set.Union(a, b)))
-	set.Clear()
 	fmt.Printf("set = nil ∪ nil: %s\n", container.MapSetToString(set.Union(nil, nil)))
-	set.Clear()
 	fmt.Printf("set = nil ∪ b:   %s\n", container.MapSetToString(set.Union(nil, b)))
-	set.Clear()
 	fmt.Printf("set = a ∪ nil:   %s\n", container.MapSetToString(set.Union(a, nil)))
 	fmt.Printf("a = a ∪ b:       %s\n", container.MapSetToString(a.Union(a, b)))
 
@@ -131,11 +128,8 @@ func ExampleMapSet_Intersection() {
 
 	fmt.Printf("a = %s, b = %s\n", container.MapSetToString(a), container.MapSetToString(b))
 	fmt.Printf("set = a ∩ b:     %s\n", container.MapSetToString(set.Intersection(a, b)))
-	set.Clear()
 	fmt.Printf("set = nil ∩ nil: %s\n", container.MapSetToString(set.Intersection(nil, nil)))
-	set.Clear()
 	fmt.Printf("set = nil ∩ b:   %s\n", container.MapSetToString(set.Intersection(nil, b)))
-	set.Clear()
 	fmt.Printf("set = a ∩ nil:   %s\n", container.MapSetToString(set.Intersection(a, nil)))
 	fmt.Printf("a = a ∩ b:       %s\n", container.MapSetToString(a.Intersection(a, b)))
 
