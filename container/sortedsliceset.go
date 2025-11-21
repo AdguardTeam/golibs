@@ -272,6 +272,7 @@ func (set *SortedSliceSet[T]) removeMissing(other *SortedSliceSet[T]) (res *Sort
 		}
 	}
 
+	clear(set.elems[lastSavedIdx:])
 	set.elems = set.elems[:lastSavedIdx]
 
 	return set

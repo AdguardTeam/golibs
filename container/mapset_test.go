@@ -22,7 +22,6 @@ func BenchmarkMapSet_Union(b *testing.B) {
 
 			b.ReportAllocs()
 			for b.Loop() {
-				x.Clear()
 				set.Union(x, y)
 			}
 		})
@@ -82,7 +81,6 @@ func BenchmarkMapSet_Intersection(b *testing.B) {
 
 			b.ReportAllocs()
 			for b.Loop() {
-				set.Clear()
 				set.Intersection(x, y)
 			}
 		})
