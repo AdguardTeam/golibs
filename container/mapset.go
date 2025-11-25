@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/AdguardTeam/golibs/errors"
 	"golang.org/x/exp/constraints"
 )
 
@@ -16,6 +17,8 @@ type MapSet[T comparable] struct {
 }
 
 // NewMapSet returns a new map set containing values.
+//
+// TODO(f.setrakov): Delegate allocation decisions to the user.
 func NewMapSet[T comparable](values ...T) (set *MapSet[T]) {
 	set = &MapSet[T]{
 		m: make(map[T]unit, len(values)),
@@ -138,4 +141,95 @@ func MapSetToStringFunc[T comparable](set *MapSet[T], compare func(a, b T) (res 
 	slices.SortStableFunc(v, compare)
 
 	return fmt.Sprintf("%v", v)
+}
+
+// Union fills set with values belonging to either a or b.  set must not be nil.
+// Union returns empty set if both a and b are nil. If neither a nor b are equal
+// to set, then the function will rewrite the contents of set.
+func (set *MapSet[T]) Union(a, b *MapSet[T]) (res *MapSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil && b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	if set != a && set != b {
+		set.Clear()
+	}
+
+	if a != nil && set != a {
+		maps.Copy(set.m, a.m)
+	}
+
+	if b != nil && set != b {
+		maps.Copy(set.m, b.m)
+	}
+
+	return set
+}
+
+// Intersection fills set with values that belong both to a and b.  set must not
+// be nil.  Intersection returns empty set if one of the arguments is nil.  If
+// neither a nor b are equal to set, then the function will rewrite the contents
+// of set.
+func (set *MapSet[T]) Intersection(a, b *MapSet[T]) (res *MapSet[T]) {
+	if set == nil {
+		panic(fmt.Errorf("set: %v", errors.ErrNoValue))
+	}
+
+	if a == nil || b == nil {
+		set.Clear()
+
+		return set
+	}
+
+	if set == a {
+		return set.intersection(b)
+	}
+
+	if set == b {
+		return set.intersection(a)
+	}
+
+	set.Clear()
+
+	for v := range a.m {
+		if _, ok := b.m[v]; ok {
+			set.Add(v)
+		}
+	}
+
+	return set
+}
+
+// intersection removes all elements from set that are not present in other.
+// other must not be nil.
+func (set *MapSet[T]) intersection(other *MapSet[T]) (res *MapSet[T]) {
+	for v := range set.m {
+		if _, ok := other.m[v]; !ok {
+			delete(set.m, v)
+		}
+	}
+
+	return set
+}
+
+// Intersects returns true if set and other has at least one common element.  If
+// set or other is nil, result will be false.
+func (set *MapSet[T]) Intersects(other *MapSet[T]) (ok bool) {
+	if set == nil || other == nil {
+		return false
+	}
+
+	for v := range set.m {
+		if _, ok = other.m[v]; ok {
+			return true
+		}
+	}
+
+	return false
 }

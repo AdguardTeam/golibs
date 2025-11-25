@@ -26,6 +26,122 @@ func TestNewSortedSliceSet(t *testing.T) {
 	assert.Equal(t, []int{}, set.Values())
 }
 
+func BenchmarkSortedSliceSet_Union(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+			set := container.NewSortedSliceSet(make([]string, 0, n)...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				set.Union(x, y)
+			}
+		})
+	}
+
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings_receiver_is_x", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				x.Union(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkSortedSliceSet_Union/10_strings-8         	29344582	        40.86 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100_strings-8        	 3049860	       392.6 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/1000_strings-8       	  256148	      4663 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/10000_strings-8      	   17222	     69520 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100000_strings-8     	    1365	    862403 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/10_strings_receiver_is_x-8         	18862746	        65.19 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100_strings_receiver_is_x-8        	 2225612	       538.1 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/1000_strings_receiver_is_x-8       	  246709	      4876 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/10000_strings_receiver_is_x-8      	   24936	     48104 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Union/100000_strings_receiver_is_x-8     	    2233	    483712 ns/op	       0 B/op	       0 allocs/op
+}
+
+func BenchmarkSortedSliceSet_Intersection(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+			set := container.NewSortedSliceSet(make([]string, 0, n)...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				set.Intersection(x, y)
+			}
+		})
+	}
+
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings_receiver_is_x", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				x.Intersection(x, y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkSortedSliceSet_Intersection/10_strings-8         	37729012	        31.54 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100_strings-8        	 3699164	       325.7 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/1000_strings-8       	  338103	      3585 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/10000_strings-8      	   23232	     51780 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100000_strings-8     	    1566	    776892 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/10_strings_receiver_is_x-8         	645125013	         1.856 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100_strings_receiver_is_x-8        	644168484	         1.859 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/1000_strings_receiver_is_x-8       	645357904	         1.857 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/10000_strings_receiver_is_x-8      	644380356	         1.859 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersection/100000_strings_receiver_is_x-8     	645454954	         1.858 ns/op	       0 B/op	       0 allocs/op
+}
+
+func BenchmarkSortedSliceSet_Intersects(b *testing.B) {
+	for n := 10; n <= setMaxLen; n *= 10 {
+		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {
+			values := newRandStrs(n, randStrLen)
+			x := container.NewSortedSliceSet(values[:n/2]...)
+			y := container.NewSortedSliceSet(values[n/2:]...)
+
+			b.ReportAllocs()
+			for b.Loop() {
+				x.Intersects(y)
+			}
+		})
+	}
+
+	// Most recent results:
+	//	goos: darwin
+	//	goarch: arm64
+	//	pkg: github.com/AdguardTeam/golibs/container
+	//	cpu: Apple M3
+	//	BenchmarkSortedSliceSet_Intersects/10_strings-8         	40107934	        29.57 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersects/100_strings-8        	 3717073	       327.6 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersects/1000_strings-8       	  342010	      3553 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersects/10000_strings-8      	   21056	     55329 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkSortedSliceSet_Intersects/100000_strings-8     	    1566	    776398 ns/op	       0 B/op	       0 allocs/op
+}
+
 func BenchmarkSortedSliceSet_Add(b *testing.B) {
 	for n := 10; n <= setMaxLen; n *= 10 {
 		b.Run(fmt.Sprintf("%d_strings", n), func(b *testing.B) {

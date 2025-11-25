@@ -91,6 +91,75 @@ func ExampleSortedSliceSet_Equal() {
 	// nil eq nil: true
 }
 
+func ExampleSortedSliceSet_Intersection() {
+	a := container.NewSortedSliceSet(1, 6, 10)
+	b := container.NewSortedSliceSet(3, 6, 12)
+	set := container.NewSortedSliceSet[int]()
+
+	fmt.Printf("a = %s, b = %s\n", a, b)
+	fmt.Printf("set = a ∩ b:     %s\n", set.Intersection(a, b))
+	fmt.Printf("set = nil ∩ nil: %s\n", set.Intersection(nil, nil))
+	fmt.Printf("set = nil ∩ b:   %s\n", set.Intersection(nil, b))
+	fmt.Printf("set = a ∩ nil:   %s\n", set.Intersection(a, nil))
+	fmt.Printf("a = a ∩ b:       %s\n", a.Intersection(a, b))
+
+	a = container.NewSortedSliceSet(1, 6, 10)
+	fmt.Printf("b = a ∩ b:       %s\n", b.Intersection(a, b))
+
+	// Output:
+	// a = [1 6 10], b = [3 6 12]
+	// set = a ∩ b:     [6]
+	// set = nil ∩ nil: []
+	// set = nil ∩ b:   []
+	// set = a ∩ nil:   []
+	// a = a ∩ b:       [6]
+	// b = a ∩ b:       [6]
+}
+
+func ExampleSortedSliceSet_Union() {
+	a := container.NewSortedSliceSet(1, 6, 10)
+	b := container.NewSortedSliceSet(3, 6, 12)
+	set := container.NewSortedSliceSet[int]()
+
+	fmt.Printf("a = %s, b = %s\n", a, b)
+	fmt.Printf("set = a ∪ b:     %s\n", set.Union(a, b))
+	fmt.Printf("set = nil ∪ nil: %s\n", set.Union(nil, nil))
+	fmt.Printf("set = nil ∪ b:   %s\n", set.Union(nil, b))
+	fmt.Printf("set = a ∪ nil:   %s\n", set.Union(a, nil))
+	fmt.Printf("a = a ∪ b:       %s\n", a.Union(a, b))
+
+	a = container.NewSortedSliceSet(1, 6, 10)
+	fmt.Printf("b = a ∪ b:       %s\n", b.Union(a, b))
+
+	// Output:
+	// a = [1 6 10], b = [3 6 12]
+	// set = a ∪ b:     [1 3 6 10 12]
+	// set = nil ∪ nil: []
+	// set = nil ∪ b:   [3 6 12]
+	// set = a ∪ nil:   [1 6 10]
+	// a = a ∪ b:       [1 3 6 10 12]
+	// b = a ∪ b:       [1 3 6 10 12]
+}
+
+func ExampleSortedSliceSet_Intersects() {
+	a := container.NewSortedSliceSet(1, 6, 10)
+	b := container.NewSortedSliceSet(3, 6, 12)
+	var nilSet *container.SortedSliceSet[int]
+
+	fmt.Printf("a = %s, b = %s\n", a, b)
+	fmt.Printf("a ∩ b:     %t\n", a.Intersects(b))
+	fmt.Printf("nil ∩ a:   %t\n", nilSet.Intersects(a))
+	fmt.Printf("a ∩ nil:   %t\n", a.Intersects(nilSet))
+	fmt.Printf("nil ∩ nil: %t\n", nilSet.Intersects(nilSet))
+
+	// Output:
+	// a = [1 6 10], b = [3 6 12]
+	// a ∩ b:     true
+	// nil ∩ a:   false
+	// a ∩ nil:   false
+	// nil ∩ nil: false
+}
+
 func ExampleSortedSliceSet_nil() {
 	const x = 1
 
@@ -152,6 +221,27 @@ func ExampleSortedSliceSet_nil() {
 	}()
 	fmt.Printf("panic after add: %t\n", panicked)
 
+	func() {
+		defer setPanicked()
+
+		set.Union(set, set)
+	}()
+	fmt.Printf("panic after union: %t\n", panicked)
+
+	func() {
+		defer setPanicked()
+
+		set.Intersection(set, set)
+	}()
+	fmt.Printf("panic after intersection: %t\n", panicked)
+
+	func() {
+		defer setPanicked()
+
+		set.Intersects(set)
+	}()
+	fmt.Printf("panic after intersects: %t\n", panicked)
+
 	// Output:
 	//
 	// panic after clear: false
@@ -161,4 +251,7 @@ func ExampleSortedSliceSet_nil() {
 	// panic after range: false
 	// panic after values: false
 	// panic after add: true
+	// panic after union: true
+	// panic after intersection: true
+	// panic after intersects: false
 }
