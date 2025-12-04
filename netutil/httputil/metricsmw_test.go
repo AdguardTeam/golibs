@@ -46,7 +46,7 @@ func TestMetricsMiddleware(t *testing.T) {
 	now := time.Now()
 
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
-	req := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	mw := httputil.NewMetricsMiddleware(&httputil.MetricsMiddlewareConfig{
 		Clock: &faketime.Clock{

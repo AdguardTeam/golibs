@@ -39,7 +39,7 @@ func TestLogMiddleware(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
-	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	h.ServeHTTP(w, r)
 
@@ -87,7 +87,7 @@ func BenchmarkLogMiddleware(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	b.Run("enabled", func(b *testing.B) {
 		logHdlr := slogutil.NewLevelHandler(slog.LevelInfo, slog.DiscardHandler)

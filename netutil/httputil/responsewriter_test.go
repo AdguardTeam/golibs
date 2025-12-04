@@ -13,7 +13,7 @@ import (
 func TestCodeRecorderResponseWriter(t *testing.T) {
 	w := httputil.NewCodeRecorderResponseWriter(httptest.NewRecorder())
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
-	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	h := httputil.HealthCheckHandler
 	h.ServeHTTP(w, r)

@@ -17,7 +17,7 @@ func TestServerHeaderMiddleware(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
-	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	h := mw.Wrap(httputil.HealthCheckHandler)
 	h.ServeHTTP(w, r)

@@ -58,7 +58,7 @@ func ExampleWrap() {
 	defer cancel()
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, testPath, nil).WithContext(ctx)
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
 	h.ServeHTTP(w, r)
 

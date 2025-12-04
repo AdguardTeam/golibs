@@ -36,3 +36,11 @@ func (text PlainTextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // text "OK\n" into the response.  These are typically used for the GET
 // /health-check HTTP API.
 const HealthCheckHandler PlainTextHandler = "OK\n"
+
+// PanicHandler returns an HTTP handler that panics with the provided value.  v
+// must not be nil.
+func PanicHandler(v any) (h http.Handler) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic(v)
+	})
+}
