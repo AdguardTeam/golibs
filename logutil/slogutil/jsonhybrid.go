@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/AdguardTeam/golibs/errors"
+	"github.com/AdguardTeam/golibs/requestid"
 	"github.com/AdguardTeam/golibs/syncutil"
 )
 
@@ -84,11 +85,17 @@ func (h *JSONHybridHandler) Handle(ctx context.Context, r slog.Record) (err erro
 		return fmt.Errorf("handling text for data: %w", err)
 	}
 
+	var reqID string
+	id, ok := requestid.IDFromContext(ctx)
+	if ok {
+		reqID = id.String()
+	}
+
 	msg := byteString(bufTextHdlr.buffer.Bytes())
 
 	// Remove newline.
 	msg = msg[:len(msg)-1]
-	data := newJSONHybridMessage(r.Level, msg)
+	data := newJSONHybridMessage(r.Level, msg, reqID)
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -109,20 +116,22 @@ func (b byteString) MarshalText() (res []byte, err error) {
 
 // jsonHybridMessage represents the data structure for *JSONHybridHandler.
 type jsonHybridMessage = struct {
-	Severity string     `json:"severity"`
-	Message  byteString `json:"message"`
+	RequestID string     `json:"request_id,omitempty"`
+	Severity  string     `json:"severity"`
+	Message   byteString `json:"message"`
 }
 
 // newJSONHybridMessage returns new properly initialized message.
-func newJSONHybridMessage(lvl slog.Level, msg byteString) (m *jsonHybridMessage) {
+func newJSONHybridMessage(lvl slog.Level, msg byteString, id string) (m *jsonHybridMessage) {
 	severity := "NORMAL"
 	if lvl >= slog.LevelError {
 		severity = "ERROR"
 	}
 
 	return &jsonHybridMessage{
-		Severity: severity,
-		Message:  msg,
+		Severity:  severity,
+		RequestID: id,
+		Message:   msg,
 	}
 }
 

@@ -8,12 +8,19 @@ import (
 	"time"
 
 	"github.com/AdguardTeam/golibs/netutil/httputil"
+	"github.com/AdguardTeam/golibs/requestid"
 	"github.com/AdguardTeam/golibs/syncutil"
 	"github.com/stretchr/testify/require"
 )
 
 // testTimeout is a common timeout for tests.
 const testTimeout = 1 * time.Second
+
+// testRequestID is a string representation of common request ID for tests.
+const testStrRequestID = "abcdefghijklmnop"
+
+// testRequestID is a common request ID for tests.
+var testRequestID = requestid.FromString(testStrRequestID)
 
 // Common constants for tests.
 const (
