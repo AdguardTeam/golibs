@@ -15,7 +15,8 @@ import (
 func TestRequestIDMiddleware(t *testing.T) {
 	ctx := testutil.ContextWithTimeout(t, testTimeout)
 	req := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
-	req.Header[httphdr.XRequestID] = []string{testStrRequestID}
+
+	req.Header.Set(httphdr.XRequestID, testStrRequestID)
 	mw := httputil.NewRequestIDMiddleware()
 
 	var gotReqID string
@@ -37,11 +38,10 @@ func BenchmarkRequestIDMiddleware(b *testing.B) {
 	ctx := testutil.ContextWithTimeout(b, testTimeout)
 	req := httptest.NewRequestWithContext(ctx, http.MethodGet, testPath, nil)
 
-	req.Header[httphdr.XRequestID] = []string{testStrRequestID}
+	req.Header.Set(httphdr.XRequestID, testStrRequestID)
 	mw := httputil.NewRequestIDMiddleware()
 
 	h := mw.Wrap(httputil.HealthCheckHandler)
-
 	w := httptest.NewRecorder()
 
 	b.ReportAllocs()

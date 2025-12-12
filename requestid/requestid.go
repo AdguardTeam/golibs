@@ -2,10 +2,10 @@
 package requestid
 
 import (
-	"context"
-	"math/rand/v2"
+	"encoding"
+	"encoding/base64"
+	"fmt"
 
-	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/mathutil/randutil"
 )
 
@@ -17,51 +17,57 @@ const (
 	ctxKeyRequestID ctxKey = iota
 )
 
+// idLen is a length of request ID.
+const idLen = 16
+
 // ID is the ID of a request.  It is an opaque, randomly generated string.
-type ID [16]byte
+type ID [idLen]byte
 
 // FromString converts string s to id.
-func FromString(s string) (id ID) {
-	copy(id[:], []byte(s))
+func FromString(s string) (id ID, err error) {
+	enc := base64.URLEncoding.WithPadding(base64.NoPadding)
+
+	_, err = enc.Decode(id[:], []byte(s))
+	if err != nil {
+		return id, fmt.Errorf("decoding request id: %w", err)
+	}
+
+	return id, nil
+}
+
+// requestIDRand is used to create [ID]s.
+//
+// TODO(a.garipov): Consider making a struct instead of using one global source.
+var requestIDRand = randutil.NewReader(randutil.MustNewSeed())
+
+// New generates new request ID.
+func New() (id ID) {
+	_, err := requestIDRand.Read(id[:])
+	if err != nil {
+		panic(fmt.Errorf("generating random request id: %w", err))
+	}
 
 	return id
 }
 
-// New generates new request ID.
-func New() (id ID) {
-	// #nosec G404 -- We do not need a real random here.
-	rng := rand.New(rand.NewChaCha8(randutil.MustNewSeed()))
-
-	return FromString(randutil.StringAlphabet(rng, 16, randutil.AlphabetLowercase))
-}
+// type check
+var _ fmt.Stringer = (*ID)(nil)
 
 // String implements the [fmt.Stringer] interface for ID.
 func (i ID) String() (s string) {
-	return string(i[:])
+	enc := base64.URLEncoding.WithPadding(base64.NoPadding)
+	n := enc.EncodedLen(idLen)
+
+	idData64 := make([]byte, n)
+	enc.Encode(idData64, i[:])
+
+	return string(idData64)
 }
 
-// ContextWithRequestID returns a new context with the given ID.
-func ContextWithRequestID(parent context.Context, id ID) (ctx context.Context) {
-	return context.WithValue(parent, ctxKeyRequestID, id)
-}
+// type check
+var _ encoding.TextMarshaler = (*ID)(nil)
 
-// IDFromContext returns ID for this request, if any.
-func IDFromContext(ctx context.Context) (id ID, ok bool) {
-	v := ctx.Value(ctxKeyRequestID)
-	if v == nil {
-		return id, false
-	}
-
-	return v.(ID), true
-}
-
-// MustIDFromContext returns ID for this request and panics if there
-// is no ID.
-func MustIDFromContext(ctx context.Context) (id ID) {
-	v := ctx.Value(ctxKeyRequestID)
-	if v == nil {
-		panic(errors.Error("requestid: no request id in context"))
-	}
-
-	return v.(ID)
+// MarshalText implements the [encoding.TextMarshaler] interface for ID.
+func (i ID) MarshalText() (data []byte, err error) {
+	return []byte(i.String()), nil
 }

@@ -43,10 +43,13 @@ func (r *RequestIDRoundTripper) RoundTrip(req *http.Request) (resp *http.Respons
 	ctx := req.Context()
 
 	id, ok := requestid.IDFromContext(ctx)
-	if ok {
-		req.Header.Set(httphdr.XRequestID, id.String())
-	} else if r.generate {
+	if !ok && r.generate {
 		id = requestid.New()
+		ok = true
+	}
+
+	if ok {
+		req = req.Clone(ctx)
 		req.Header.Set(httphdr.XRequestID, id.String())
 	}
 

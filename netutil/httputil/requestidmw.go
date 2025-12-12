@@ -30,18 +30,26 @@ func (mw *RequestIDMiddleware) Wrap(h http.Handler) (wrapped http.Handler) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		newReq := r
-
 		reqID := r.Header.Get(httphdr.XRequestID)
-		if reqID != "" {
-			ctx = requestid.ContextWithRequestID(ctx, requestid.FromString(reqID))
+		if reqID == "" {
+			h.ServeHTTP(w, r)
 
-			newReq = mw.reqPool.Get()
-			defer mw.reqPool.Put(newReq)
-
-			CopyRequestTo(ctx, newReq, r)
+			return
 		}
 
+		id, err := requestid.FromString(reqID)
+		if err != nil {
+			h.ServeHTTP(w, r)
+
+			return
+		}
+
+		ctx = requestid.ContextWithRequestID(ctx, id)
+
+		newReq := mw.reqPool.Get()
+		defer mw.reqPool.Put(newReq)
+
+		CopyRequestTo(ctx, newReq, r)
 		h.ServeHTTP(w, newReq)
 	})
 }

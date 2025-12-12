@@ -25,11 +25,12 @@ func TestRequestIDRoundTripper_RoundTrip(t *testing.T) {
 		},
 	}
 
-	rt := httputil.NewRequestIDRoundTripper(
-		&httputil.RequestIDRoundTripperConfig{
-			Transport: transport,
-			Generate:  false,
-		})
+	conf := &httputil.RequestIDRoundTripperConfig{
+		Transport: transport,
+		Generate:  false,
+	}
+
+	rt := httputil.NewRequestIDRoundTripper(conf)
 
 	t.Run("without_generation_empty_context", func(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
@@ -53,11 +54,8 @@ func TestRequestIDRoundTripper_RoundTrip(t *testing.T) {
 		assert.Equal(t, testStrRequestID, header)
 	})
 
-	rt = httputil.NewRequestIDRoundTripper(
-		&httputil.RequestIDRoundTripperConfig{
-			Transport: transport,
-			Generate:  true,
-		})
+	conf.Generate = true
+	rt = httputil.NewRequestIDRoundTripper(conf)
 
 	t.Run("with_generation_empty_context", func(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)

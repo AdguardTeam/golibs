@@ -85,10 +85,10 @@ func (h *JSONHybridHandler) Handle(ctx context.Context, r slog.Record) (err erro
 		return fmt.Errorf("handling text for data: %w", err)
 	}
 
-	var reqID string
+	var reqID *requestid.ID
 	id, ok := requestid.IDFromContext(ctx)
 	if ok {
-		reqID = id.String()
+		reqID = &id
 	}
 
 	msg := byteString(bufTextHdlr.buffer.Bytes())
@@ -116,13 +116,13 @@ func (b byteString) MarshalText() (res []byte, err error) {
 
 // jsonHybridMessage represents the data structure for *JSONHybridHandler.
 type jsonHybridMessage = struct {
-	RequestID string     `json:"request_id,omitempty"`
-	Severity  string     `json:"severity"`
-	Message   byteString `json:"message"`
+	RequestID *requestid.ID `json:"request_id,omitempty"`
+	Severity  string        `json:"severity"`
+	Message   byteString    `json:"message"`
 }
 
 // newJSONHybridMessage returns new properly initialized message.
-func newJSONHybridMessage(lvl slog.Level, msg byteString, id string) (m *jsonHybridMessage) {
+func newJSONHybridMessage(lvl slog.Level, msg byteString, id *requestid.ID) (m *jsonHybridMessage) {
 	severity := "NORMAL"
 	if lvl >= slog.LevelError {
 		severity = "ERROR"

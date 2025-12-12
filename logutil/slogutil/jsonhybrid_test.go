@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 	"github.com/AdguardTeam/golibs/requestid"
 	"github.com/AdguardTeam/golibs/testutil"
@@ -23,11 +24,11 @@ const (
 	testTimeout = 1 * time.Second
 
 	// testRequestID is a string representation of common request ID for tests.
-	testStrRequestID = "abcdefghijklmnop"
+	testStrRequestID = "YWJjZGVmZ2hpamtsbW5vcA"
 )
 
 // testRequestID is a common requestID for tests.
-var testRequestID = requestid.FromString(testStrRequestID)
+var testRequestID = errors.Must(requestid.FromString(testStrRequestID))
 
 func TestJSONHybridHandler_Handle(t *testing.T) {
 	var (
