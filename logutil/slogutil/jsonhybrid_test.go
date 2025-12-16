@@ -12,8 +12,18 @@ import (
 	"time"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
+	"github.com/AdguardTeam/golibs/requestid"
+	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	// testTimeout is common timeout for tests.
+	testTimeout = 1 * time.Second
+
+	// testRequestID is a common request ID for tests.
+	testRequestID requestid.ID = "abcdefghijklmnop"
 )
 
 func TestJSONHybridHandler_Handle(t *testing.T) {
@@ -39,11 +49,14 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 	// Test with multiple goroutines to be sure there are no races.
 	const numGoroutine = 1_000
 
+	ctx := testutil.ContextWithTimeout(t, testTimeout)
+	ctx = requestid.ContextWithRequestID(ctx, testRequestID)
+
 	wg := &sync.WaitGroup{}
 	for i := range numGoroutine {
 		wg.Go(func() {
-			hybridLogger.Info("test message", "i", i, "attr", "abc")
-			textLogger.Info("test message", "i", i, "attr", "abc")
+			hybridLogger.InfoContext(ctx, "test message", "i", i, "attr", "abc")
+			textLogger.InfoContext(ctx, "test message", "i", i, "attr", "abc")
 		})
 	}
 
@@ -58,8 +71,10 @@ func TestJSONHybridHandler_Handle(t *testing.T) {
 	slices.Sort(hybridOutputStrings)
 	slices.Sort(textOutputStrings)
 
-	const (
-		prefix = `{"severity":"NORMAL","message":"level=INFO msg=\"test message\" `
+	var (
+		prefix = `{"request_id":"` +
+			string(testRequestID) +
+			`","severity":"NORMAL","message":"level=INFO msg=\"test message\" `
 		suffix = `"}`
 	)
 
@@ -79,6 +94,8 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 	h := slogutil.NewJSONHybridHandler(io.Discard, nil)
 
 	ctx := context.Background()
+	ctx = requestid.ContextWithRequestID(ctx, testRequestID)
+
 	r := slog.NewRecord(time.Now(), slog.LevelInfo, "test message", 0)
 	r.AddAttrs(
 		slog.Int("int", 123),
@@ -95,10 +112,9 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 	require.NoError(b, err)
 
 	// Most recent results:
-	//	goos: linux
-	//	goarch: amd64
+	//	goos: darwin
+	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
-	//	cpu: AMD Ryzen 7 PRO 4750U with Radeon Graphics
-	//	BenchmarkJSONHybridHandler_Handle
-	//	BenchmarkJSONHybridHandler_Handle-16    	 1000000	      1453 ns/op	      48 B/op	       1 allocs/op
+	//	cpu: Apple M3
+	//	BenchmarkJSONHybridHandler_Handle-8   	 2292276	       515.2 ns/op	      80 B/op	       2 allocs/op
 }

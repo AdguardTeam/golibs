@@ -33,3 +33,16 @@ func (rw *ResponseWriter) Write(b []byte) (n int, err error) {
 func (rw *ResponseWriter) WriteHeader(code int) {
 	rw.OnWriteHeader(code)
 }
+
+// RoundTripper is an [http.RoundTripper] for tests.
+type RoundTripper struct {
+	OnRoundTrip func(req *http.Request) (resp *http.Response, err error)
+}
+
+// type check
+var _ http.RoundTripper = (*RoundTripper)(nil)
+
+// RoundTrip implements the [http.RoundTripper] interface for *RoundTripper.
+func (r *RoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	return r.OnRoundTrip(req)
+}
