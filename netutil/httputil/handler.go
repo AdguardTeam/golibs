@@ -40,7 +40,7 @@ const HealthCheckHandler PlainTextHandler = "OK\n"
 // PanicHandler returns an HTTP handler that panics with the provided value.  v
 // must not be nil.
 func PanicHandler(v any) (h http.Handler) {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		panic(v)
 	})
 }

@@ -27,7 +27,9 @@ func Parse(ctx context.Context, dst Set, src io.Reader, buf []byte) (err error) 
 
 	var errs []error
 	// By default, collect all errors.
-	handleInvalid := func(_ context.Context, _ string, _ []byte, err error) { errs = append(errs, err) }
+	handleInvalid := func(_ context.Context, _ string, _ []byte, err error) {
+		errs = append(errs, err)
+	}
 
 	if handleSet, isHandleSet := dst.(HandleSet); isHandleSet {
 		handleInvalid = handleSet.HandleInvalid

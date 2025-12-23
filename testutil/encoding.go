@@ -8,9 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// AssertMarshalText checks that the implementation of
-// [encoding.TextMarshaler.MarshalText] works in all situations and results in
-// the string s.
+// AssertMarshalText checks that the implementation of [encoding.TextMarshaler]
+// works in all situations and results in the string s.
 //
 // See https://github.com/dominikh/go-tools/issues/911.
 func AssertMarshalText[T encoding.TextMarshaler](t require.TestingT, s string, v *T) (ok bool) {
@@ -74,8 +73,8 @@ type TextUnmarshaler[T any] interface {
 }
 
 // AssertUnmarshalText checks that the implementation of
-// [encoding.TextUnmarshaler.UnmarshalText] works in all situations and results
-// in a value deeply equal to want.
+// [encoding.TextUnmarshaler] works in all situations and unmarshals from the
+// string s into a value deeply equal to v.
 func AssertUnmarshalText[T any, U TextUnmarshaler[T]](t require.TestingT, s string, v U) (ok bool) {
 	if h, isHelper := t.(interface{ Helper() }); isHelper {
 		h.Helper()

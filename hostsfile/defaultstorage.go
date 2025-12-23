@@ -1,0 +1,212 @@
+package hostsfile
+
+import (
+	"cmp"
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"net/netip"
+	"slices"
+	"strings"
+
+	"github.com/AdguardTeam/golibs/container"
+	"github.com/AdguardTeam/golibs/errors"
+	"github.com/AdguardTeam/golibs/logutil/slogutil"
+)
+
+// orderedSet is a helper type for storing values in original adding order and
+// dealing with duplicates.
+type orderedSet[K string | netip.Addr] struct {
+	set  *container.MapSet[K]
+	vals []K
+}
+
+// add adds val to os if it's not already there.
+//
+// TODO(f.setrakov): Get rid of this method and log duplicate records in
+// DefaultStorage.
+func (os *orderedSet[K]) add(key, val K) {
+	if !os.set.Has(key) {
+		os.set.Add(key)
+		os.vals = append(os.vals, val)
+	}
+}
+
+// Convenience aliases for [orderedSet].
+type (
+	namesSet = orderedSet[string]
+	addrsSet = orderedSet[netip.Addr]
+)
+
+// DefaultStorageConfig is configuration structure for *DefaultStorage.
+type DefaultStorageConfig struct {
+	// Logger is used for logging errors in the [DefaultStorage.HandleInvalid]
+	// function.
+	Logger *slog.Logger
+
+	// Readers will be read line by line and parsed as hosts files.
+	Readers []io.Reader
+}
+
+// DefaultStorage is a [Storage] that removes duplicates.  It also implements
+// the [HandleSet] interface and therefore can be used within [Parse].
+//
+// It must be initialized with [NewDefaultStorage].
+type DefaultStorage struct {
+	// logger is used for logging errors in the [DefaultStorage.HandleInvalid]
+	// function.
+	logger *slog.Logger
+
+	// names maps each address to its names in original case and in original
+	// adding order without duplicates.
+	names map[netip.Addr]*namesSet
+
+	// addrs maps each host to its addresses in original adding order without
+	// duplicates.
+	addrs map[string]*addrsSet
+}
+
+// NewDefaultStorage parses data if hosts files format from readers and returns
+// a new properly initialized DefaultStorage.  readers are optional, an empty
+// storage is completely usable.
+func NewDefaultStorage(
+	ctx context.Context,
+	config *DefaultStorageConfig,
+) (s *DefaultStorage, err error) {
+	s = &DefaultStorage{
+		logger: cmp.Or(config.Logger, slog.Default()),
+		names:  map[netip.Addr]*namesSet{},
+		addrs:  map[string]*addrsSet{},
+	}
+
+	// TODO(e.burkov):  Consider joining errors.
+	for i, r := range config.Readers {
+		if err = Parse(ctx, s, r, nil); err != nil {
+			return nil, fmt.Errorf("reader at index %d: %w", i, err)
+		}
+	}
+
+	return s, nil
+}
+
+// type check
+var _ HandleSet = (*DefaultStorage)(nil)
+
+// Add implements the [Set] interface for *DefaultStorage.  It skips records
+// without hostnames, ignores duplicates and squashes the rest.
+func (s *DefaultStorage) Add(_ context.Context, rec *Record) {
+	names := s.names[rec.Addr]
+	if names == nil {
+		names = &namesSet{
+			set: container.NewMapSet[string](),
+		}
+
+		s.names[rec.Addr] = names
+	}
+
+	for _, name := range rec.Names {
+		lowered := strings.ToLower(name)
+		names.add(lowered, name)
+
+		addrs := s.addrs[lowered]
+		if addrs == nil {
+			addrs = &addrsSet{
+				vals: []netip.Addr{},
+				set:  container.NewMapSet[netip.Addr](),
+			}
+			s.addrs[lowered] = addrs
+		}
+		addrs.add(rec.Addr, rec.Addr)
+	}
+}
+
+// HandleInvalid implements the [HandleSet] interface for *DefaultStorage.  It
+// essentially ignores empty lines and logs all other errors at debug level.
+func (s *DefaultStorage) HandleInvalid(ctx context.Context, srcName string, _ []byte, err error) {
+	lineErr := &LineError{}
+	if !errors.As(err, &lineErr) {
+		s.logger.DebugContext(ctx, "unexpected parsing error", slogutil.KeyError, err)
+
+		return
+	}
+
+	if errors.Is(err, ErrEmptyLine) {
+		// Ignore empty lines and comments.
+		return
+	}
+
+	s.logger.DebugContext(ctx, "invalid record", "source", srcName, slogutil.KeyError, lineErr)
+}
+
+// type check
+var _ Storage = (*DefaultStorage)(nil)
+
+// ByAddr implements the [Storage] interface for *DefaultStorage.  It returns
+// each host for addr in original case, in original adding order without
+// duplicates.  It returns nil if h doesn't contain the addr.
+func (s *DefaultStorage) ByAddr(addr netip.Addr) (hosts []string) {
+	if hostsSet, ok := s.names[addr]; ok {
+		hosts = hostsSet.vals
+	}
+
+	return hosts
+}
+
+// ByName implements the [Storage] interface for *DefaultStorage.  It returns
+// each address for host in original adding order without duplicates.  It
+// returns nil if h doesn't contain the host.
+func (s *DefaultStorage) ByName(host string) (addrs []netip.Addr) {
+	if addrsSet, ok := s.addrs[strings.ToLower(host)]; ok {
+		addrs = addrsSet.vals
+	}
+
+	return addrs
+}
+
+// RangeNames ranges through all addresses in s and calls f with all the
+// corresponding names for each one.  The order of range is undefined.  names
+// must not be modified.
+func (s *DefaultStorage) RangeNames(f func(addr netip.Addr, names []string) (cont bool)) {
+	for addr, names := range s.names {
+		if !f(addr, names.vals) {
+			return
+		}
+	}
+}
+
+// RangeAddrs ranges through all hostnames in s and calls f with all the
+// corresponding addresses for each one.  The order of range is undefined.
+// addrs must not be modified.
+func (s *DefaultStorage) RangeAddrs(f func(host string, addrs []netip.Addr) (cont bool)) {
+	for host, addrs := range s.addrs {
+		if !f(host, addrs.vals) {
+			return
+		}
+	}
+}
+
+// Equal returns true if s and other contain the same addresses mapped to the
+// same hostnames in the same order.  Empty and nil storages are not equal.
+func (s *DefaultStorage) Equal(other *DefaultStorage) (ok bool) {
+	if s == nil || other == nil {
+		return s == other
+	} else if len(s.names) != len(other.names) || len(s.addrs) != len(other.addrs) {
+		return false
+	}
+
+	// Don't use [maps.Equal] here, since we're only interested in comparing the
+	// fields of values, not the values itself.
+	for addr, names := range s.names {
+		var otherNames *namesSet
+		switch otherNames, ok = other.names[addr]; {
+		case
+			!ok,
+			len(names.vals) != len(otherNames.vals),
+			!slices.Equal(names.vals, otherNames.vals):
+			return false
+		}
+	}
+
+	return true
+}
