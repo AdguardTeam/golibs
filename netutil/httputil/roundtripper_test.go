@@ -34,7 +34,7 @@ func TestRequestIDRoundTripper_RoundTrip(t *testing.T) {
 	}, {
 		name:   "request_with_reqid",
 		reqID:  testRequestID,
-		header: string(testRequestID),
+		header: testRequestIDStr,
 	}}
 
 	for _, tc := range testCases {
@@ -109,9 +109,10 @@ func BenchmarkRequestIDRoundTripper(b *testing.B) {
 	}
 
 	// Most recent results:
-	//	goos: darwin
-	//	goarch: arm64
+	//	goos: linux
+	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/netutil/httputil
-	//	cpu: Apple M3
-	//	BenchmarkRequestIDRoundTripper_RoundTrip-8   	 3069321	       390.8 ns/op	     336 B/op	       2 allocs/op
+	//	cpu: AMD Ryzen AI 9 HX PRO 370 w/ Radeon 890M
+	//	BenchmarkRequestIDRoundTripper
+	//	BenchmarkRequestIDRoundTripper-24    	 6023694	       204.6 ns/op	      16 B/op	       1 allocs/op
 }

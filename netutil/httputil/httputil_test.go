@@ -16,8 +16,13 @@ import (
 // testTimeout is a common timeout for tests.
 const testTimeout = 1 * time.Second
 
-// testRequestID is a common request ID for tests.
-const testRequestID requestid.ID = "abcdefghijklmnop"
+const (
+	// testRequestID is a common request ID for tests.
+	testRequestID requestid.ID = testRequestIDStr
+
+	// testRequestIDStr is the string representation of [testRequestID].
+	testRequestIDStr = "abcdefghijklmnop"
+)
 
 // Common constants for tests.
 const (

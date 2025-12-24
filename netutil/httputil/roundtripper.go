@@ -23,8 +23,11 @@ type RequestIDRoundTripperConfig struct {
 // RequestIDRoundTripper is an implementation of [http.RoundTripper] that puts
 // the request ID from the context into the X-Request-ID header.  If the request
 // already contains an X-Request-ID header, then the round tripper does nothing.
+//
+// RequestIDRoundTripper does not support [http.Request.Cancel].
 type RequestIDRoundTripper struct {
 	transport http.RoundTripper
+	hdrPool   *HeaderPool
 	reqPool   *syncutil.Pool[http.Request]
 	generate  bool
 }
@@ -34,10 +37,11 @@ type RequestIDRoundTripper struct {
 func NewRequestIDRoundTripper(c *RequestIDRoundTripperConfig) (r *RequestIDRoundTripper) {
 	return &RequestIDRoundTripper{
 		transport: c.Transport,
-		generate:  c.Generate,
+		hdrPool:   NewHeaderPool(),
 		reqPool: syncutil.NewPool(func() (r *http.Request) {
 			return &http.Request{}
 		}),
+		generate: c.Generate,
 	}
 }
 
@@ -68,6 +72,18 @@ func (r *RequestIDRoundTripper) RoundTrip(req *http.Request) (resp *http.Respons
 	CopyRequestTo(ctx, newReq, req)
 	req = newReq
 
+	//lint:ignore SA1019 Set the deprecated Cancel field to nil to prevent races
+	// when reusing requests.  Cancel is automatically set by the default HTTP
+	// client for compatibility, but this RoundTripper does not support it.
+	req.Cancel = nil
+
+	// NOTE:  CopyRequestTo creates a shallow copy, so in order to modify the
+	// outgoing request without too many new allocations, a new header from the
+	// pool must be used.
+	newHdrEntry := r.hdrPool.Get(req.Header)
+	defer r.hdrPool.Put(newHdrEntry)
+
+	req.Header = newHdrEntry.Header()
 	req.Header.Set(httphdr.XRequestID, string(id))
 
 	return r.transport.RoundTrip(req)
