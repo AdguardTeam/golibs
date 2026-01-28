@@ -17,12 +17,15 @@ func AppendString(orig []byte, rng *rand.Rand, l uint64) (res []byte) {
 	rest := l
 	for rest != 0 {
 		r, rl := randomRune(rng, rest)
+		// #nosec G115 -- The first case removes negative numbers, so the
+		// conversion is safe
 		for rl < 0 || uint64(rl) > rest || runenames.Name(r) == "" {
 			r, rl = randomRune(rng, rest)
 		}
 
 		res = utf8.AppendRune(res, r)
 
+		// #nosec G115 -- By now rl must not be negative.
 		rest -= uint64(rl)
 	}
 
@@ -33,6 +36,7 @@ func AppendString(orig []byte, rng *rand.Rand, l uint64) (res []byte) {
 // space is left in the slice.  rng must not be nil.
 func randomRune(rng *rand.Rand, rest uint64) (r rune, l int) {
 	maxRune := maxRuneForRest(rest)
+	// #nosec G115 -- maxRune shouldn't be larger than [math.MaxInt32].
 	r = rune(rng.Uint64N(maxRune + 1))
 	l = utf8.RuneLen(r)
 
@@ -72,6 +76,7 @@ func AppendStringASCII(orig []byte, rng *rand.Rand, l uint64) (res []byte) {
 	)
 
 	for range l {
+		// #nosec G115 -- The value shouldn't be larger than [math.MaxUint8].
 		b := byte(rng.Uint64N(asciiPrintRange) + asciiPrintFirst)
 		res = append(res, b)
 	}

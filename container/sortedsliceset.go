@@ -278,9 +278,9 @@ func (set *SortedSliceSet[T]) removeMissing(other *SortedSliceSet[T]) (res *Sort
 	return set
 }
 
-// intersection fills set with values that belong both to b and a.  res will be
+// intersection fills set with values that belong both to a and b.  res will be
 // sorted.  set, a and b must not be nil.
-func (set *SortedSliceSet[T]) intersection(b, a *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
+func (set *SortedSliceSet[T]) intersection(a, b *SortedSliceSet[T]) (res *SortedSliceSet[T]) {
 	aIdx, bIdx := 0, 0
 	for aIdx < len(a.elems) && bIdx < len(b.elems) {
 		if a.elems[aIdx] < b.elems[bIdx] {

@@ -1,12 +1,12 @@
 package container
 
 import (
+	"cmp"
 	"fmt"
 	"maps"
 	"slices"
 
 	"github.com/AdguardTeam/golibs/errors"
-	"golang.org/x/exp/constraints"
 )
 
 // MapSet is a set that uses a map as its storage.
@@ -127,7 +127,7 @@ func (set *MapSet[T]) Values() (values []T) {
 
 // MapSetToString converts a [MapSet] of values of an ordered type into a
 // reproducible string.
-func MapSetToString[T constraints.Ordered](set *MapSet[T]) (s string) {
+func MapSetToString[T cmp.Ordered](set *MapSet[T]) (s string) {
 	v := set.Values()
 	slices.Sort(v)
 

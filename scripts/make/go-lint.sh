@@ -3,7 +3,7 @@
 # This comment is used to simplify checking local copies of the script.  Bump
 # this number every time a significant change is made to this script.
 #
-# AdGuard-Project-Version: 14
+# AdGuard-Project-Version: 16
 
 verbose="${VERBOSE:-0}"
 readonly verbose
@@ -168,7 +168,17 @@ run_linter -e gofumpt --extra -e -l .
 
 run_linter "${GO:-go}" vet ./...
 
-run_linter govulncheck ./...
+# govulncheck is not stricly reproducible, because it queries the VulnDB, which
+# is updated constantly.  If a stricly reproducible lint is desired, for example
+# for Docker lint stages, set IGNORE_NON_REPRODUCIBLE to 1 to ignore the exit
+# code from govulncheck.
+if [ "${IGNORE_NON_REPRODUCIBLE:-0}" -gt '0' ]; then
+	# run_linter calls set +e, so don't mind the cancelling effect of ||.
+	# shellcheck disable=SC2310
+	run_linter govulncheck ./... || :
+else
+	run_linter govulncheck ./...
+fi
 
 run_linter gocyclo --over 10 .
 
@@ -200,25 +210,28 @@ run_linter fieldalignment \
 	./errors/ \
 	./hostsfile/ \
 	./httphdr/ \
+	./internal/... \
 	./ioutil/ \
 	./log/ \
 	./logutil/... \
 	./mathutil/... \
 	./netutil/... \
 	./osutil/... \
+	./otelutil/... \
 	./redisutil/ \
+	./requestid/ \
 	./service/ \
 	./stringutil/ \
 	./syncutil/ \
 	./testutil/... \
 	./timeutil/ \
+	./validate/ \
 	;
 
 run_linter -e shadow --strict ./...
 
 # TODO(a.garipov):  Remove or replace cache package.
-# TODO(a.garipov):  Re-enable G602 once securego/gosec#1406 is fixed.
-run_linter gosec --exclude='G602' --exclude-dir='cache' --quiet ./...
+run_linter gosec --exclude-dir='cache' --fmt=golint --quiet ./...
 
 run_linter errcheck ./...
 

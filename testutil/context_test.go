@@ -17,7 +17,7 @@ func TestContextWithTimeout(t *testing.T) {
 	now := time.Now()
 
 	// If there is no deadline, use the default timeout of 10 seconds.
-	// Otherwise, use half of the time undil the deadline as the new timeout.
+	// Otherwise, use half of the time until the deadline as the new timeout.
 	parent := t.Context()
 	dl, ok := parent.Deadline()
 	if !ok {

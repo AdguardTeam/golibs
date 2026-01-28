@@ -11,7 +11,7 @@ import (
 //
 // TODO(a.garipov):  Consider creating a separate version using
 // [testing.TB.Context].  Great care is necessary, as testing.TB.Context is
-// cancelled before cleanup functions, so the context resulting from this new
+// canceled before cleanup functions, so the context resulting from this new
 // function should not be used in them.
 func ContextWithTimeout(tb testing.TB, timeout time.Duration) (ctx context.Context) {
 	tb.Helper()
