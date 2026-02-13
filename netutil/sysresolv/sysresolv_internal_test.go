@@ -23,14 +23,15 @@ func TestSystemResolvers_Refresh(t *testing.T) {
 		assert.NoError(t, sr.Refresh())
 	})
 
-	t.Run("unexpected_error", func(t *testing.T) {
+	t.Run("not_found_error", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := NewSystemResolvers(func() (host string) {
-			return "127.0.0.1::123"
+		sr, err := NewSystemResolvers(func() (host string) {
+			return ""
 		}, 53)
+		require.NoError(t, err)
 
-		assert.Error(t, err)
+		assert.NoError(t, sr.Refresh())
 	})
 }
 

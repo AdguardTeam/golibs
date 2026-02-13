@@ -18,6 +18,11 @@ import (
 
 // HostGenFunc is a function used for generating hostnames to check the system
 // DNS.  The generated hosts should be unique to avoid resolver's cache.
+//
+// The generated hostnames must be valid according to DNS standards to ensure
+// proper error differentiation between invalid hosts and absence of system
+// resolvers.
+//
 // Implementations must be safe for concurrent use.
 type HostGenFunc func() (hostname string)
 
@@ -69,7 +74,8 @@ func NewSystemResolvers(genHost HostGenFunc, defaultPort uint16) (sr *SystemReso
 }
 
 // Addrs returns all the collected resolvers' addresses.  Caller must clone the
-// returned slice before modifying it.  It is safe for concurrent use.
+// returned slice before modifying it.  The returned slice may be empty if no
+// system resolvers are found.  It is safe for concurrent use.
 func (sr *SystemResolvers) Addrs() (addrs []netip.AddrPort) {
 	sr.updMu.RLock()
 	defer sr.updMu.RUnlock()
@@ -118,6 +124,7 @@ func compareAddrPorts(a, b netip.AddrPort) (res int) {
 }
 
 // collectResolvers returns the set of resolvers' addresses used by the system.
+// The returned set may be empty if no system resolvers are found.
 func (sr *SystemResolvers) collectResolvers() (set *container.MapSet[netip.AddrPort], err error) {
 	setMu := sync.Mutex{}
 	set = container.NewMapSet[netip.AddrPort]()
@@ -141,13 +148,27 @@ func (sr *SystemResolvers) collectResolvers() (set *container.MapSet[netip.AddrP
 		Dial:     dialFunc,
 	}
 
+	// TODO(d.kolyshev):  Add hostname validation before lookup to ensure the
+	// generated host is valid and provide better error messages.
 	_, err = resolver.LookupHost(context.Background(), sr.generateHost())
 	dnsErr := &net.DNSError{}
-	if !errors.As(err, &dnsErr) || dnsErr.Err != errFakeDial.Error() {
+	if !errors.As(err, &dnsErr) {
 		return nil, err
 	}
 
-	return set, nil
+	switch {
+	case
+		// [net.Resolver] successfully dialed the generated host.
+		dnsErr.Err == errFakeDial.Error(),
+		// Some OSes (e.g. OpenBSD) may have no system resolvers at all or in
+		// case the generated host is invalid, [net.Resolver] doesn't call the
+		// dialFunc and returns an error with empty server and IsNotFound flag
+		// set to true.  In these cases, the set is returned as is.
+		dnsErr.IsNotFound && dnsErr.Server == "":
+		return set, nil
+	default:
+		return nil, err
+	}
 }
 
 // parse returns the [netip.AddrPort] parsed from the passed address, using the
