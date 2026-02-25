@@ -93,8 +93,6 @@ var _ service.Interface = (*Server)(nil)
 // Start implements [service.Interface] for *Server.  It blocks if the server
 // starts successfully.
 func (s *Server) Start(ctx context.Context) (err error) {
-	defer slogutil.RecoverAndLog(ctx, s.logger)
-
 	tcpListener, err := net.ListenTCP("tcp", net.TCPAddrFromAddrPort(s.initialAddr))
 	if err != nil {
 		s.logger.ErrorContext(ctx, "listening tcp", slogutil.KeyError, err)
