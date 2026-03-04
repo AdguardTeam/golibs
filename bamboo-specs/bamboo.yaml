@@ -12,7 +12,7 @@
     # This variable is used to override Docker caching, for example to rerun a
     # flaky test suite.
     'cacheBuster': '0'
-    'dockerGo': 'adguard/go-builder:1.25.5--1'
+    'dockerGo': 'adguard/go-builder:1.25.7--2'
 
 'stages':
   - 'Test':

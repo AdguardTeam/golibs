@@ -56,10 +56,11 @@ func TestSignalHandler_unix(t *testing.T) {
 	sigHdlr.AddRefresher(refr)
 
 	go func() {
-		pt := &testutil.PanicT{}
+		pt := testutil.NewPanicT(t)
+		ptPtr := &pt
 
 		status := sigHdlr.Handle(context.Background())
-		assert.Equal(pt, osutil.ExitCodeSuccess, status)
+		assert.Equal(ptPtr, osutil.ExitCodeSuccess, status)
 	}()
 
 	testutil.RequireSend(t, controlCh, os.Signal(unix.SIGHUP), testTimeout)

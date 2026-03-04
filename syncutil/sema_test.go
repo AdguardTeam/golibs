@@ -29,9 +29,10 @@ func TestChanSemaphore(t *testing.T) {
 			defer s.Release()
 			defer current.Add(-1)
 
-			pt := &testutil.PanicT{}
+			pt := testutil.NewPanicT(t)
+			ptPtr := &pt
 			newCurrent := current.Add(1)
-			require.LessOrEqual(pt, newCurrent, int64(maxRes))
+			require.LessOrEqual(ptPtr, newCurrent, int64(maxRes))
 		}()
 	}
 }
@@ -54,9 +55,10 @@ func TestEmptySemaphore(t *testing.T) {
 			defer s.Release()
 			defer current.Add(-1)
 
-			pt := &testutil.PanicT{}
+			pt := testutil.NewPanicT(t)
+			ptPtr := &pt
 			newCurrent := current.Add(1)
-			require.LessOrEqual(pt, newCurrent, int64(numGoroutine))
+			require.LessOrEqual(ptPtr, newCurrent, int64(numGoroutine))
 		}()
 	}
 }

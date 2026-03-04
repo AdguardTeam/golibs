@@ -26,7 +26,7 @@ const (
 func newTestRefresher(t *testing.T, respErr error) (refr *fakeservice.Refresher, syncCh chan unit) {
 	t.Helper()
 
-	pt := testutil.PanicT{}
+	pt := testutil.NewPanicT(t)
 
 	syncCh = make(chan unit, 1)
 	refr = &fakeservice.Refresher{
