@@ -98,11 +98,11 @@ func runTestServer(tb testing.TB, srv *httputil.Server) (addr net.Addr) {
 		return srv.Shutdown(ctx)
 	})
 
-	for addr == nil {
-		addr = srv.LocalAddr()
-	}
+	require.EventuallyWithT(tb, func(c *assert.CollectT) {
+		assert.NotNil(c, srv.LocalAddr())
+	}, testTimeout, testTimeout/10)
 
-	return addr
+	return srv.LocalAddr()
 }
 
 // logRecord represents server log record.  It is used for unmarshalling
