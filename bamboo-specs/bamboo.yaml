@@ -2,7 +2,7 @@
 # This comment is used to simplify checking local copies of the Bamboo spec.
 # Bump this number every time a significant change is made to this spec.
 #
-# AdGuard-Project-Version: 8
+# AdGuard-Project-Version: 9
 'version': 2
 'plan':
     'project-key': 'GO'
@@ -12,7 +12,7 @@
     # This variable is used to override Docker caching, for example to rerun a
     # flaky test suite.
     'cacheBuster': '0'
-    'dockerGo': 'adguard/go-builder:1.25.7--2'
+    'dockerGo': 'adguard/go-builder:1.26.1--1'
 
 'stages':
   - 'Test':

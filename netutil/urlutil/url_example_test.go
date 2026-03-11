@@ -54,12 +54,12 @@ func ExampleURL() {
 	//     "User": null,
 	//     "Host": "host.example:1234",
 	//     "Path": "/path",
-	//     "RawPath": "",
-	//     "OmitHost": false,
-	//     "ForceQuery": false,
-	//     "RawQuery": "query=1",
 	//     "Fragment": "fragment",
-	//     "RawFragment": ""
+	//     "RawQuery": "query=1",
+	//     "RawPath": "",
+	//     "RawFragment": "",
+	//     "ForceQuery": false,
+	//     "OmitHost": false
 	//   },
 	//   "Util": "https://host.example:1234/path?query=1#fragment"
 	// }
