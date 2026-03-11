@@ -12,9 +12,7 @@ set -e -f -u
 # Warn the programmer about temporary todos and skel FIXMEs, but do not fail the
 # commit, because the commit could be in a temporary branch.
 temp_todos="$(
-	# FIXME:  Use the commented form in the real project.
-	# git grep -e 'FIXME' -e 'TODO.*!!' -- ':!scripts/hooks/pre-commit' || :
-	git grep -e 'TODO.*!!' -- ':!scripts/hooks/pre-commit' || :
+	git grep -e 'FIXME' -e 'TODO.*!!' -- ':!scripts/hooks/pre-commit' || :
 )"
 readonly temp_todos
 
