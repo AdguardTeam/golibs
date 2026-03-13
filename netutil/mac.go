@@ -38,12 +38,21 @@ func IsValidMACString(s string) (ok bool) {
 	case len("00:00:5e:00:53:01"):
 		fragLen, fragNum = 2, 6
 		sep = s[2]
+	case len("00005e005301"):
+		fragLen, fragNum = 2, 6
+		return isValidHexFragmentsString(s, fragNum, fragLen)
 	case len("02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 8
 		sep = s[2]
+	case len("02005e1000000001"):
+		fragLen, fragNum = 2, 8
+		return isValidHexFragmentsString(s, fragNum, fragLen)
 	case len("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 20
 		sep = s[2]
+	case len("00000000fe8000000000000002005e1000000001"):
+		fragLen, fragNum = 2, 20
+		return isValidHexFragmentsString(s, fragNum, fragLen)
 	case len("0000.5e00.5301"):
 		fragLen, fragNum = 4, 3
 		sep = '.'
@@ -96,6 +105,23 @@ func isValidHexString(s string) (ok bool) {
 		if fromHexByte(s[i]) == 0xff {
 			return false
 		}
+	}
+
+	return true
+}
+
+// isValidHexFragmentsString returns true if s is a string containing fragNum
+// hexadecimal fragments, each with a length of fragLen.  s must be of the
+// appropriate length.
+func isValidHexFragmentsString(s string, fragLen, fragNum int) (ok bool) {
+	idx := 0
+
+	for range fragNum {
+		if !isValidHexString(s[idx : idx+fragLen]) {
+			return false
+		}
+
+		idx += fragLen
 	}
 
 	return true

@@ -93,12 +93,24 @@ func TestIsValidMACString(t *testing.T) {
 		in:   "00-00-5e-00-53-01",
 	}, {
 		want: assert.True,
+		name: "good_eui_48_no_sep",
+		in:   "00005e005301",
+	}, {
+		want: assert.True,
 		name: "good_eui_64",
 		in:   "00:01:02:03:04:05:06:07",
 	}, {
 		want: assert.True,
+		name: "good_eui_64_no_sep",
+		in:   "02005e1000000001",
+	}, {
+		want: assert.True,
 		name: "good_infiniband",
 		in:   "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13",
+	}, {
+		want: assert.True,
+		name: "good_infiniband_no_sep",
+		in:   "000102030405060708090a0b0c0d0e0f10111213",
 	}, {
 		want: assert.False,
 		name: "bad_empty",
@@ -113,6 +125,10 @@ func TestIsValidMACString(t *testing.T) {
 		in:   "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14",
 	}, {
 		want: assert.False,
+		name: "bad_long_no_sep",
+		in:   "02005e10000000011",
+	}, {
+		want: assert.False,
 		name: "bad_eui_48",
 		in:   "00:01:02:03:04:!!",
 	}, {
@@ -121,12 +137,24 @@ func TestIsValidMACString(t *testing.T) {
 		in:   "0000.5e00.!!!!",
 	}, {
 		want: assert.False,
+		name: "bad_eui_48_no_sep",
+		in:   "0001020304!!",
+	}, {
+		want: assert.False,
 		name: "bad_eui_64",
 		in:   "00:01:02:03:04:05:06:!!",
 	}, {
 		want: assert.False,
+		name: "bad_eui_64_no_sep",
+		in:   "00010203040506!!",
+	}, {
+		want: assert.False,
 		name: "bad_infiniband",
 		in:   "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:!!",
+	}, {
+		want: assert.False,
+		name: "bad_infiniband_no_sep",
+		in:   "000102030405060708090a0b0c0d0e0f101112!!",
 	}}
 
 	for _, tc := range testCases {
@@ -157,12 +185,24 @@ func BenchmarkIsValidMACString(b *testing.B) {
 		in:   "00-00-5e-00-53-01",
 	}, {
 		want: require.True,
+		name: "good_eui_48_no_sep",
+		in:   "00005e005301",
+	}, {
+		want: require.True,
 		name: "good_eui_64",
 		in:   "00:01:02:03:04:05:06:07",
 	}, {
 		want: require.True,
+		name: "good_eui_64_no_sep",
+		in:   "02005e1000000001",
+	}, {
+		want: require.True,
 		name: "good_infiniband",
 		in:   "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13",
+	}, {
+		want: require.True,
+		name: "good_infiniband_no_sep",
+		in:   "000102030405060708090a0b0c0d0e0f10111213",
 	}, {
 		want: require.False,
 		name: "bad_empty",
@@ -181,12 +221,24 @@ func BenchmarkIsValidMACString(b *testing.B) {
 		in:   "00:01:02:03:04:!!",
 	}, {
 		want: require.False,
+		name: "bad_eui_48_no_sep",
+		in:   "0001020304!!",
+	}, {
+		want: require.False,
 		name: "bad_eui_64",
 		in:   "00:01:02:03:04:05:06:!!",
 	}, {
 		want: require.False,
+		name: "bad_eui_64_no_sep",
+		in:   "00010203040506!!",
+	}, {
+		want: require.False,
 		name: "bad_infiniband",
 		in:   "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:!!",
+	}, {
+		want: require.False,
+		name: "bad_infiniband_no_sep",
+		in:   "000102030405060708090a0b0c0d0e0f101112!!",
 	}}
 
 	for _, bc := range benchCases {
@@ -206,22 +258,26 @@ func BenchmarkIsValidMACString(b *testing.B) {
 	//	goarch: arm64
 	//	pkg: github.com/AdguardTeam/golibs/netutil
 	//	cpu: Apple M1 Pro
-	//	BenchmarkIsValidMACString/good_eui_48-8         	39715976	        27.01 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/good_eui_48_dot-8     	55899211	        21.56 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/good_eui_48_hyphen-8  	42972118	        27.82 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/good_eui_64-8         	34934920	        34.23 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/good_infiniband-8     	13681748	        87.67 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_empty-8           	416569996	         2.877 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_short-8           	413193378	         2.896 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_long-8            	414132560	         2.895 ns/op       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_eui_48-8          	47939676	        25.27 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_eui_64-8          	35862780	        32.38 ns/op	       0 B/op	       0 allocs/op
-	//	BenchmarkIsValidMACString/bad_infiniband-8      	13938758	        86.24 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_48-8         	49154138	        20.62 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_48_dot-8     	71959162	        16.67 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_48_hyphen-8  	55996809	        21.78 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_48_no_sep-8  	85664312	        14.09 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_64-8         	45203626	        26.59 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_eui_64_no_sep-8  	70250926	        17.93 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_infiniband-8     	16936184	        73.96 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/good_infiniband_no_sep-8         	33437360	        36.40 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_empty-8                      	348323583	         3.742 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_short-8                      	403428978	         3.948 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_long-8                       	270526783	         4.775 ns/op       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_eui_48-8                     	61308813	        19.05 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_eui_48_no_sep-8              	100000000	        11.84 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_eui_64-8                     	47756917	        24.98 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_eui_64_no_sep-8              	81576697	        14.72 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_infiniband-8                 	18075056	        66.49 ns/op	       0 B/op	       0 allocs/op
+	//	BenchmarkIsValidMACString/bad_infiniband_no_sep-8          	35061063	        35.00 ns/op	       0 B/op	       0 allocs/op
 }
 
 func FuzzIsValidMACString(f *testing.F) {
-	f.Skip("TODO(d.kolyshev): Fix parsing MAC without separators.")
-
 	for _, seed := range []string{
 		"",
 		" ",
@@ -231,6 +287,8 @@ func FuzzIsValidMACString(f *testing.F) {
 		"00-00",
 		"00:db::68",
 		"!!:00:00:00:00:00",
+		"00005e005301",
+		"02005e1000000001",
 	} {
 		f.Add(seed)
 	}
