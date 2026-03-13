@@ -31,39 +31,13 @@ func ValidateMAC(mac net.HardwareAddr) (err error) {
 // IsValidMACString is a best-effort check to determine if s is a valid MAC
 // address before using [net.ParseMAC], aimed at reducing allocations.
 func IsValidMACString(s string) (ok bool) {
-	var sep byte
-	var fragNum, fragLen int
-	l := len(s)
-	switch l {
-	case len("00:00:5e:00:53:01"):
-		fragLen, fragNum = 2, 6
-		sep = s[2]
-	case len("00005e005301"):
-		fragLen, fragNum = 2, 6
-		return isValidHexFragmentsString(s, fragNum, fragLen)
-	case len("02:00:5e:10:00:00:00:01"):
-		fragLen, fragNum = 2, 8
-		sep = s[2]
-	case len("02005e1000000001"):
-		fragLen, fragNum = 2, 8
-		return isValidHexFragmentsString(s, fragNum, fragLen)
-	case len("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"):
-		fragLen, fragNum = 2, 20
-		sep = s[2]
-	case len("00000000fe8000000000000002005e1000000001"):
-		fragLen, fragNum = 2, 20
-		return isValidHexFragmentsString(s, fragNum, fragLen)
-	case len("0000.5e00.5301"):
-		fragLen, fragNum = 4, 3
-		sep = '.'
-	case len("0200.5e10.0000.0001"):
-		fragLen, fragNum = 4, 4
-		sep = '.'
-	case len("0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001"):
-		fragLen, fragNum = 4, 10
-		sep = '.'
-	default:
+	fragLen, fragNum, sep, noSep, ok := fragmentString(s)
+	if !ok {
 		return false
+	}
+
+	if noSep {
+		return isValidHexFragmentsString(s, fragLen, fragNum)
 	}
 
 	switch sep {
@@ -74,6 +48,46 @@ func IsValidMACString(s string) (ok bool) {
 	}
 
 	return isValidHexSepString(s, fragLen, fragNum, sep)
+}
+
+// fragmentString returns the fragment length, number of fragments, separator
+// character, and whether the string contains no separator.  Returns false if
+// the string is not a valid MAC address.
+func fragmentString(s string) (fragLen, fragNum int, sep byte, noSep, ok bool) {
+	l := len(s)
+	switch l {
+	case len("00:00:5e:00:53:01"):
+		fragLen, fragNum = 2, 6
+		sep = s[2]
+	case len("00005e005301"):
+		fragLen, fragNum = 2, 6
+		noSep = true
+	case len("02:00:5e:10:00:00:00:01"):
+		fragLen, fragNum = 2, 8
+		sep = s[2]
+	case len("02005e1000000001"):
+		fragLen, fragNum = 2, 8
+		noSep = true
+	case len("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"):
+		fragLen, fragNum = 2, 20
+		sep = s[2]
+	case len("00000000fe8000000000000002005e1000000001"):
+		fragLen, fragNum = 2, 20
+		noSep = true
+	case len("0000.5e00.5301"):
+		fragLen, fragNum = 4, 3
+		sep = '.'
+	case len("0200.5e10.0000.0001"):
+		fragLen, fragNum = 4, 4
+		sep = '.'
+	case len("0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001"):
+		fragLen, fragNum = 4, 10
+		sep = '.'
+	default:
+		return 0, 0, 0, false, false
+	}
+
+	return fragLen, fragNum, sep, noSep, true
 }
 
 // isValidHexSepString returns true if s is a string containing fragNum
