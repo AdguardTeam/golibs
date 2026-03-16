@@ -31,19 +31,46 @@ func ValidateMAC(mac net.HardwareAddr) (err error) {
 // IsValidMACString is a best-effort check to determine if s is a valid MAC
 // address before using [net.ParseMAC], aimed at reducing allocations.
 func IsValidMACString(s string) (ok bool) {
-	var sep byte
-	var fragNum, fragLen int
+	fragLen, fragNum, sep, ok := estimateMACFragments(s)
+	if !ok {
+		return false
+	}
+
+	switch sep {
+	case 0:
+		return isValidHexFragString(s, fragLen, fragNum)
+	case '.', '-', ':':
+		return isValidHexSepString(s, fragLen, fragNum, sep)
+	default:
+		return false
+	}
+}
+
+// estimateMACFragments returns the fragment length, the expected number of
+// fragments, and the separator character from s, considering it a MAC address.
+// It returns false if the string is definitely not a valid MAC address.  sep is
+// 0 if there is no separator expected.
+func estimateMACFragments(s string) (fragLen, fragNum int, sep byte, ok bool) {
 	l := len(s)
 	switch l {
 	case len("00:00:5e:00:53:01"):
 		fragLen, fragNum = 2, 6
 		sep = s[2]
+	case len("00005e005301"):
+		fragLen, fragNum = 2, 6
+		sep = 0
 	case len("02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 8
 		sep = s[2]
+	case len("02005e1000000001"):
+		fragLen, fragNum = 2, 8
+		sep = 0
 	case len("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 20
 		sep = s[2]
+	case len("00000000fe8000000000000002005e1000000001"):
+		fragLen, fragNum = 2, 20
+		sep = 0
 	case len("0000.5e00.5301"):
 		fragLen, fragNum = 4, 3
 		sep = '.'
@@ -54,22 +81,15 @@ func IsValidMACString(s string) (ok bool) {
 		fragLen, fragNum = 4, 10
 		sep = '.'
 	default:
-		return false
+		return 0, 0, 0, false
 	}
 
-	switch sep {
-	case '.', '-', ':':
-		// Go on.
-	default:
-		return false
-	}
-
-	return isValidHexSepString(s, fragLen, fragNum, sep)
+	return fragLen, fragNum, sep, true
 }
 
 // isValidHexSepString returns true if s is a string containing fragNum
 // hexadecimal fragments, each with a length of fragLen, and separated by sep.
-// s must be of the appropriate length.
+// s must have a length of fragLen * fragNum + (fragNum - 1).
 func isValidHexSepString(s string, fragLen, fragNum int, sep byte) (ok bool) {
 	idx := 0
 
@@ -88,6 +108,23 @@ func isValidHexSepString(s string, fragLen, fragNum int, sep byte) (ok bool) {
 	}
 
 	return isValidHexString(s[idx : idx+fragLen])
+}
+
+// isValidHexFragString returns true if s is a string containing fragNum
+// hexadecimal fragments, each with a length of fragLen, without separators.  s
+// must have a length of fragLen * fragNum.
+func isValidHexFragString(s string, fragLen, fragNum int) (ok bool) {
+	idx := 0
+
+	for range fragNum {
+		if !isValidHexString(s[idx : idx+fragLen]) {
+			return false
+		}
+
+		idx += fragLen
+	}
+
+	return true
 }
 
 // isValidHexString returns true if s is a valid hexadecimal string.
