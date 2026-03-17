@@ -245,7 +245,7 @@ func ExampleSortedSliceSet_nil() {
 	// Output:
 	//
 	// panic after clear: false
-	// panic after delete: true
+	// panic after delete: false
 	// panic after has: false
 	// panic after len: false
 	// panic after range: false

@@ -43,6 +43,15 @@ func As(err error, target any) (ok bool) {
 	return stderrors.As(err, target)
 }
 
+// AsType finds the first error in err's tree that matches the type E, and if
+// one is found, returns that error value and true.  Otherwise, it returns the
+// zero value of E and false.
+//
+// It calls [stderrors.AsType] from the Go standard library.
+func AsType[E error](err error) (found E, ok bool) {
+	return stderrors.AsType[E](err)
+}
+
 // Aser is a copy of the hidden aser interface from the Go standard library.  It
 // is added here for tests, linting, etc.
 type Aser interface {

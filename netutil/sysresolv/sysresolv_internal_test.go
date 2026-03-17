@@ -3,7 +3,6 @@ package sysresolv
 import (
 	"fmt"
 	"net/netip"
-	"slices"
 	"testing"
 	"time"
 
@@ -88,49 +87,6 @@ func TestSystemResolvers_Parse(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 
 			assert.ErrorIs(t, parseErr, tc.wantErr)
-		})
-	}
-}
-
-func TestCompareAddrPorts(t *testing.T) {
-	t.Parallel()
-
-	var (
-		addr1v4 = netip.MustParseAddrPort("1.2.3.4:1")
-		addr2v4 = netip.MustParseAddrPort("4.3.2.1:1")
-		addr3v4 = netip.MustParseAddrPort("1.2.3.4:2")
-
-		addr1v6 = netip.MustParseAddrPort("[::1]:1")
-		addr2v6 = netip.MustParseAddrPort("[::2]:1")
-		addr3v6 = netip.MustParseAddrPort("[::1]:2")
-	)
-
-	testCases := []struct {
-		name  string
-		addrs []netip.AddrPort
-		want  []netip.AddrPort
-	}{{
-		name:  "ipv4",
-		addrs: []netip.AddrPort{addr3v4, addr2v4, addr1v4},
-		want:  []netip.AddrPort{addr1v4, addr3v4, addr2v4},
-	}, {
-		name:  "ipv6",
-		addrs: []netip.AddrPort{addr3v6, addr2v6, addr1v6},
-		want:  []netip.AddrPort{addr1v6, addr3v6, addr2v6},
-	}, {
-		name:  "mixed",
-		addrs: []netip.AddrPort{addr3v4, addr3v6, addr2v4, addr2v6, addr1v4, addr1v6},
-		want:  []netip.AddrPort{addr1v4, addr3v4, addr2v4, addr1v6, addr3v6, addr2v6},
-	}}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			slices.SortFunc(tc.addrs, compareAddrPorts)
-			assert.Equal(t, tc.want, tc.addrs)
 		})
 	}
 }

@@ -96,7 +96,7 @@ func (sr *SystemResolvers) Refresh() (err error) {
 	}
 
 	addrs := set.Values()
-	slices.SortFunc(addrs, compareAddrPorts)
+	slices.SortFunc(addrs, netip.AddrPort.Compare)
 
 	sr.updMu.Lock()
 	defer sr.updMu.Unlock()
@@ -109,18 +109,6 @@ func (sr *SystemResolvers) Refresh() (err error) {
 	}
 
 	return nil
-}
-
-// compareAddrPorts compares two [netip.AddrPort]s.  It's used for sorting.
-//
-// TODO(e.burkov):  Use [netip.AddrPort.Compare].
-func compareAddrPorts(a, b netip.AddrPort) (res int) {
-	res = a.Addr().Compare(b.Addr())
-	if res != 0 {
-		return res
-	}
-
-	return int(a.Port()) - int(b.Port())
 }
 
 // collectResolvers returns the set of resolvers' addresses used by the system.

@@ -128,6 +128,10 @@ func (set *MapSet[T]) Values() (values []T) {
 // MapSetToString converts a [MapSet] of values of an ordered type into a
 // reproducible string.
 func MapSetToString[T cmp.Ordered](set *MapSet[T]) (s string) {
+	if set == nil {
+		return "nil"
+	}
+
 	v := set.Values()
 	slices.Sort(v)
 
@@ -135,8 +139,12 @@ func MapSetToString[T cmp.Ordered](set *MapSet[T]) (s string) {
 }
 
 // MapSetToStringFunc is like [MapSetToString] but uses an explicit comparison
-// function.
+// function.  compare must not be nil.
 func MapSetToStringFunc[T comparable](set *MapSet[T], compare func(a, b T) (res int)) (s string) {
+	if set == nil {
+		return "nil"
+	}
+
 	v := set.Values()
 	slices.SortStableFunc(v, compare)
 

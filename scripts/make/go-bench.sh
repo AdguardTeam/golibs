@@ -31,7 +31,7 @@ else
 fi
 readonly race_flags
 
-benchtime_flags="${BENCHTIME_FLAGS:---benchtime=100ms}"
+benchtime_flags="${BENCHTIME_FLAGS:---benchtime=1x}"
 count_flags='--count=2'
 go="${GO:-go}"
 shuffle_flags='--shuffle=on'
@@ -51,5 +51,5 @@ env \
 	--benchmem \
 	"$benchtime_flags" \
 	--run='^$' \
-	./... \
+	work \
 	;

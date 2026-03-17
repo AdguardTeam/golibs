@@ -60,11 +60,14 @@ func (set *SortedSliceSet[T]) Clone() (clone *SortedSliceSet[T]) {
 	return NewSortedSliceSet(slices.Clone(set.elems)...)
 }
 
-// Delete deletes v from set.
+// Delete deletes v from set.  Calling Delete on a nil set has no effect, just
+// like delete on a nil map doesn't.
 func (set *SortedSliceSet[T]) Delete(v T) {
-	i, ok := slices.BinarySearch(set.elems, v)
-	if ok {
-		set.elems = slices.Delete(set.elems, i, i+1)
+	if set != nil {
+		i, ok := slices.BinarySearch(set.elems, v)
+		if ok {
+			set.elems = slices.Delete(set.elems, i, i+1)
+		}
 	}
 }
 
@@ -122,6 +125,10 @@ var _ fmt.Stringer = (*SortedSliceSet[int])(nil)
 // String implements the [fmt.Stringer] interface for *SortedSliceSet.  Calling
 // String on a nil *SortedSliceSet does not panic.
 func (set *SortedSliceSet[T]) String() (s string) {
+	if set == nil {
+		return "nil"
+	}
+
 	return fmt.Sprintf("%v", set.Values())
 }
 
@@ -202,8 +209,8 @@ func (set *SortedSliceSet[T]) union(a, b *SortedSliceSet[T]) {
 	set.elems = append(set.elems, b.elems[bIdx:]...)
 }
 
-// addMissing adds all the elements from other that are not present in set.  set
-// and other must not be nil.
+// addMissing adds all the elements from other that are not present in set.
+// set.elems are sorted.  set and other must not be nil.
 func (set *SortedSliceSet[T]) addMissing(other *SortedSliceSet[T]) {
 	otherIdx, setIdx := 0, 0
 
