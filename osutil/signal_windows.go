@@ -7,23 +7,20 @@ import (
 	"syscall"
 )
 
+// shutdownSignals is a list of actual Windows shutdown signals.
+//
+// NOTE:  Use syscall.SIGTERM as opposed to windows.SIGTERM, because that's the
+// type that the Go runtime is sending.
+var shutdownSignals = []os.Signal{
+	os.Interrupt,
+	syscall.SIGTERM,
+}
+
 // isReconfigureSignal returns true if sig is a Windows reconfigure signal.
 // Since Windows doesn't seem to have a Unix-compatible mechanism of signaling a
 // change in the configuration, it always returns false.
 func isReconfigureSignal(_ os.Signal) (ok bool) {
 	return false
-}
-
-// isShutdownSignal returns true if sig is a Windows shutdown signal.
-func isShutdownSignal(sig os.Signal) (ok bool) {
-	// NOTE:  Use syscall.SIGTERM as opposed to windows.SIGTERM, because that's
-	// the type that the Go runtime is sending.
-	switch sig {
-	case os.Interrupt, syscall.SIGTERM:
-		return true
-	default:
-		return false
-	}
 }
 
 // notifyReconfigureSignal notifies c on receiving Windows reconfigure signals

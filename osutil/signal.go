@@ -1,8 +1,10 @@
 package osutil
 
 import (
+	"context"
 	"os"
 	"os/signal"
+	"slices"
 )
 
 // SignalNotifier is the interface for OS functions that can notify about
@@ -36,21 +38,72 @@ type SignalNotifier interface {
 	Stop(c chan<- os.Signal)
 }
 
-// DefaultSignalNotifier is a [SignalNotifier] that uses [signal.Notify] and
-// [signal.Stop].
+// ContextSignalNotifier extends the [SignalNotifier] interface allowing to
+// handle signals with context cancellation.
+type ContextSignalNotifier interface {
+	SignalNotifier
+
+	// NotifyContext returns a copy of the parent context that will be canceled
+	// when one of the given signals arrives, when the stop function is called,
+	// or when the parent context is marked done.  This depends on which event
+	// happens first.
+	//
+	// See also [signal.NotifyContext].
+	NotifyContext(
+		parent context.Context,
+		sig ...os.Signal,
+	) (ctx context.Context, stop context.CancelFunc)
+}
+
+// EmptySignalNotifier is a [ContextSignalNotifier] that does nothing.
+type EmptySignalNotifier struct{}
+
+// type check
+var _ ContextSignalNotifier = EmptySignalNotifier{}
+
+// Notify implements the [ContextSignalNotifier] interface for
+// EmptySignalNotifier.
+func (n EmptySignalNotifier) Notify(c chan<- os.Signal, sig ...os.Signal) {}
+
+// Stop implements the [ContextSignalNotifier] interface for
+// EmptySignalNotifier.
+func (n EmptySignalNotifier) Stop(c chan<- os.Signal) {}
+
+// NotifyContext implements the [ContextSignalNotifier] interface for
+// EmptySignalNotifier.
+func (n EmptySignalNotifier) NotifyContext(
+	parent context.Context,
+	sig ...os.Signal,
+) (ctx context.Context, stop context.CancelFunc) {
+	return context.WithCancel(ctx)
+}
+
+// DefaultSignalNotifier is a [ContextSignalNotifier] that uses [signal.Notify],
+// [signal.Stop] and [signal.NotifyContext].
 type DefaultSignalNotifier struct{}
 
 // type check
-var _ SignalNotifier = DefaultSignalNotifier{}
+var _ ContextSignalNotifier = DefaultSignalNotifier{}
 
-// Notify implements the [SignalNotifier] interface for DefaultSignalNotifier.
+// Notify implements the [ContextSignalNotifier] interface for
+// DefaultSignalNotifier.
 func (n DefaultSignalNotifier) Notify(c chan<- os.Signal, sig ...os.Signal) {
 	signal.Notify(c, sig...)
 }
 
-// Stop implements the [SignalNotifier] interface for DefaultSignalNotifier.
+// Stop implements the [ContextSignalNotifier] interface for
+// DefaultSignalNotifier.
 func (n DefaultSignalNotifier) Stop(c chan<- os.Signal) {
 	signal.Stop(c)
+}
+
+// NotifyContext implements the [ContextSignalNotifier] interface for
+// DefaultSignalHandler.
+func (n DefaultSignalNotifier) NotifyContext(
+	parent context.Context,
+	sig ...os.Signal,
+) (ctx context.Context, stop context.CancelFunc) {
+	return signal.NotifyContext(parent, sig...)
 }
 
 // IsReconfigureSignal returns true if sig is a reconfigure signal.
@@ -62,7 +115,7 @@ func IsReconfigureSignal(sig os.Signal) (ok bool) {
 
 // IsShutdownSignal returns true if sig is a shutdown signal.
 func IsShutdownSignal(sig os.Signal) (ok bool) {
-	return isShutdownSignal(sig)
+	return slices.Contains(shutdownSignals, sig)
 }
 
 // NotifyReconfigureSignal notifies c on receiving reconfigure signals using n.
@@ -75,4 +128,13 @@ func NotifyReconfigureSignal(n SignalNotifier, c chan<- os.Signal) {
 // NotifyShutdownSignal notifies c on receiving shutdown signals using n.
 func NotifyShutdownSignal(n SignalNotifier, c chan<- os.Signal) {
 	notifyShutdownSignal(n, c)
+}
+
+// NotifyContextShutdownSignal returns a copy of the parent context, which will
+// be canceled when the shutdown signal arrives.
+func NotifyContextShutdownSignal(
+	n ContextSignalNotifier,
+	parent context.Context,
+) (ctx context.Context, stop context.CancelFunc) {
+	return n.NotifyContext(parent, shutdownSignals...)
 }
