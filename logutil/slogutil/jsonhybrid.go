@@ -96,7 +96,7 @@ func (h *JSONHybridHandler) Handle(ctx context.Context, r slog.Record) (err erro
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	return h.encoder.Encode(data)
+	return h.encoder.Encode(&data)
 }
 
 // byteString optimizes memory allocations in [JSONHybridHandler.Handle].
@@ -118,13 +118,15 @@ type jsonHybridMessage = struct {
 }
 
 // newJSONHybridMessage returns new properly initialized message.
-func newJSONHybridMessage(lvl slog.Level, msg byteString, id requestid.ID) (m *jsonHybridMessage) {
+//
+// NOTE:  It returns a struct instead of a pointer for optimization.
+func newJSONHybridMessage(lvl slog.Level, msg byteString, id requestid.ID) (m jsonHybridMessage) {
 	severity := "NORMAL"
 	if lvl >= slog.LevelError {
 		severity = "ERROR"
 	}
 
-	return &jsonHybridMessage{
+	return jsonHybridMessage{
 		RequestID: id,
 		Severity:  severity,
 		Message:   msg,
@@ -138,7 +140,7 @@ func (h *JSONHybridHandler) WithAttrs(attrs []slog.Attr) (res slog.Handler) {
 		encoder:     h.encoder,
 		bufTextPool: h.bufTextPool,
 		mu:          h.mu,
-		textAttrs:   append(slices.Clip(h.textAttrs), attrs...),
+		textAttrs:   slices.Concat(h.textAttrs, attrs),
 	}
 }
 

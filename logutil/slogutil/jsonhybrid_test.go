@@ -112,9 +112,10 @@ func BenchmarkJSONHybridHandler_Handle(b *testing.B) {
 	require.NoError(b, err)
 
 	// Most recent results:
-	//	goos: darwin
-	//	goarch: arm64
+	//
+	//	goos: linux
+	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/golibs/logutil/slogutil
-	//	cpu: Apple M3
-	//	BenchmarkJSONHybridHandler_Handle-8   	 2292276	       515.2 ns/op	      80 B/op	       2 allocs/op
+	//	cpu: AMD Ryzen AI 9 HX PRO 370 w/ Radeon 890M
+	//	BenchmarkJSONHybridHandler_Handle-24    	 1701060	       677.1 ns/op	      64 B/op	       1 allocs/op
 }
