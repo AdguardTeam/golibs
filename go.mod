@@ -1,28 +1,40 @@
 module github.com/AdguardTeam/golibs
 
-go 1.26.1
+go 1.26.2
 
 require (
 	github.com/c2h5oh/datasize v0.0.0-20231215233829-aa82cc1e6500
 	github.com/caarlos0/env/v11 v11.4.0
-	github.com/getsentry/sentry-go v0.43.0
+	github.com/getsentry/sentry-go v0.45.1
 	github.com/gomodule/redigo v1.9.3
+	github.com/prometheus/client_golang v1.23.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
-	go.opentelemetry.io/otel v1.42.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.42.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.42.0
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.42.0
-	go.opentelemetry.io/otel/sdk v1.42.0
-	go.opentelemetry.io/otel/trace v1.42.0
-	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa
-	golang.org/x/net v0.51.0
-	golang.org/x/sys v0.42.0
-	golang.org/x/text v0.34.0
-	google.golang.org/grpc v1.79.2
+	go.opentelemetry.io/otel v1.43.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.43.0
+	go.opentelemetry.io/otel/sdk v1.43.0
+	go.opentelemetry.io/otel/trace v1.43.0
+	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
+	golang.org/x/net v0.53.0
+	golang.org/x/sys v0.43.0
+	golang.org/x/text v0.36.0
+	google.golang.org/grpc v1.80.0
 )
 
 require (
+	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
+	github.com/google/yamlfmt v0.21.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.66.1 // indirect
+	github.com/prometheus/procfs v0.16.1 // indirect
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
+	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	sigs.k8s.io/yaml v1.6.0 // indirect
 	cloud.google.com/go v0.123.0 // indirect
 	cloud.google.com/go/auth v0.18.1 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
@@ -62,21 +74,21 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.42.0 // indirect
-	go.opentelemetry.io/otel/metric v1.42.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0 // indirect
+	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260112195511-716be5621a96 // indirect
-	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260209163413-e7419c687ee4 // indirect
-	golang.org/x/term v0.40.0 // indirect
-	golang.org/x/tools v0.42.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa // indirect
+	golang.org/x/term v0.42.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/genai v1.43.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
@@ -96,6 +108,7 @@ ignore (
 tool (
 	github.com/fzipp/gocyclo/cmd/gocyclo
 	github.com/golangci/misspell/cmd/misspell
+	github.com/google/yamlfmt/cmd/yamlfmt
 	github.com/gordonklaus/ineffassign
 	github.com/jstemmer/go-junit-report/v2
 	github.com/kisielk/errcheck
