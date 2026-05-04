@@ -43,123 +43,29 @@ timeout_flags="${TIMEOUT_FLAGS:---timeout=30s}"
 readonly count_flags fuzztime_flags go shuffle_flags timeout_flags
 
 # TODO(a.garipov): File an issue about using --fuzz with multiple packages.
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzParse" \
-	./hostsfile \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzRecord_UnmarshalText" \
-	./hostsfile \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidHostname$" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidHostnameLabel" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidIPPortString" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidIPString" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzSubnetSet_Contains_v4" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzSubnetSet_Contains_v6" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidIPPrefixString" \
-	./netutil \
-	;
-
-"$go" test \
-	"$count_flags" \
-	"$shuffle_flags" \
-	"$race_flags" \
-	"$timeout_flags" \
-	"$x_flags" \
-	"$v_flags" \
-	"$fuzztime_flags" \
-	--fuzz="FuzzIsValidMACString" \
-	./netutil \
-	;
+while read -r pkg fuzzname; do
+	"$go" test \
+		"$count_flags" \
+		"$shuffle_flags" \
+		"$race_flags" \
+		"$timeout_flags" \
+		"$x_flags" \
+		"$v_flags" \
+		"$fuzztime_flags" \
+		"--fuzz=${fuzzname}" \
+		"$pkg" \
+		;
+done <<-'EOF'
+	./timeutil  FuzzDuration_МarshalText_roundTrip
+	./timeutil  FuzzDuration_UnmarshalText
+	./netutil   FuzzIsValidHostname$
+	./netutil   FuzzIsValidHostnameLabel
+	./netutil   FuzzIsValidIPPortString
+	./netutil   FuzzIsValidIPPrefixString
+	./netutil   FuzzIsValidIPString
+	./netutil   FuzzIsValidMACString
+	./hostsfile FuzzParse
+	./hostsfile FuzzRecord_UnmarshalText
+	./netutil   FuzzSubnetSet_Contains_v4
+	./netutil   FuzzSubnetSet_Contains_v6
+EOF
