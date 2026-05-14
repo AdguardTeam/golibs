@@ -3,6 +3,7 @@ package slogutil_test
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
 )
@@ -10,6 +11,26 @@ import (
 func ExampleNew_default() {
 	l := slogutil.New(&slogutil.Config{
 		Level: slog.LevelDebug,
+	})
+
+	l.Info("test info")
+	l.Debug("test debug")
+
+	// Output:
+	// INFO test info
+	// DEBUG test debug
+}
+
+func ExampleNew_custom() {
+	handler := slogutil.New(&slogutil.Config{
+		Level: slog.LevelDebug,
+	}).Handler()
+
+	l := slogutil.New(&slogutil.Config{
+		Handler: handler,
+		Level:   slog.LevelInfo,
+		Output:  os.Stdout,
+		Format:  slogutil.FormatCustom,
 	})
 
 	l.Info("test info")

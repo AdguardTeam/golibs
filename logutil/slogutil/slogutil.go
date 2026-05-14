@@ -27,6 +27,10 @@ const (
 
 // Config contains the configuration for a logger.
 type Config struct {
+	// Handler, if set, is used as the handler for the logger.  It is only used
+	// if [Config.Format] is [FormatCustom], in which case it must not be nil.
+	Handler slog.Handler
+
 	// Level is the minimum record level that will be logged.  If not set,
 	// [LevelInfo] is used.
 	Level slog.Leveler
@@ -70,6 +74,8 @@ func New(c *Config) (l *slog.Logger) {
 	switch format {
 	case FormatAdGuardLegacy:
 		h = NewAdGuardLegacyHandler(lvl)
+	case FormatCustom:
+		h = c.Handler
 	case FormatJSON:
 		h = slog.NewJSONHandler(output, &slog.HandlerOptions{
 			Level:       lvl,
