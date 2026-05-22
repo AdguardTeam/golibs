@@ -61,6 +61,7 @@
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
               VERBOSE=1 \
+              go-deps \
               go-os-check \
               go-lint \
               go-test \
@@ -92,13 +93,14 @@
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
               VERBOSE=1 \
+              go-deps \
               go-os-check \
               go-lint \
               go-test \
               go-bench \
               go-fuzz \
               ;
-        'shell': 'C:\Program Files\Git\bin\bash.exe bash --noprofile --norc -e -o pipefail {0}'
+        'shell': '"C:\Program Files\Git\bin\bash.exe" bash --noprofile --norc -e -o pipefail {0}'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
