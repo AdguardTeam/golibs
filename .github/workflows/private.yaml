@@ -12,10 +12,11 @@
     'runs-on': 'team-go'
     'steps':
       - 'uses': 'actions/checkout@v6'
-        # Set to false to avoid GITHUB_TOKEN leaking.
-        #
-        # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
-        'persist-credentials': false
+        'with':
+          # Set to false to avoid GITHUB_TOKEN leaking.
+          #
+          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
+          'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
           #!/bin/sh
@@ -46,7 +47,11 @@
       - 'registry.int.agrd.dev/mac/tahoe-github-agent:latest'
     'steps':
       - 'uses': 'actions/checkout@v6'
-        'persist-credentials': false
+        'with':
+          # Set to false to avoid GITHUB_TOKEN leaking.
+          #
+          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
+          'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
           #!/bin/sh
@@ -73,7 +78,11 @@
       - 'registry.int.agrd.dev/windows/windows11-github-base:latest'
     'steps':
       - 'uses': 'actions/checkout@v6'
-        'persist-credentials': false
+        'with':
+          # Set to false to avoid GITHUB_TOKEN leaking.
+          #
+          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
+          'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
           #!/bin/sh

@@ -49,27 +49,27 @@ func TestParse(t *testing.T) {
 		want       []hostsfile.Record
 	}{{
 		name:       "empty",
-		source:     strings.NewReader(``),
+		source:     strings.NewReader(""),
 		want:       nil,
 		wantErrMsg: "",
 	}, {
 		name:       "empty_line",
 		source:     strings.NewReader("\n"),
 		want:       nil,
-		wantErrMsg: `parsing: line 1: line is empty`,
+		wantErrMsg: "parsing: line 1: line is empty",
 	}, {
 		name:       "comment_line",
-		source:     strings.NewReader(`# comment`),
+		source:     strings.NewReader("# comment"),
 		want:       nil,
-		wantErrMsg: `parsing: line 1: line is empty`,
+		wantErrMsg: "parsing: line 1: line is empty",
 	}, {
 		name:       "no_hosts",
-		source:     strings.NewReader(`1.2.3.4 `),
+		source:     strings.NewReader("1.2.3.4 "),
 		want:       nil,
-		wantErrMsg: `parsing: line 1: no hostnames`,
+		wantErrMsg: "parsing: line 1: no hostnames",
 	}, {
 		name:   "single_record",
-		source: strings.NewReader(`1.2.3.4 host1 host2`),
+		source: strings.NewReader("1.2.3.4 host1 host2"),
 		want: []hostsfile.Record{{
 			Addr:  testIPv4,
 			Names: []string{"host1", "host2"},
@@ -79,8 +79,8 @@ func TestParse(t *testing.T) {
 		name: "with_comment",
 		source: strings.NewReader(
 			"\n" +
-				`# comment` + "\n" +
-				`1.2.3.4 host1 host2`,
+				"# comment" + "\n" +
+				"1.2.3.4 host1 host2",
 		),
 		want: []hostsfile.Record{{
 			Addr:  testIPv4,
@@ -91,8 +91,8 @@ func TestParse(t *testing.T) {
 		name: "two_records",
 		source: strings.NewReader(
 			"\n" +
-				`1.2.3.4 host1 host2` + "\n" +
-				`4.3.2.1 host3 host4`,
+				"1.2.3.4 host1 host2" + "\n" +
+				"4.3.2.1 host3 host4",
 		),
 		want: []hostsfile.Record{{
 			Addr:  testIPv4,
