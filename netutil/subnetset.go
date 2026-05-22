@@ -20,7 +20,7 @@ var _ SubnetSet = netip.Prefix{}
 type SliceSubnetSet []netip.Prefix
 
 // type check
-var _ SubnetSet = (SliceSubnetSet)(nil)
+var _ SubnetSet = SliceSubnetSet(nil)
 
 // Contains implements the [SubnetSet] interface for SliceSubnetSet.
 func (s SliceSubnetSet) Contains(ip netip.Addr) (ok bool) {
