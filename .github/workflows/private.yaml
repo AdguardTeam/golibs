@@ -44,7 +44,7 @@
     'runs-on':
       - 'ephemeral'
       - 'ephemeral-mac'
-      - 'registry.int.agrd.dev/mac/tahoe-github-agent:latest'
+      - '${{ vars.BUILD_IMAGE_VERSION_MACOS }}'
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
@@ -98,7 +98,7 @@
               go-bench \
               go-fuzz \
               ;
-        'shell': 'bash'
+        'shell': 'C:\Program Files\Git\bin\bash.exe bash --noprofile --norc -e -o pipefail {0}'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
