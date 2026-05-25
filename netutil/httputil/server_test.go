@@ -149,9 +149,15 @@ func TestServer(t *testing.T) {
 	}
 
 	require.True(t, t.Run("non_zero_port", func(t *testing.T) {
+		// TODO(a.garipov):  Retry on a different port on EINUSE.
+		const (
+			port    = 3000
+			portStr = "3000"
+		)
+
 		srv := httputil.NewServer(&httputil.ServerConfig{
 			BaseLogger:     logger,
-			InitialAddress: netip.AddrPortFrom(netutil.IPv4Localhost(), 1234),
+			InitialAddress: netip.AddrPortFrom(netutil.IPv4Localhost(), port),
 			Server: &http.Server{
 				Handler: httputil.HealthCheckHandler,
 			},
@@ -176,7 +182,7 @@ func TestServer(t *testing.T) {
 
 		url := serverURLFromLog(t, lines[0])
 		assert.Equal(t, urlutil.SchemeHTTP, url.Scheme)
-		assert.Equal(t, "1234", url.Port())
+		assert.Equal(t, portStr, url.Port())
 	}))
 
 	require.True(t, t.Run("tls_zero_port", func(t *testing.T) {

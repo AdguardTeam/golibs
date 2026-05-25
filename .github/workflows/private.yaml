@@ -68,36 +68,7 @@
               go-bench \
               go-fuzz \
               ;
-  'LintAndTestJobWindows':
-    'if': |
-      ${{ github.repository_owner == 'AdGuardSoftwareLimited' }}
-    'permissions':
-      'contents': 'read'
-    'runs-on':
-      - 'ephemeral'
-      - 'ephemeral-windows'
-      - 'registry.int.agrd.dev/windows/windows11-github-base:latest'
-    'steps':
-      - 'uses': 'actions/checkout@v6'
-        'with':
-          # Set to false to avoid GITHUB_TOKEN leaking.
-          #
-          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
-          'persist-credentials': false
-      - 'name': 'Lint and test step'
-        'run': |
-          # NOTE: Only run those checks that only need Go and Go tools.
-          make `
-              SHELL='C:\Program Files\Git\usr\bin\sh.exe' `
-              VERBOSE=1 `
-              go-deps `
-              go-os-check `
-              go-lint `
-              go-test `
-              go-bench `
-              go-fuzz `
-              ;
-        'shell': 'powershell'
+  # TODO(a.garipov):  Add LintAndTestJobWindows.
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
