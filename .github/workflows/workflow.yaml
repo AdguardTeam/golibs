@@ -19,6 +19,9 @@
           #
           # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
           'persist-credentials': false
+      - 'uses': 'actions/setup-go@v6'
+        'with':
+          'go-version': '1.26.x'
       - 'name': 'Lint and test step'
         'run': |
           #!/bin/sh
