@@ -112,7 +112,7 @@ func runTestServer(tb testing.TB, srv *httputil.Server) (addr net.Addr) {
 	return srv.LocalAddr()
 }
 
-// logRecord represents server log record.  It is used for unmarshalling
+// logRecord represents server log record.  It is used for unmarshaling
 // [httputil.Server] logs in tests.
 type logRecord struct {
 	Server *url.URL `json:"server"`
