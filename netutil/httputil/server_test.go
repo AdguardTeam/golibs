@@ -2,6 +2,7 @@ package httputil_test
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -86,16 +87,22 @@ func newTLSConfig(tb testing.TB) (conf *tls.Config, certPem []byte) {
 // runTestServer helper starts the specified server and waits for it to be ready
 // to serve requests, then returns its listening address.
 func runTestServer(tb testing.TB, srv *httputil.Server) (addr net.Addr) {
-	ctx := testutil.ContextWithTimeout(tb, testTimeout)
+	tb.Helper()
+
 	go func() {
+		// Don't use tb.Cleanup, because this is a goroutine.
+		ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+		defer cancel()
+
 		err := srv.Start(ctx)
 		if err != nil {
-			require.ErrorIs(tb, http.ErrServerClosed, err)
+			pt := testutil.NewPanicT(tb)
+			require.ErrorIs(pt, err, http.ErrServerClosed)
 		}
 	}()
 
 	testutil.CleanupAndRequireSuccess(tb, func() (err error) {
-		return srv.Shutdown(ctx)
+		return srv.Shutdown(testutil.ContextWithTimeout(tb, testTimeout))
 	})
 
 	require.EventuallyWithT(tb, func(c *assert.CollectT) {
