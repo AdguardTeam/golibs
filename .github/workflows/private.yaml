@@ -68,7 +68,40 @@
               go-bench \
               go-fuzz \
               ;
-  # TODO(a.garipov):  Add LintAndTestJobWindows.
+  'LintAndTestJobWindows':
+    'if': |
+      ${{ github.repository_owner == 'AdGuardSoftwareLimited' }}
+    'permissions':
+      'contents': 'read'
+    'runs-on':
+      - 'ephemeral'
+      - 'ephemeral-windows'
+      - 'registry.int.agrd.dev/windows/windows2022-github:latest'
+    'steps':
+      - 'uses': 'actions/checkout@v6'
+        'with':
+          # Set to false to avoid GITHUB_TOKEN leaking.
+          #
+          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
+          'persist-credentials': false
+      - 'name': 'Lint and test step'
+        'run': |
+          #!/bin/sh
+
+          set -e -f -u -x
+
+          # NOTE: Only run those checks that only need Go and Go tools.
+          make `
+              SHELL='C:\Program Files\Git\usr\bin\sh.exe' `
+              VERBOSE=1 `
+              go-deps `
+              go-os-check `
+              go-lint `
+              go-test `
+              go-bench `
+              go-fuzz `
+              ;
+        'shell': 'bash'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
@@ -80,4 +113,4 @@
 # and also allows to avoid mistakes with permissions when creating new jobs.
 #
 # See https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions.
-'permissions': {}
+'permissions': { }
