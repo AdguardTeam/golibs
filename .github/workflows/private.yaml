@@ -74,9 +74,11 @@
     'permissions':
       'contents': 'read'
     'runs-on':
-      - 'ephemeral'
-      - 'ephemeral-windows'
-      - 'registry.int.agrd.dev/windows/windows2022-github:latest'
+      - ephemeral
+      - ephemeral-vmwin
+      - registry.int.agrd.dev/windows/windows2022-github:20260528-1801
+      - ephemeral-limit-memory-6144
+      - ephemeral-limit-cpu-8
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
