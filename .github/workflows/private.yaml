@@ -86,21 +86,17 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          #!/bin/sh
-
-          set -e -f -u -x
-
           # NOTE: Only run those checks that only need Go and Go tools.
-          make \
-              VERBOSE=1 \
-              go-deps \
-              go-os-check \
-              go-lint \
-              go-test \
-              go-bench \
-              go-fuzz \
+          make `
+              VERBOSE=1 `
+              go-deps `
+              go-os-check `
+              go-lint `
+              go-test `
+              go-bench `
+              go-fuzz `
               ;
-        'shell': 'bash'
+        'shell': 'powershell'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
