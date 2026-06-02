@@ -75,10 +75,8 @@
       'contents': 'read'
     'runs-on':
       - ephemeral
-      - ephemeral-vmwin
-      - registry.int.agrd.dev/windows/windows2022-github:20260528-1801
-      - ephemeral-limit-memory-6144
-      - ephemeral-limit-cpu-8
+      - ephemeral-windows
+      - registry.int.agrd.dev/windows/windows11-github-go:latest
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
@@ -93,15 +91,14 @@
           set -e -f -u -x
 
           # NOTE: Only run those checks that only need Go and Go tools.
-          make `
-              SHELL='C:\Program Files\Git\usr\bin\sh.exe' `
-              VERBOSE=1 `
-              go-deps `
-              go-os-check `
-              go-lint `
-              go-test `
-              go-bench `
-              go-fuzz `
+          make \
+              VERBOSE=1 \
+              go-deps \
+              go-os-check \
+              go-lint \
+              go-test \
+              go-bench \
+              go-fuzz \
               ;
         'shell': 'bash'
 'name': 'Lint and test workflow (private)'
