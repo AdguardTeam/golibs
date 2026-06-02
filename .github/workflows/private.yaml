@@ -76,7 +76,7 @@
     'runs-on':
       - ephemeral
       - ephemeral-windows
-      - registry.int.agrd.dev/windows/windows11-github-go:latest
+      - registry.int.agrd.dev/windows/windows11-github-go:20260602-1023
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
