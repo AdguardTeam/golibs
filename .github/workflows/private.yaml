@@ -86,7 +86,27 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          & 'C:\Program Files\Git\bin\bash.exe' --noprofile --norc -e -o pipefail -c "set -f -u -x; make VERBOSE=1 go-deps go-os-check go-lint go-test go-bench go-fuzz;"
+          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          if (-not (Test-Path $bash)) {
+            throw "Git Bash not found at: $bash"
+          }
+
+          $script = @'
+          set -e -f -u -o pipefail -x
+
+          # NOTE: Only run those checks that only need Go and Go tools.
+          make \
+              VERBOSE=1 \
+              go-deps \
+              go-os-check \
+              go-lint \
+              go-test \
+              go-bench \
+              go-fuzz \
+              ;
+          '@
+
+          & $bash --noprofile --norc -c $script
         'shell': 'powershell'
 'name': 'Lint and test workflow (private)'
 'on':
