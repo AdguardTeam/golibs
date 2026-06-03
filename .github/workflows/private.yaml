@@ -86,7 +86,7 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          set -e -f -u -o 'pipefail' -x
+          set -f -u -x
 
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
@@ -98,7 +98,7 @@
               go-bench \
               go-fuzz \
               ;
-        shell: 'C:\Program Files\Git\bin\bash.exe --noprofile --norc {0}'
+        shell: 'C:\Program Files\Git\bin\bash.exe --noprofile --norc -e -o pipefail {0}'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
