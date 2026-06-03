@@ -98,7 +98,7 @@
               go-bench \
               go-fuzz \
               ;
-        'shell': 'bash'
+        shell: '"C:\Program Files\Git\bin\bash.exe" --noprofile --norc -eo pipefail {0}'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
