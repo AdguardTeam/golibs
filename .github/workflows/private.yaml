@@ -77,8 +77,6 @@
       - ephemeral
       - ephemeral-vmwin
       - registry.int.agrd.dev/windows/windows2022-go:latest
-      - ephemeral-limit-memory-8192
-      - ephemeral-limit-cpu-8
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
@@ -86,6 +84,24 @@
           #
           # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
           'persist-credentials': false
+      - 'name': 'Find bash'
+        'run': |
+          Write-Host "=== Get-Command bash ==="
+          Get-Command bash -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+
+          Write-Host "=== Common locations ==="
+          @(
+            'C:\Program Files\Git\bin\bash.exe',
+            'C:\Program Files\Git\usr\bin\bash.exe',
+            'C:\Git\bin\bash.exe',
+            'C:\Git\usr\bin\bash.exe',
+            'C:\tools\git\bin\bash.exe',
+            'C:\tools\git\usr\bin\bash.exe'
+          ) | ForEach-Object { "$_ -> exists: $(Test-Path $_)" }
+
+          Write-Host "=== PATH entries ==="
+          $env:PATH -split ';' | Where-Object { $_ -match 'git|bash|mingw|msys' }
+        'shell': 'powershell'
       - 'name': 'Lint and test step'
         'run': |
           $bash = 'C:\Program Files\Git\usr\bin\bash.exe'
