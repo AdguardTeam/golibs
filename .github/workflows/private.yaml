@@ -88,6 +88,12 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
+          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          if (-not (Test-Path $bash)) {
+            throw "Git Bash not found at: $bash"
+          }
+
+          $script = @'
           set -e -f -u -o pipefail -x
 
           # NOTE: Only run those checks that only need Go and Go tools.
@@ -100,7 +106,10 @@
               go-bench \
               go-fuzz \
               ;
-        'shell': 'bash'
+          '@
+
+          & $bash --noprofile --norc -c $script
+        'shell': 'powershell'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
