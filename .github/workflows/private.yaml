@@ -75,8 +75,8 @@
       'contents': 'read'
     'runs-on':
       - ephemeral
-      - ephemeral-windows
-      - registry.int.agrd.dev/windows/windows11-github-go:20260603-0436
+      - ephemeral-vmwin
+      - registry.int.agrd.dev/windows/windows2022-go:20260603-0842
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
@@ -86,12 +86,6 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          $bash = 'C:\Program Files\Git\bin\bash.exe'
-          if (-not (Test-Path $bash)) {
-            throw "Git Bash not found at: $bash"
-          }
-
-          $script = @'
           set -e -f -u -o pipefail -x
 
           # NOTE: Only run those checks that only need Go and Go tools.
@@ -104,10 +98,7 @@
               go-bench \
               go-fuzz \
               ;
-          '@
-
-          & $bash --noprofile --norc -c $script
-        'shell': 'powershell'
+        'shell': 'bash'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
