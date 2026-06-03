@@ -88,7 +88,7 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          $bash = 'C:\Program Files\Git\usr\bin\bash.exe'
           if (-not (Test-Path $bash)) {
             throw "Git Bash not found at: $bash"
           }

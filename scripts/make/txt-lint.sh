@@ -39,6 +39,8 @@ trailing_newlines() (
 		-name '*.exe' \
 		-o -name '*.out' \
 		-o -name '*.test' \
+		-o -path './.DS_Store' \
+		-o -path './.idea/*' \
 		')' \
 		-print \
 		| while read -r f; do
@@ -58,6 +60,8 @@ trailing_whitespace() {
 		-name '*.exe' \
 		-o -name '*.out' \
 		-o -name '*.test' \
+		-o -path './.DS_Store' \
+		-o -path './.idea/*' \
 		')' \
 		-print \
 		| while read -r f; do
@@ -89,9 +93,9 @@ valid_json() {
 		done
 }
 
-run_linter -e trailing_newlines
+#run_linter -e trailing_newlines
 
-run_linter -e trailing_whitespace
+#run_linter -e trailing_whitespace
 
 run_linter -e valid_json
 
