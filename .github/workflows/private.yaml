@@ -76,7 +76,9 @@
     'runs-on':
       - ephemeral
       - ephemeral-vmwin
-      - registry.int.agrd.dev/windows/windows2022-go:20260603-0842
+      - registry.int.agrd.dev/windows/windows2022-go:latest
+      - ephemeral-limit-memory-8192
+      - ephemeral-limit-cpu-8
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
