@@ -76,7 +76,7 @@
     'runs-on':
       - ephemeral
       - ephemeral-windows
-      - registry.int.agrd.dev/windows/windows11-github-go:20260602-1104
+      - registry.int.agrd.dev/windows/windows11-github-go:20260603-0436
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
@@ -86,8 +86,6 @@
           'persist-credentials': false
       - 'name': 'Lint and test step'
         'run': |
-          #!/bin/sh
-
           set -e -f -u -x
 
           # NOTE: Only run those checks that only need Go and Go tools.
