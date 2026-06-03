@@ -85,6 +85,7 @@
           # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
           'persist-credentials': false
       - 'name': 'Find bash'
+        # TODO(d.kolyshev):  !! Remove.
         'run': |
           Write-Host "=== Get-Command bash ==="
           Get-Command bash -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
