@@ -98,7 +98,6 @@ run_linter -e valid_json
 go="${GO:-go}"
 readonly go
 
-# FIXME:  Adjust for your project.
 "$go" tool yamlfmt \
 	--lint \
 	./.github/workflows/*.yaml \
