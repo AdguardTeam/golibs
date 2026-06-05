@@ -93,6 +93,7 @@
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
               VERBOSE=1 \
+              CGO_ENABLED=1 \
               go-deps \
               go-os-check \
               go-lint \
