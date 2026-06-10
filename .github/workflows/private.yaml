@@ -91,14 +91,8 @@
         'run': |
           set -e -f -u -o pipefail -x
 
-          echo $PATH
-
-          ls -la C:/ProgramData/mingw64/mingw64/bin
-
-          gcc --version
-          clang --version
-
           go env
+          go env -w CC=gcc
 
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
