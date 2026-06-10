@@ -65,7 +65,6 @@ go-env:       ; $(ENV)          "$(GO.MACRO)" env
 go-fuzz:      ; $(ENV)          "$(SHELL)" ./scripts/make/go-fuzz.sh
 go-lint:      ; $(ENV)          "$(SHELL)" ./scripts/make/go-lint.sh
 go-test:      ; $(ENV) RACE='1' "$(SHELL)" ./scripts/make/go-test.sh
-go-test-no-race:      ; $(ENV) "$(SHELL)" ./scripts/make/go-test.sh
 go-upd-tools: ; $(ENV)          "$(SHELL)" ./scripts/make/go-upd-tools.sh
 
 .PHONY: go-check
