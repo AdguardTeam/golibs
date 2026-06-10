@@ -91,6 +91,10 @@
         'run': |
           set -e -f -u -o pipefail -x
 
+          echo $PATH
+
+          ls -la C:/ProgramData/mingw64/mingw64/bin
+
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
               VERBOSE=1 \
