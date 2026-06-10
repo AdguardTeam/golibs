@@ -78,8 +78,8 @@
       - ephemeral-vmwin
       # TODO(d.kolyshev): !! Use ${{ vars.BUILD_IMAGE_VERSION_WINDOWS_GO }}.
       - registry.int.agrd.dev/windows/windows2022-go:20260610-0415
-      - ephemeral-limit-memory-4096
-      - ephemeral-limit-cpu-2
+      - ephemeral-limit-memory-8192
+      - ephemeral-limit-cpu-4
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
