@@ -77,7 +77,7 @@
       - ephemeral
       - ephemeral-vmwin
       # TODO(d.kolyshev): !! Use ${{ vars.BUILD_IMAGE_VERSION_WINDOWS_GO }}.
-      - registry.int.agrd.dev/windows/windows2022-go:20260610-0535
+      - registry.int.agrd.dev/windows/windows2022-go:20260610-0415
       - ephemeral-limit-memory-4096
       - ephemeral-limit-cpu-2
     'steps':
@@ -91,13 +91,22 @@
         'run': |
           set -e -f -u -o pipefail -x
 
-          # NOTE: Only run those checks that only need Go and Go tools.
+          make \
+              VERBOSE=1 \
+              go-deps \
+              go-os-check \
+              go-lint \
+              ;
+
+          # NOTE: Only run go-test with CGO_ENABLED for race test.
           make \
               VERBOSE=1 \
               CGO_ENABLED=1 \
-              go-deps \
-              go-lint \
               go-test \
+              ;
+
+          make \
+              VERBOSE=1 \
               go-bench \
               go-fuzz \
               ;
