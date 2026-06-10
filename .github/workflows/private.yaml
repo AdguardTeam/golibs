@@ -95,6 +95,11 @@
 
           ls -la C:/ProgramData/mingw64/mingw64/bin
 
+          gcc --version
+          clang --version
+
+          go env
+
           # NOTE: Only run those checks that only need Go and Go tools.
           make \
               VERBOSE=1 \
