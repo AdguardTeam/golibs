@@ -68,7 +68,48 @@
               go-bench \
               go-fuzz \
               ;
-  # TODO(a.garipov):  Add LintAndTestJobWindows.
+  'LintAndTestJobWindows':
+    'if': |
+      ${{ github.repository_owner == 'AdGuardSoftwareLimited' }}
+    'permissions':
+      'contents': 'read'
+    'runs-on':
+      - ephemeral
+      - ephemeral-vmwin
+      - '${{ vars.BUILD_IMAGE_VERSION_WINDOWS_GO }}'
+      - ephemeral-limit-memory-8192
+      - ephemeral-limit-cpu-4
+    'steps':
+      - 'uses': 'actions/checkout@v6'
+        'with':
+          # Set to false to avoid GITHUB_TOKEN leaking.
+          #
+          # See https://github.com/actions/checkout/issues/485#issuecomment-934422611.
+          'persist-credentials': false
+      - 'name': 'Lint and test step'
+        'run': |
+          set -e -f -u -o pipefail -x
+
+          make \
+              VERBOSE=1 \
+              go-deps \
+              go-os-check \
+              go-lint \
+              ;
+
+          # NOTE: Only run go-test with CGO_ENABLED for race test.
+          make \
+              VERBOSE=1 \
+              CGO_ENABLED=1 \
+              go-test \
+              ;
+
+          make \
+              VERBOSE=1 \
+              go-bench \
+              go-fuzz \
+              ;
+        'shell': 'bash'
 'name': 'Lint and test workflow (private)'
 'on':
   'push':
