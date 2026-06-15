@@ -74,11 +74,11 @@
     'permissions':
       'contents': 'read'
     'runs-on':
-      - ephemeral
-      - ephemeral-vmwin
+      - 'ephemeral'
+      - 'ephemeral-vmwin'
       - '${{ vars.BUILD_IMAGE_VERSION_WINDOWS_GO }}'
-      - ephemeral-limit-memory-8192
-      - ephemeral-limit-cpu-4
+      - 'ephemeral-limit-memory-8192'
+      - 'ephemeral-limit-cpu-4'
     'steps':
       - 'uses': 'actions/checkout@v6'
         'with':
