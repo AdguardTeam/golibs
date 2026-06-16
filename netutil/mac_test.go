@@ -155,6 +155,14 @@ func TestIsValidMACString(t *testing.T) {
 		want: assert.False,
 		name: "bad_infiniband_no_sep",
 		in:   "000102030405060708090a0b0c0d0e0f101112!!",
+	}, {
+		want: assert.False,
+		name: "bad_eui_48_dot_sep",
+		in:   "00.00.00.00.00.00",
+	}, {
+		want: assert.False,
+		name: "bad_eui_64_dot_sep",
+		in:   "00.00.00.00.00.00.00.00",
 	}}
 
 	for _, tc := range testCases {
@@ -254,27 +262,27 @@ func BenchmarkIsValidMACString(b *testing.B) {
 	}
 
 	// Most recent results:
-	//  goos: darwin
-	//  goarch: arm64
+	//  goos: linux
+	//  goarch: amd64
 	//  pkg: github.com/AdguardTeam/golibs/netutil
-	//  cpu: Apple M4 Pro
-	//  BenchmarkIsValidMACString/good_eui_48-14         	52585836	        19.77 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_eui_48_dot-14     	79198557	        15.35 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_eui_48_hyphen-14  	59158105	        20.16 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_eui_48_no_sep-14  	59629800	        18.93 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_eui_64-14         	48416380	        24.24 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_eui_64_no_sep-14  	50890494	        24.59 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_infiniband-14     	21672320	        59.47 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/good_infiniband_no_sep-14         	23718715	        54.43 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_empty-14                      	512414304	         2.338 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_short-14                      	496208055	         2.408 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_long-14                       	439365032	         2.736 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_eui_48-14                     	57309668	        19.42 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_eui_48_no_sep-14              	72411295	        16.43 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_eui_64-14                     	50321936	        23.61 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_eui_64_no_sep-14              	59584644	        21.39 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_infiniband-14                 	20570781	        58.09 ns/op	       0 B/op	       0 allocs/op
-	//  BenchmarkIsValidMACString/bad_infiniband_no_sep-14          	23788441	        51.78 ns/op	       0 B/op	       0 allocs/op
+	//  cpu: AMD Ryzen AI 7 PRO 350 w/ Radeon 860M
+	// BenchmarkIsValidMACString/good_eui_48-16                97961534                12.65 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_eui_48_dot-16            100000000               10.32 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_eui_48_hyphen-16         83985573                12.26 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_eui_48_no_sep-16         145311968                8.333 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_eui_64-16                85618686                14.83 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_eui_64_no_sep-16         100000000               10.65 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_infiniband-16            35572928                33.31 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/good_infiniband_no_sep-16             59442024                20.19 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_empty-16                          660256630                1.864 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_short-16                          676261029                1.855 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_long-16                           529534195                2.273 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_eui_48-16                         112847419               10.63 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_eui_48_no_sep-16                  183439570                6.471 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_eui_64-16                         89685344                13.25 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_eui_64_no_sep-16                  160003975                7.552 ns/op           0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_infiniband-16                     37117690                29.74 ns/op            0 B/op          0 allocs/op
+	// BenchmarkIsValidMACString/bad_infiniband_no_sep-16              69095757                14.61 ns/op            0 B/op          0 allocs/op
 }
 
 func FuzzIsValidMACString(f *testing.F) {
@@ -289,6 +297,8 @@ func FuzzIsValidMACString(f *testing.F) {
 		"!!:00:00:00:00:00",
 		"00005e005301",
 		"02005e1000000001",
+		"00.00.00.00.00.00",
+		"00.00.00.00.00.00.00.00",
 	} {
 		f.Add(seed)
 	}

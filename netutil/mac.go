@@ -53,38 +53,42 @@ func IsValidMACString(s string) (ok bool) {
 func estimateMACFragments(s string) (fragLen, fragNum int, sep byte, ok bool) {
 	l := len(s)
 	switch l {
+	case
+		len("00005e005301"),
+		len("02005e1000000001"),
+		len("00000000fe8000000000000002005e1000000001"):
+		fragLen, fragNum = l, 1
+		sep = 0
+		ok = true
 	case len("00:00:5e:00:53:01"):
 		fragLen, fragNum = 2, 6
 		sep = s[2]
-	case len("00005e005301"):
-		fragLen, fragNum = 2, 6
-		sep = 0
+		ok = sep == ':' || sep == '-'
 	case len("02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 8
 		sep = s[2]
-	case len("02005e1000000001"):
-		fragLen, fragNum = 2, 8
-		sep = 0
+		ok = sep == ':' || sep == '-'
 	case len("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"):
 		fragLen, fragNum = 2, 20
 		sep = s[2]
-	case len("00000000fe8000000000000002005e1000000001"):
-		fragLen, fragNum = 2, 20
-		sep = 0
+		ok = true
 	case len("0000.5e00.5301"):
 		fragLen, fragNum = 4, 3
 		sep = '.'
+		ok = true
 	case len("0200.5e10.0000.0001"):
 		fragLen, fragNum = 4, 4
 		sep = '.'
+		ok = true
 	case len("0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001"):
 		fragLen, fragNum = 4, 10
 		sep = '.'
+		ok = true
 	default:
 		return 0, 0, 0, false
 	}
 
-	return fragLen, fragNum, sep, true
+	return fragLen, fragNum, sep, ok
 }
 
 // isValidHexSepString returns true if s is a string containing fragNum
