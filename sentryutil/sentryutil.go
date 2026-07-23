@@ -29,8 +29,9 @@ func InitDefaultHub(release string) (err error) {
 	}
 
 	return sentry.Init(sentry.ClientOptions{
-		Dsn:     dsn,
-		Release: release,
+		DisableClientReports: true,
+		Dsn:                  dsn,
+		Release:              release,
 	})
 }
 

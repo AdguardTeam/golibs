@@ -1,6 +1,6 @@
 'env':
   'BASE_IMAGE': |-
-    ${{ vars.BASE_IMAGE || 'adguard/go-builder:1.26.4--1' }}
+    ${{ vars.BASE_IMAGE || 'adguard/go-builder:1.26.5--1' }}
   'CACHE_BUSTER': |-
     ${{ vars.CACHE_BUSTER || '0' }}
 'jobs':
