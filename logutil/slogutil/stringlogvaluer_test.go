@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
-	"github.com/AdguardTeam/golibs/stringutil"
+	"github.com/AdguardTeam/golibs/testutil"
 )
 
 func Benchmark_StringLogValuer(b *testing.B) {
@@ -15,7 +15,7 @@ func Benchmark_StringLogValuer(b *testing.B) {
 		attrKey = "str"
 	)
 
-	stringer := stringutil.NewTestStringer()
+	stringer := testutil.NewStringer()
 
 	data := []byte("a")
 	stringer.OnString = func() (s string) {
@@ -32,7 +32,7 @@ func Benchmark_StringLogValuer(b *testing.B) {
 		b.ReportAllocs()
 
 		for b.Loop() {
-			l.Debug(logMsg, attrKey, slogutil.NewStringerValuer(stringer))
+			l.Debug(logMsg, attrKey, slogutil.NewStringLogValuer(stringer))
 		}
 	})
 
@@ -40,7 +40,7 @@ func Benchmark_StringLogValuer(b *testing.B) {
 		b.ReportAllocs()
 
 		for b.Loop() {
-			l.Info(logMsg, attrKey, slogutil.NewStringerValuer(stringer))
+			l.Info(logMsg, attrKey, slogutil.NewStringLogValuer(stringer))
 		}
 	})
 
@@ -66,8 +66,8 @@ func Benchmark_StringLogValuer(b *testing.B) {
 	//	goarch: amd64
 	//	pkg: github.com/AdguardTeam/AdGuardDNS/internal/agdslog
 	//	cpu: AMD Ryzen AI 7 PRO 350 w/ Radeon 860M
-	//	Benchmark_StringLogValuer/log_valuer_disabled_log_level-16              247510198                4.565 ns/op           0 B/op          0 allocs/op
-	//	Benchmark_StringLogValuer/log_valuer_enabled_log_level-16                1594588               753.5 ns/op            72 B/op          2 allocs/op
-	//	Benchmark_StringLogValuer/string_call_disabled_log_level-16             56316349                22.79 ns/op           16 B/op          1 allocs/op
-	//	Benchmark_StringLogValuer/string_call_enabled_log_level-16               1451767               807.9 ns/op            88 B/op          3 allocs/op
+	//	Benchmark_StringLogValuer/log_valuer_disabled_log_level-16              247650633                4.612 ns/op           0 B/op        0 allocs/op
+	//	Benchmark_StringLogValuer/log_valuer_enabled_log_level-16                1511684               779.5 ns/op            72 B/op        2 allocs/op
+	//	Benchmark_StringLogValuer/string_call_disabled_log_level-16             47299754                23.82 ns/op           16 B/op        1 allocs/op
+	//	Benchmark_StringLogValuer/string_call_enabled_log_level-16               1544602               781.5 ns/op            88 B/op        3 allocs/op
 }

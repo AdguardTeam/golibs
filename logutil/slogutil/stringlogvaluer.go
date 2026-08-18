@@ -5,22 +5,22 @@ import (
 	"log/slog"
 )
 
-// StringerValuer is a wrapper over the [fmt.Stringer] interface.
-type StringerValuer[T fmt.Stringer] struct {
+// StringLogValuer is a wrapper over the [fmt.Stringer] interface.
+type StringLogValuer[T fmt.Stringer] struct {
 	value T
 }
 
-// NewStringerValuer returns a [StringerValuer] for v.
-func NewStringerValuer[T fmt.Stringer](v T) (s StringerValuer[T]) {
-	return StringerValuer[T]{
+// NewStringLogValuer returns a [StringLogValuer] for v.
+func NewStringLogValuer[T fmt.Stringer](v T) (s StringLogValuer[T]) {
+	return StringLogValuer[T]{
 		value: v,
 	}
 }
 
 // type check
-var _ slog.LogValuer = (*StringerValuer[fmt.Stringer])(nil)
+var _ slog.LogValuer = (*StringLogValuer[fmt.Stringer])(nil)
 
-// LogValue implements the [slog.LogValuer] interface for [StringerValuer].
-func (s StringerValuer[T]) LogValue() (l slog.Value) {
+// LogValue implements the [slog.LogValuer] interface for [StringLogValuer].
+func (s StringLogValuer[T]) LogValue() (l slog.Value) {
 	return slog.StringValue(s.value.String())
 }

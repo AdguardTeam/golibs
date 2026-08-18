@@ -1,9 +1,7 @@
-package stringutil
+package testutil
 
 import (
 	"fmt"
-
-	"github.com/AdguardTeam/golibs/testutil"
 )
 
 // Stringer is a [fmt.Stringer] implementation for tests.
@@ -19,10 +17,10 @@ func (s *Stringer) String() string {
 	return s.OnString()
 }
 
-// NewTestStringer returns a [fmt.Stringer] implementation that does nothing and
+// NewStringer returns a [fmt.Stringer] implementation that does nothing and
 // panics in [fmt.Stringer.String].
-func NewTestStringer() (s *Stringer) {
+func NewStringer() (s *Stringer) {
 	return &Stringer{
-		OnString: func() (str string) { panic(testutil.UnexpectedCall()) },
+		OnString: func() (str string) { panic(UnexpectedCall()) },
 	}
 }
