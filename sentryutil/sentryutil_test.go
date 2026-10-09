@@ -33,7 +33,7 @@ func TestReportPanics(t *testing.T) {
 	})
 
 	require.NoError(t, sentry.Init(sentry.ClientOptions{
-		Dsn:       "https://user:password@does.not.exist/test",
+		Dsn:       sentrytest.DSN,
 		Transport: tr,
 	}))
 
