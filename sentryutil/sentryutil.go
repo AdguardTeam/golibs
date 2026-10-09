@@ -20,6 +20,10 @@ const DefaultLoggerPrefix = "sentry_default_hub"
 // DSNEnv is the name of the environment variable for the Sentry DSN.
 const DSNEnv = "SENTRY_DSN"
 
+// DSN is the test Sentry DSN.  It is a valid URL string and uses the TEST-NET-1
+// IP address as the host.
+const DSN = "https://user:password@192.0.2.1/foo/bar"
+
 // InitDefaultHub initializes the default Sentry hub.  It returns an error if
 // [DSNEnv] isn't set in the environment.
 func InitDefaultHub(release string) (err error) {
