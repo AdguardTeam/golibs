@@ -12,6 +12,11 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
+// DSN is the test Sentry DSN.  To be a valid URL and be successfully parsed,
+// it uses the TEST-NET-1 IP address, which does not point to any real host.
+// See RFC 5737 Section 3.
+const DSN = "https://user:password@192.0.2.1/foo/bar"
+
 // Transport is a [sentry.Transport] implementation for tests.
 type Transport struct {
 	OnClose            func()
