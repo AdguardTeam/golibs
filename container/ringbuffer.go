@@ -1,5 +1,7 @@
 package container
 
+import "slices"
+
 // RingBuffer is the generic implementation of ring buffer data structure.
 type RingBuffer[T any] struct {
 	buf  []T
@@ -61,14 +63,14 @@ func (rb *RingBuffer[T]) Range(f func(T) (cont bool)) {
 func (rb *RingBuffer[T]) ReverseRange(f func(T) (cont bool)) {
 	before, after := rb.splitCur()
 
-	for i := len(after) - 1; i >= 0; i-- {
-		if !f(after[i]) {
+	for _, a := range slices.Backward(after) {
+		if !f(a) {
 			return
 		}
 	}
 
-	for i := len(before) - 1; i >= 0; i-- {
-		if !f(before[i]) {
+	for _, b := range slices.Backward(before) {
+		if !f(b) {
 			return
 		}
 	}

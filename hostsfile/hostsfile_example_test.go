@@ -65,7 +65,7 @@ func (s *invalidSet) HandleInvalid(ctx context.Context, srcName string, data []b
 	}
 
 	invIdx := bytes.Index(data, []byte(addrErr.Addr))
-	for _, name := range bytes.Fields(data[invIdx:]) {
+	for name := range bytes.FieldsSeq(data[invIdx:]) {
 		rec.Names = append(rec.Names, string(name))
 	}
 

@@ -1,7 +1,6 @@
 package urlutil_test
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/AdguardTeam/golibs/netutil/urlutil"
@@ -27,10 +26,8 @@ func TestParseURL(t *testing.T) {
 		wantErrMsg: `parse ":": missing protocol scheme`,
 	}, {
 		want: &urlutil.URL{
-			URL: url.URL{
-				Scheme: urlutil.SchemeHTTPS,
-				Host:   testHostname,
-			},
+			Scheme: urlutil.SchemeHTTPS,
+			Host:   testHostname,
 		},
 		name:       "success",
 		in:         "https://" + testHostname,
@@ -79,10 +76,8 @@ func TestURL_UnmarshalJSON(t *testing.T) {
 		in:         []byte(`123`),
 	}, {
 		want: &urlutil.URL{
-			URL: url.URL{
-				Scheme: urlutil.SchemeHTTPS,
-				Host:   testHostname,
-			},
+			Scheme: urlutil.SchemeHTTPS,
+			Host:   testHostname,
 		},
 		name:       "success",
 		wantErrMsg: "",

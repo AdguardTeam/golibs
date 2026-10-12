@@ -3,6 +3,7 @@ package netutil
 import (
 	"net"
 	"net/netip"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -191,8 +192,8 @@ func IPToReversedAddr(ip net.IP) (arpa string, err error) {
 	}
 
 	b.Grow(l)
-	for i := len(ip) - 1; i >= 0; i-- {
-		writeByte(ip[i])
+	for _, i := range slices.Backward(ip) {
+		writeByte(i)
 	}
 
 	stringutil.WriteToBuilder(b, suffix)

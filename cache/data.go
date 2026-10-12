@@ -23,8 +23,8 @@ type cache struct {
 	conf Config
 
 	// stats:
-	miss int32 // number of misses
-	hit  int32 // number of hits
+	miss atomic.Int32 // number of misses
+	hit  atomic.Int32 // number of hits
 }
 
 type item struct {
@@ -61,8 +61,8 @@ func (c *cache) Clear() {
 	listInit(&c.usage)
 	c.size = 0
 	c.lock.Unlock()
-	atomic.StoreInt32(&c.hit, 0)
-	atomic.StoreInt32(&c.miss, 0)
+	c.hit.Store(0)
+	c.miss.Store(0)
 }
 
 // Set value
@@ -124,10 +124,10 @@ func (c *cache) Get(key []byte) []byte {
 	}
 	c.lock.Unlock()
 	if !ok {
-		atomic.AddInt32(&c.miss, 1)
+		c.miss.Add(1)
 		return nil
 	}
-	atomic.AddInt32(&c.hit, 1)
+	c.hit.Add(1)
 	return val.value
 }
 
@@ -150,7 +150,7 @@ func (c *cache) Stats() Stats {
 	s := Stats{}
 	s.Count = len(c.items)
 	s.Size = int(c.size)
-	s.Hit = int(atomic.LoadInt32(&c.hit))
-	s.Miss = int(atomic.LoadInt32(&c.miss))
+	s.Hit = int(c.hit.Load())
+	s.Miss = int(c.miss.Load())
 	return s
 }

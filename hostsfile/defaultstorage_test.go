@@ -65,8 +65,6 @@ func TestDefaultStorage_lookup(t *testing.T) {
 		t.Parallel()
 
 		for _, addr := range slices.SortedStableFunc(maps.Keys(wantAddrs), netip.Addr.Compare) {
-			addr := addr
-
 			t.Run(addr.String(), func(t *testing.T) {
 				t.Parallel()
 
@@ -79,8 +77,6 @@ func TestDefaultStorage_lookup(t *testing.T) {
 		t.Parallel()
 
 		for _, host := range slices.Sorted(maps.Keys(wantHosts)) {
-			host := host
-
 			t.Run(host, func(t *testing.T) {
 				t.Parallel()
 
@@ -166,8 +162,6 @@ func TestDefaultStorage_HandleInvalid(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		assert.NotPanics(t, func() {
 			ds.HandleInvalid(ctx, tc.name, nil, tc.err)
 		})
@@ -343,8 +337,6 @@ func TestDefaultStorage_Equal(t *testing.T) {
 	}}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

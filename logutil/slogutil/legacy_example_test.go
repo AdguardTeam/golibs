@@ -33,7 +33,7 @@ func ExampleAdGuardLegacyHandler() {
 	l.Warn("warning with two prefixes (bad!)", slogutil.KeyPrefix, "bad")
 
 	// Remove the PID#GID prefix for a reproducible example.
-	for _, line := range strings.Split(output.String(), "\n") {
+	for line := range strings.SplitSeq(output.String(), "\n") {
 		_, line, _ = strings.Cut(line, " ")
 		fmt.Println(line)
 	}

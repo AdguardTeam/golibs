@@ -15,11 +15,11 @@ func ExampleString() {
 	}
 
 	// Output:
-	// "\U000208b5\U00102b06\U000f1b5c\u458fo"
-	// "\U000118d0\U000281b8\u1db7\U000280e1\x14"
-	// "\U0010d7e9\U0001e869\u6a9d\ue194\u05e6"
-	// "\ue91b\U0001f3a4\U000f720f\U000fe986{"
-	// "\ud5e9\U00023c56\U000fedab\U000215f2="
+	// "\U000208b5\U00102b06\U000f1b5c\U000137e8"
+	// "\u458f\U000118d0\U000281b8\u1db7\u0783"
+	// "\U000280e1\U00028095\U0010d7e9\U0001e869"
+	// "\u6a9d\ue194\ue91b\U0001f3a4\u9a49"
+	// "\U000f720f\U000fe986\ud5e9\U00023c56/"
 }
 
 func ExampleStringASCII() {
