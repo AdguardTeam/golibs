@@ -11,6 +11,8 @@ package fakenet
 import (
 	"net"
 	"time"
+
+	"github.com/AdguardTeam/golibs/testutil"
 )
 
 // Conn is the [net.Conn] for tests.
@@ -23,6 +25,20 @@ type Conn struct {
 	OnSetReadDeadline  func(t time.Time) (err error)
 	OnSetWriteDeadline func(t time.Time) (err error)
 	OnWrite            func(b []byte) (n int, err error)
+}
+
+// NewConn returns a new *Conn all methods of which panic.
+func NewConn() (c *Conn) {
+	return &Conn{
+		OnClose:            func() (err error) { panic(testutil.UnexpectedCall()) },
+		OnLocalAddr:        func() (laddr net.Addr) { panic(testutil.UnexpectedCall()) },
+		OnRead:             func(b []byte) (n int, err error) { panic(testutil.UnexpectedCall(b)) },
+		OnRemoteAddr:       func() (addr net.Addr) { panic(testutil.UnexpectedCall()) },
+		OnSetDeadline:      func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnSetReadDeadline:  func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnSetWriteDeadline: func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnWrite:            func(b []byte) (n int, err error) { panic(testutil.UnexpectedCall(b)) },
+	}
 }
 
 // type check
@@ -102,6 +118,23 @@ type PacketConn struct {
 	OnSetReadDeadline  func(t time.Time) (err error)
 	OnSetWriteDeadline func(t time.Time) (err error)
 	OnWriteTo          func(b []byte, addr net.Addr) (n int, err error)
+}
+
+// NewPacketConn returns a new *PacketConn all methods of which panic.
+func NewPacketConn() (c *PacketConn) {
+	return &PacketConn{
+		OnClose:     func() (err error) { panic(testutil.UnexpectedCall()) },
+		OnLocalAddr: func() (laddr net.Addr) { panic(testutil.UnexpectedCall()) },
+		OnReadFrom: func(b []byte) (n int, addr net.Addr, err error) {
+			panic(testutil.UnexpectedCall(b))
+		},
+		OnSetDeadline:      func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnSetReadDeadline:  func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnSetWriteDeadline: func(t time.Time) (err error) { panic(testutil.UnexpectedCall(t)) },
+		OnWriteTo: func(b []byte, addr net.Addr) (n int, err error) {
+			panic(testutil.UnexpectedCall(b, addr))
+		},
+	}
 }
 
 // type check

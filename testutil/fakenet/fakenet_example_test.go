@@ -6,25 +6,18 @@ import (
 	"net"
 	"slices"
 
-	"github.com/AdguardTeam/golibs/testutil"
 	"github.com/AdguardTeam/golibs/testutil/fakenet"
 )
 
 func Example() {
 	var written []byte
-	fakeConn := &fakenet.Conn{
-		// Use OnClose with a panic to signal that Close is expected to not be
-		// called.
-		OnClose: func() (err error) { panic(testutil.UnexpectedCall()) },
+	fakeConn := fakenet.NewConn()
 
-		// Other methods implemented in the same way as Close.
+	// Use OnWrite to record its argument.  The rest of the methods panic.
+	fakeConn.OnWrite = func(b []byte) (n int, err error) {
+		written = slices.Clone(b)
 
-		// Use OnWrite to record its argument.
-		OnWrite: func(b []byte) (n int, err error) {
-			written = slices.Clone(b)
-
-			return len(b), nil
-		},
+		return len(b), nil
 	}
 
 	// The function that is expected to call Write.

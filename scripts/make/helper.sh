@@ -38,6 +38,9 @@ trap not_found EXIT
 #     if there is anything in the command's combined output.
 #
 # 2.  In any case, run_linter adds the program's name to its combined output.
+#
+# TODO(a.garipov):  Remove the -e option and expect all analyzers to set the
+# exit code properly instead.
 run_linter() (
 	set +e
 
@@ -57,7 +60,7 @@ run_linter() (
 
 	readonly cmd
 
-	output="$("$cmd" "$@")"
+	output="$("$cmd" "$@" 2>&1)"
 	exitcode="$?"
 
 	readonly output
@@ -87,7 +90,7 @@ run_linter() (
 # find_with_ignore is a wrapper around find that does not descend into ignored
 # directories, such as ./tmp/.
 #
-# NOTE:  The arguments must contain on of -exec, -ok, or -print; see
+# NOTE:  The arguments must contain one of -exec, -ok, or -print; see
 # https://pubs.opengroup.org/onlinepubs/9799919799/utilities/find.html.
 #
 # TODO(a.garipov):  Find a way to integrate the entire gitignore, including the

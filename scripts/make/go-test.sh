@@ -3,7 +3,7 @@
 # This comment is used to simplify checking local copies of the script.  Bump
 # this number every time a significant change is made to this script.
 #
-# AdGuard-Project-Version: 10
+# AdGuard-Project-Version: 11
 
 # TODO(a.garipov): Use set -o 'pipefail' when the image supports it.
 set -e -f -u
@@ -75,18 +75,16 @@ run_test() {
 
 	mkdir -p "$test_reports_dir"
 
-	# NOTE:  The pipe ignoring the exit code here is intentional, as
-	# go-junit-report will set the exit code to be saved.
-	#
-	# TODO(a.garipov):  Update after enabling set -o 'pipefail'.
-	"$@" 2>&1 \
+	# NOTE:  The exit code is ignored intentionally, as go-junit-report will set
+	# the exit code by itself.
+	{ "$@" 2>&1 || :; } \
 		| tee "${test_reports_dir}/test-output.txt"
 
 	# Don't fail on errors in exporting, because TEST_REPORTS_DIR is generally
 	# only not empty in CI, and so the exit code must be preserved to exit with
 	# it later.
 	set +e
-	"${GO:-go}" tool go-junit-report \
+	"$go" tool go-junit-report \
 		--in "${test_reports_dir}/test-output.txt" \
 		--set-exit-code \
 		>"${test_reports_dir}/test-report.xml"
