@@ -1,11 +1,11 @@
 package httputil
 
 import (
+	"maps"
 	"net/http"
 
 	"github.com/AdguardTeam/golibs/httphdr"
 	"github.com/AdguardTeam/golibs/requestid"
-	"github.com/AdguardTeam/golibs/syncutil"
 )
 
 // RequestIDRoundTripperConfig is a configuration structure for
@@ -26,9 +26,9 @@ type RequestIDRoundTripperConfig struct {
 //
 // RequestIDRoundTripper does not support [http.Request.Cancel].
 type RequestIDRoundTripper struct {
+	// TODO(a.garipov):  Use a [RequestPool] once golang/go#81445 and the
+	// related bugs are fixed.
 	transport http.RoundTripper
-	hdrPool   *HeaderPool
-	reqPool   *syncutil.Pool[http.Request]
 	generate  bool
 }
 
@@ -37,11 +37,7 @@ type RequestIDRoundTripper struct {
 func NewRequestIDRoundTripper(c *RequestIDRoundTripperConfig) (r *RequestIDRoundTripper) {
 	return &RequestIDRoundTripper{
 		transport: c.Transport,
-		hdrPool:   NewHeaderPool(),
-		reqPool: syncutil.NewPool(func() (r *http.Request) {
-			return &http.Request{}
-		}),
-		generate: c.Generate,
+		generate:  c.Generate,
 	}
 }
 
@@ -55,7 +51,6 @@ func (r *RequestIDRoundTripper) RoundTrip(req *http.Request) (resp *http.Respons
 	}
 
 	ctx := req.Context()
-
 	id, ok := requestid.IDFromContext(ctx)
 	if !ok && r.generate {
 		id = requestid.New()
@@ -66,25 +61,10 @@ func (r *RequestIDRoundTripper) RoundTrip(req *http.Request) (resp *http.Respons
 		return r.transport.RoundTrip(req)
 	}
 
-	newReq := r.reqPool.Get()
-	defer r.reqPool.Put(newReq)
+	clone := req.WithContext(ctx)
+	clone.Header = http.Header{}
+	maps.Copy(clone.Header, req.Header)
+	clone.Header.Set(httphdr.XRequestID, string(id))
 
-	CopyRequestTo(ctx, newReq, req)
-	req = newReq
-
-	//lint:ignore SA1019 Set the deprecated Cancel field to nil to prevent races
-	// when reusing requests.  Cancel is automatically set by the default HTTP
-	// client for compatibility, but this RoundTripper does not support it.
-	req.Cancel = nil
-
-	// NOTE:  CopyRequestTo creates a shallow copy, so in order to modify the
-	// outgoing request without too many new allocations, a new header from the
-	// pool must be used.
-	newHdrEntry := r.hdrPool.Get(req.Header)
-	defer r.hdrPool.Put(newHdrEntry)
-
-	req.Header = newHdrEntry.Header()
-	req.Header.Set(httphdr.XRequestID, string(id))
-
-	return r.transport.RoundTrip(req)
+	return r.transport.RoundTrip(clone)
 }

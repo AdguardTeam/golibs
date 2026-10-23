@@ -8,6 +8,9 @@ import (
 
 // HeaderPool allows reducing allocations when making many clones of
 // [http.Header] maps.
+//
+// NOTE:  It is currently unsafe to reuse [http.Request]s in [http.RoundTrip]
+// implementations due to races in stdlib.  See https://golang.org/issues/81445.
 type HeaderPool struct {
 	entries *syncutil.Pool[HeaderPoolEntry]
 }
@@ -21,6 +24,18 @@ type HeaderPoolEntry struct {
 // Header returns the cloned header.
 func (e *HeaderPoolEntry) Header() (h http.Header) {
 	return e.header
+}
+
+// Set sets the key k to the value v in the underlying header while reusing the
+// value storage as much as possible.  k should be canonicalized.
+func (e *HeaderPoolEntry) Set(k, v string) {
+	if len(e.header[k]) == 0 {
+		e.values = append(e.values, v)
+		l := len(e.values)
+		e.header[k] = e.values[l-1 : l : l]
+	} else {
+		e.header[k] = append(e.header[k][:0], v)
+	}
 }
 
 // headerMapLenEst is the estimate of how many headers are usually sent in an

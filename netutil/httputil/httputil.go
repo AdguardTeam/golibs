@@ -32,6 +32,9 @@ func (f RouterFunc) Handle(pattern string, h http.Handler) {
 // and src must not be nil.
 //
 // See https://github.com/golang/go/issues/68501#issuecomment-2234069762.
+//
+// NOTE:  It is currently unsafe to reuse [http.Request]s in [http.RoundTrip]
+// implementations due to races in stdlib.  See https://golang.org/issues/81445.
 func CopyRequestTo(ctx context.Context, dst, src *http.Request) {
 	// NOTE:  Just putting this into the code doesn't work most of the time.
 	// Most likely because it gets harder for the compiler to inline.
