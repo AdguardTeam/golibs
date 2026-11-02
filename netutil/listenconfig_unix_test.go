@@ -14,12 +14,18 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// Localhost addrs for tests.
+var (
+	localhost4 = netutil.JoinHostPort(netutil.IPv4Localhost().String(), 0)
+	localhost6 = netutil.JoinHostPort(netutil.IPv6Localhost().String(), 0)
+)
+
 func TestNewListenConfigWithOOB(t *testing.T) {
 	lc := netutil.NewListenConfigWithOOB(nil)
 	require.NotNil(t, lc)
 
 	t.Run("ipv4", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp4", "127.0.0.1:0")
+		c, err := lc.ListenPacket(t.Context(), "udp4", localhost4)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
@@ -40,7 +46,7 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 	})
 
 	t.Run("ipv6", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp6", "[::1]:0")
+		c, err := lc.ListenPacket(t.Context(), "udp6", localhost6)
 		if errors.Is(err, syscall.EADDRNOTAVAIL) {
 			// Some CI machines have IPv6 disabled.
 			t.Skipf("ipv6 seems to not be supported: %s", err)
@@ -87,7 +93,7 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 	require.NotNil(t, lc)
 
 	t.Run("ipv4", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp4", "127.0.0.1:0")
+		c, err := lc.ListenPacket(t.Context(), "udp4", localhost4)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
@@ -117,7 +123,7 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 	})
 
 	t.Run("ipv6", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp6", "[::1]:0")
+		c, err := lc.ListenPacket(t.Context(), "udp6", localhost6)
 		if errors.Is(err, syscall.EADDRNOTAVAIL) {
 			// Some CI machines have IPv6 disabled.
 			t.Skipf("ipv6 seems to not be supported: %s", err)

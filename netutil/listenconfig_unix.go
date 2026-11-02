@@ -26,7 +26,8 @@ func defaultListenControlWithSO(c syscall.RawConn) (err error) {
 	return errors.WithDeferred(opErr, err)
 }
 
-// setIPOpts sets the IPv4 and IPv6 options on a packet connection.
+// setIPOpts sets the IPv4 and IPv6 options on a packet connection.  c must not
+// be nil.
 func setIPOpts(c net.PacketConn) (err error) {
 	// TODO(a.garipov): Returning an error only if both functions return one
 	// (which is what module dns does as well) seems rather fragile.  Depending

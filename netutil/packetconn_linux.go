@@ -35,7 +35,7 @@ func (s *packetSession) RemoteAddr() (addr net.Addr) { return s.raddr }
 var _ SessionPacketConn = (*sessionPacketConn)(nil)
 
 // wrapPacketConn wraps c to make it a [SessionPacketConn], if the OS supports
-// that.
+// that.  c must not be nil and must be a [*net.UDPConn].
 func wrapPacketConn(c net.PacketConn) (wrapped net.PacketConn) {
 	return &sessionPacketConn{
 		UDPConn: *c.(*net.UDPConn),
@@ -67,6 +67,7 @@ func (c *sessionPacketConn) ReadFromSession(b []byte) (n int, s PacketSession, e
 	ps := &packetSession{}
 	n, oobn, _, ps.raddr, err = c.ReadMsgUDP(b, oob)
 	if err != nil {
+		// Don't wrap the error, because it's informative enough as is.
 		return 0, nil, err
 	}
 
@@ -142,7 +143,7 @@ func newRespOOB(origDst net.IP) (b []byte) {
 }
 
 // WriteToSession implements the [SessionPacketConn] interface for
-// *sessionPacketConn.
+// *sessionPacketConn.  s must not be nil.
 func (c *sessionPacketConn) WriteToSession(b []byte, s PacketSession) (n int, err error) {
 	if ps, ok := s.(*packetSession); ok {
 		n, _, err = c.WriteMsgUDP(b, ps.respOOB, ps.raddr)

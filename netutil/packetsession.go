@@ -7,7 +7,10 @@ import (
 // PacketSession contains additional information about a packet read from or
 // written to a [SessionPacketConn].
 type PacketSession interface {
+	// LocalAddr returns the local network address of the packet.
 	LocalAddr() (addr net.Addr)
+
+	// RemoteAddr returns the remote network address of the packet.
 	RemoteAddr() (addr net.Addr)
 }
 
@@ -27,6 +30,9 @@ type simplePacketSession struct {
 	raddr net.Addr
 }
 
+// type check
+var _ PacketSession = (*simplePacketSession)(nil)
+
 // LocalAddr implements the [PacketSession] interface for *simplePacketSession.
 func (s *simplePacketSession) LocalAddr() (addr net.Addr) { return s.laddr }
 
@@ -38,7 +44,11 @@ func (s *simplePacketSession) RemoteAddr() (addr net.Addr) { return s.raddr }
 type SessionPacketConn interface {
 	net.PacketConn
 
+	// ReadFromSession reads a packet into b and returns its size and session.
 	ReadFromSession(b []byte) (n int, s PacketSession, err error)
+
+	// WriteToSession writes b to the remote address in s and returns the
+	// number of bytes written.  s must not be nil.
 	WriteToSession(b []byte, s PacketSession) (n int, err error)
 }
 

@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"net"
 	"syscall"
+
+	"github.com/AdguardTeam/golibs/errors"
 )
 
 // SyscallConner is an interface for connections that provide access to their
-// raw connections.
+// underlying network connections through [syscall.RawConn].
 type SyscallConner interface {
+	// SyscallConn returns a raw network connection for the connection.
 	SyscallConn() (c syscall.RawConn, err error)
 }
 
@@ -18,7 +21,12 @@ type SyscallConner interface {
 //
 // This interface is modeled after [net.ListenConfig].
 type ListenConfig interface {
+	// Listen announces on the local network address.  It is a wrapper for
+	// [net.ListenConfig.Listen].
 	Listen(ctx context.Context, network, address string) (l net.Listener, err error)
+
+	// ListenPacket announces on the local network address.  It is a wrapper for
+	// [net.ListenConfig.ListenPacket].
 	ListenPacket(ctx context.Context, network, address string) (c net.PacketConn, err error)
 }
 
@@ -34,7 +42,7 @@ type ControlConfig struct {
 }
 
 // defaultControlFunc is a default [ControlFunc] that sets appropriate default
-// socket options.  It panics on unsupported platforms.
+// socket options.
 func defaultControlFunc(_, _ string, c syscall.RawConn) (err error) {
 	return defaultListenControlWithSO(c)
 }
@@ -84,11 +92,14 @@ func (lc *listenConfigOOB) ListenPacket(
 ) (c net.PacketConn, err error) {
 	c, err = lc.ListenConfig.ListenPacket(ctx, network, address)
 	if err != nil {
+		// Don't wrap the error, because it's informative enough as is.
 		return nil, err
 	}
 
 	err = setIPOpts(c)
 	if err != nil {
+		err = errors.WithDeferred(err, c.Close())
+
 		return nil, fmt.Errorf("setting socket options: %w", err)
 	}
 

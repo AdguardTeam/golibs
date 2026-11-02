@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO(a.garipov): Add IPv6 test.
 func TestSessionPacketConn(t *testing.T) {
 	const numTries = 5
 
@@ -26,11 +25,13 @@ func TestSessionPacketConn(t *testing.T) {
 	for i := range numTries {
 		var isTimeout4, isTimeout6 bool
 		success4 = t.Run(fmt.Sprintf("ipv4_%d", i), func(t *testing.T) {
-			isTimeout4 = testSessionPacketConn(t, "udp4", "0.0.0.0:0", net.IP{127, 0, 0, 1})
+			ip := netutil.IPv4Localhost().AsSlice()
+			isTimeout4 = testSessionPacketConn(t, "udp4", "0.0.0.0:0", ip)
 		})
 
 		success6 = t.Run(fmt.Sprintf("ipv6_%d", i), func(t *testing.T) {
-			isTimeout6 = testSessionPacketConn(t, "udp6", "[::]:0", net.IPv6loopback)
+			ip := netutil.IPv6Localhost().AsSlice()
+			isTimeout6 = testSessionPacketConn(t, "udp6", "[::]:0", ip)
 		})
 
 		if success4 && success6 {
@@ -52,6 +53,8 @@ func TestSessionPacketConn(t *testing.T) {
 // testSessionPacketConn tests session-based packet exchange for given proto.
 // It returns true if a network operation times out.
 func testSessionPacketConn(tb testing.TB, proto, addr string, dstIP net.IP) (isTimeout bool) {
+	tb.Helper()
+
 	lc := netutil.NewListenConfigWithOOB(nil)
 	require.NotNil(tb, lc)
 
@@ -61,6 +64,7 @@ func testSessionPacketConn(tb testing.TB, proto, addr string, dstIP net.IP) (isT
 	}
 
 	require.NotNil(tb, c)
+	testutil.CleanupAndRequireSuccess(tb, c.Close)
 
 	deadline := time.Now().Add(1 * time.Second)
 	err = c.SetDeadline(deadline)
@@ -81,6 +85,8 @@ func testSessionPacketConn(tb testing.TB, proto, addr string, dstIP net.IP) (isT
 	} else if isTimeoutOrFail(tb, err) {
 		return true
 	}
+
+	testutil.CleanupAndRequireSuccess(tb, remoteConn.Close)
 
 	err = remoteConn.SetDeadline(deadline)
 	require.NoError(tb, err)
@@ -127,15 +133,15 @@ func testSessionPacketConn(tb testing.TB, proto, addr string, dstIP net.IP) (isT
 }
 
 // isTimeoutOrFail is a helper function that returns true if err is a timeout
-// error and also calls require.NoError on err.
+// error and also calls [require.NoError] on err.
 func isTimeoutOrFail(tb testing.TB, err error) (ok bool) {
 	tb.Helper()
 
-	if err == nil {
-		return false
+	if errors.Is(err, os.ErrDeadlineExceeded) {
+		return true
 	}
 
-	defer require.NoError(tb, err)
+	require.NoError(tb, err)
 
-	return errors.Is(err, os.ErrDeadlineExceeded)
+	return false
 }
