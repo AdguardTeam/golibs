@@ -5,6 +5,7 @@ package netutil
 import (
 	"fmt"
 	"net"
+	"syscall"
 
 	"github.com/AdguardTeam/golibs/syncutil"
 	"golang.org/x/net/ipv4"
@@ -31,20 +32,13 @@ func (s *packetSession) LocalAddr() (addr net.Addr) { return s.laddr }
 // RemoteAddr implements the [PacketSession] interface for *packetSession.
 func (s *packetSession) RemoteAddr() (addr net.Addr) { return s.raddr }
 
-// type check
-var _ SessionPacketConn = (*sessionPacketConn)(nil)
+// udpConn extends net.PacketConn for exchanging UDP messages.
+type udpConn interface {
+	net.PacketConn
 
-// wrapPacketConn wraps c to make it a [SessionPacketConn], if the OS supports
-// that.  c must not be nil and must be a [*net.UDPConn].
-func wrapPacketConn(c net.PacketConn) (wrapped net.PacketConn) {
-	return &sessionPacketConn{
-		UDPConn: *c.(*net.UDPConn),
-	}
-}
-
-// sessionPacketConn wraps a UDP connection and implements [SessionPacketConn].
-type sessionPacketConn struct {
-	net.UDPConn
+	ReadMsgUDP(b, oob []byte) (n, oobn, flags int, addr *net.UDPAddr, err error)
+	WriteMsgUDP(b, oob []byte, addr *net.UDPAddr) (n, oobn int, err error)
+	SyscallConn() (c syscall.RawConn, err error)
 }
 
 // oobPool is the pool of byte slices for out-of-band data.
@@ -55,6 +49,14 @@ var oobPool = syncutil.NewSlicePool[byte](IPDstOOBSize)
 //
 // See packetconn_linux_internal_test.go.
 const IPDstOOBSize = 40
+
+// sessionPacketConn wraps a UDP connection and implements [SessionPacketConn].
+type sessionPacketConn struct {
+	udpConn
+}
+
+// type check
+var _ SessionPacketConn = (*sessionPacketConn)(nil)
 
 // ReadFromSession implements the [SessionPacketConn] interface for
 // *sessionPacketConn.

@@ -1,8 +1,9 @@
-//go:build unix
+//go:build linux
 
 package netutil_test
 
 import (
+	"net"
 	"syscall"
 	"testing"
 
@@ -20,16 +21,24 @@ var (
 	localhost6 = netutil.JoinHostPort(netutil.IPv6Localhost().String(), 0)
 )
 
+// syscallConner is an interface for connections that provide access to their
+// underlying network connections through [syscall.RawConn].
+type syscallConner interface {
+	SyscallConn() (c syscall.RawConn, err error)
+}
+
 func TestNewListenConfigWithOOB(t *testing.T) {
-	lc := netutil.NewListenConfigWithOOB(nil)
+	lc, err := netutil.NewListenConfigWithOOB(nil)
+	require.NoError(t, err)
 	require.NotNil(t, lc)
 
-	t.Run("ipv4", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp4", localhost4)
+	require.True(t, t.Run("ipv4", func(t *testing.T) {
+		var c net.PacketConn
+		c, err = lc.ListenPacket(t.Context(), "udp4", localhost4)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
-		scConner := testutil.RequireTypeAssert[netutil.SyscallConner](t, c)
+		scConner := testutil.RequireTypeAssert[syscallConner](t, c)
 
 		sc, err := scConner.SyscallConn()
 		require.NoError(t, err)
@@ -43,10 +52,11 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 			assert.NotEqual(t, 0, val)
 		})
 		require.NoError(t, err)
-	})
+	}))
 
-	t.Run("ipv6", func(t *testing.T) {
-		c, err := lc.ListenPacket(t.Context(), "udp6", localhost6)
+	require.True(t, t.Run("ipv6", func(t *testing.T) {
+		var c net.PacketConn
+		c, err = lc.ListenPacket(t.Context(), "udp6", localhost6)
 		if errors.Is(err, syscall.EADDRNOTAVAIL) {
 			// Some CI machines have IPv6 disabled.
 			t.Skipf("ipv6 seems to not be supported: %s", err)
@@ -56,7 +66,7 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
 
-		scConner := testutil.RequireTypeAssert[netutil.SyscallConner](t, c)
+		scConner := testutil.RequireTypeAssert[syscallConner](t, c)
 
 		sc, err := scConner.SyscallConn()
 		require.NoError(t, err)
@@ -68,7 +78,7 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 			assert.NotEqual(t, 0, val)
 		})
 		require.NoError(t, err)
-	})
+	}))
 }
 
 func TestNewListenConfigWithOOB_withSO(t *testing.T) {
@@ -89,7 +99,8 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 		})
 	}
 
-	lc := netutil.NewListenConfigWithOOB(&netutil.ControlConfig{Control: cf})
+	lc, err := netutil.NewListenConfigWithOOB(&netutil.ControlConfig{Control: cf})
+	require.NoError(t, err)
 	require.NotNil(t, lc)
 
 	t.Run("ipv4", func(t *testing.T) {
@@ -98,7 +109,7 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
 
-		scConner := testutil.RequireTypeAssert[netutil.SyscallConner](t, c)
+		scConner := testutil.RequireTypeAssert[syscallConner](t, c)
 
 		sc, err := scConner.SyscallConn()
 		require.NoError(t, err)
@@ -133,7 +144,7 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
 
-		scConner := testutil.RequireTypeAssert[netutil.SyscallConner](t, c)
+		scConner := testutil.RequireTypeAssert[syscallConner](t, c)
 
 		sc, err := scConner.SyscallConn()
 		require.NoError(t, err)

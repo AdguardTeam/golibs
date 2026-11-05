@@ -2,19 +2,9 @@ package netutil
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"syscall"
-
-	"github.com/AdguardTeam/golibs/errors"
 )
-
-// SyscallConner is an interface for connections that provide access to their
-// underlying network connections through [syscall.RawConn].
-type SyscallConner interface {
-	// SyscallConn returns a raw network connection for the connection.
-	SyscallConn() (c syscall.RawConn, err error)
-}
 
 // ListenConfig is the interface that allows controlling socket options for used
 // connections.
@@ -60,48 +50,8 @@ func NewListenConfig(conf *ControlConfig) (lc ListenConfig) {
 // NewListenConfigWithOOB returns properly initialized ListenConfig.  Unlike
 // [NewListenConfig], resulting config sets additional socket flags and
 // processes the control-messages of connections created with
-// [ListenConfig.ListenPacket].  If conf is nil, a default configuration is
-// used.
-func NewListenConfigWithOOB(conf *ControlConfig) (lc ListenConfig) {
-	if conf == nil {
-		conf = &ControlConfig{Control: defaultControlFunc}
-	}
-
-	return &listenConfigOOB{Control: conf.Control}
-}
-
-// type check
-var _ ListenConfig = (*listenConfigOOB)(nil)
-
-// listenConfigOOB is a wrapper around [net.ListenConfig] with modifications
-// that set the control-message options on packet conns.
-type listenConfigOOB struct {
-	net.ListenConfig
-}
-
-// ListenPacket implements the [ListenConfig] interface for *listenConfigOOB.
-// It sets the control-message flags to receive additional out-of-band data to
-// correctly discover the source address when it listens to 0.0.0.0 as well as
-// in situations when SO_BINDTODEVICE is used.
-//
-// network must be "udp", "udp4", or "udp6".
-func (lc *listenConfigOOB) ListenPacket(
-	ctx context.Context,
-	network string,
-	address string,
-) (c net.PacketConn, err error) {
-	c, err = lc.ListenConfig.ListenPacket(ctx, network, address)
-	if err != nil {
-		// Don't wrap the error, because it's informative enough as is.
-		return nil, err
-	}
-
-	err = setIPOpts(c)
-	if err != nil {
-		err = errors.WithDeferred(err, c.Close())
-
-		return nil, fmt.Errorf("setting socket options: %w", err)
-	}
-
-	return wrapPacketConn(c), nil
+// [ListenConfig.ListenPacket].  It returns [errors.ErrUnsupported] on
+// unsupported platforms.  If conf is nil, a default configuration is used.
+func NewListenConfigWithOOB(conf *ControlConfig) (lc ListenConfig, err error) {
+	return newListenConfigWithOOB(conf)
 }

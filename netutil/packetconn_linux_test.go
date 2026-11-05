@@ -55,7 +55,8 @@ func TestSessionPacketConn(t *testing.T) {
 func testSessionPacketConn(tb testing.TB, proto, addr string, dstIP net.IP) (isTimeout bool) {
 	tb.Helper()
 
-	lc := netutil.NewListenConfigWithOOB(nil)
+	lc, err := netutil.NewListenConfigWithOOB(nil)
+	require.NoError(tb, err)
 	require.NotNil(tb, lc)
 
 	c, err := lc.ListenPacket(tb.Context(), proto, addr)
