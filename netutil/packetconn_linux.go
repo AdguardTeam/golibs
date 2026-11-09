@@ -41,14 +41,14 @@ type udpConn interface {
 	SyscallConn() (c syscall.RawConn, err error)
 }
 
-// oobPool is the pool of byte slices for out-of-band data.
-var oobPool = syncutil.NewSlicePool[byte](IPDstOOBSize)
-
 // IPDstOOBSize is the required size of the control-message buffer for
 // [net.UDPConn.ReadMsgUDP] to read the original destination on Linux.
 //
 // See packetconn_linux_internal_test.go.
 const IPDstOOBSize = 40
+
+// oobPool is the pool of byte slices for out-of-band data.
+var oobPool = syncutil.NewSlicePool[byte](IPDstOOBSize)
 
 // sessionPacketConn wraps a UDP connection and implements [SessionPacketConn].
 type sessionPacketConn struct {

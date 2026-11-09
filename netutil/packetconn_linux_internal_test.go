@@ -11,6 +11,8 @@ import (
 )
 
 func TestIPDstOOBSize(t *testing.T) {
+	t.Parallel()
+
 	// See https://github.com/miekg/dns/blob/v1.1.72/udp.go.
 	len4 := len(ipv4.NewControlMessage(ipv4.FlagDst | ipv4.FlagInterface))
 	len6 := len(ipv6.NewControlMessage(ipv6.FlagDst | ipv6.FlagInterface))

@@ -17,37 +17,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testTimeout is a common timeout for tests.
+const testTimeout = 1 * time.Second
+
 func TestSessionPacketConn(t *testing.T) {
-	const numTries = 5
+	t.Parallel()
 
-	// Try the test multiple times to reduce flakiness due to UDP failures.
-	var success4, success6 bool
-	for i := range numTries {
-		var isTimeout4, isTimeout6 bool
-		success4 = t.Run(fmt.Sprintf("ipv4_%d", i), func(t *testing.T) {
-			ip := netutil.IPv4Localhost().AsSlice()
-			isTimeout4 = testSessionPacketConn(t, "udp4", "0.0.0.0:0", ip)
-		})
+	require.True(t, t.Run("v4", func(t *testing.T) {
+		assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+			ipLocal := netutil.IPv4Localhost().AsSlice()
+			ipZero := netutil.IPv4Zero().String() + ":0"
 
-		success6 = t.Run(fmt.Sprintf("ipv6_%d", i), func(t *testing.T) {
-			ip := netutil.IPv6Localhost().AsSlice()
-			isTimeout6 = testSessionPacketConn(t, "udp6", "[::]:0", ip)
-		})
+			assert.False(t, testSessionPacketConn(t, "udp4", ipZero, ipLocal))
+		}, testTimeout, testTimeout/10)
+	}))
 
-		if success4 && success6 {
-			break
-		} else if isTimeout4 || isTimeout6 {
-			continue
-		}
+	require.True(t, t.Run("v6", func(t *testing.T) {
+		assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+			ipLocal := netutil.IPv6Localhost().AsSlice()
+			ipZero := fmt.Sprintf("[%s]:0", netutil.IPv6Zero().String())
 
-		t.Fail()
-	}
-
-	if !success4 {
-		t.Errorf("ipv4 test failed after %d attempts", numTries)
-	} else if !success6 {
-		t.Errorf("ipv6 test failed after %d attempts", numTries)
-	}
+			assert.False(t, testSessionPacketConn(t, "udp6", ipZero, ipLocal))
+		}, testTimeout, testTimeout/10)
+	}))
 }
 
 // testSessionPacketConn tests session-based packet exchange for given proto.

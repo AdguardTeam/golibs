@@ -4,6 +4,7 @@ package netutil_test
 
 import (
 	"net"
+	"net/netip"
 	"syscall"
 	"testing"
 
@@ -17,8 +18,8 @@ import (
 
 // Localhost addrs for tests.
 var (
-	localhost4 = netutil.JoinHostPort(netutil.IPv4Localhost().String(), 0)
-	localhost6 = netutil.JoinHostPort(netutil.IPv6Localhost().String(), 0)
+	localhost4 = netip.AddrPortFrom(netutil.IPv4Localhost(), 0).String()
+	localhost6 = netip.AddrPortFrom(netutil.IPv6Localhost(), 0).String()
 )
 
 // syscallConner is an interface for connections that provide access to their
@@ -28,6 +29,8 @@ type syscallConner interface {
 }
 
 func TestNewListenConfigWithOOB(t *testing.T) {
+	t.Parallel()
+
 	lc, err := netutil.NewListenConfigWithOOB(nil)
 	require.NoError(t, err)
 	require.NotNil(t, lc)
@@ -82,20 +85,20 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 }
 
 func TestNewListenConfigWithOOB_withSO(t *testing.T) {
+	t.Parallel()
+
 	const (
 		sndBufSize = 10000
 		rcvBufSize = 20000
 	)
 
 	cf := func(_, _ string, c syscall.RawConn) (err error) {
-		pt := testutil.NewPanicT(t)
-
 		return c.Control(func(fdPtr uintptr) {
 			fd := int(fdPtr)
 
-			require.NoError(pt, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_REUSEPORT, 1))
-			require.NoError(pt, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_RCVBUF, rcvBufSize))
-			require.NoError(pt, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_SNDBUF, sndBufSize))
+			require.NoError(t, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_REUSEPORT, 1))
+			require.NoError(t, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_RCVBUF, rcvBufSize))
+			require.NoError(t, unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_SNDBUF, sndBufSize))
 		})
 	}
 

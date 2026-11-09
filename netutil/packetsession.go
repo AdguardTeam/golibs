@@ -7,10 +7,10 @@ import (
 // PacketSession contains additional information about a packet read from or
 // written to a [SessionPacketConn].
 type PacketSession interface {
-	// LocalAddr returns the local network address of the packet.
+	// LocalAddr returns the local network address of the session.
 	LocalAddr() (addr net.Addr)
 
-	// RemoteAddr returns the remote network address of the packet.
+	// RemoteAddr returns the remote network address of the session.
 	RemoteAddr() (addr net.Addr)
 }
 

@@ -20,6 +20,9 @@ type ListenConfig interface {
 	ListenPacket(ctx context.Context, network, address string) (c net.PacketConn, err error)
 }
 
+// type check
+var _ ListenConfig = (*net.ListenConfig)(nil)
+
 // ControlFunc is a callback that will be called after creating the network
 // connection but before binding it to the operating system.  It is intended to
 // be used for setting sock opts.  c must not be nil.
