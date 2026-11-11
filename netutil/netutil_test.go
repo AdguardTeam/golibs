@@ -3,6 +3,7 @@ package netutil_test
 import (
 	"net"
 	"net/netip"
+	"time"
 )
 
 // Common test IPs.  Do not mutate.
@@ -21,3 +22,6 @@ var (
 	testIPv4Prefix = netip.MustParsePrefix("1.2.3.4/32")
 	testIPv6Prefix = netip.MustParsePrefix("1234::cdef/128")
 )
+
+// testTimeout is a common timeout for tests.
+const testTimeout = 1 * time.Second
