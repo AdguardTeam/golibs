@@ -201,6 +201,7 @@ run_linter "$go" tool nilness work
 
 # TODO(a.garipov):  Remove or replace cache package.
 run_linter "$go" tool fieldalignment \
+	./cache/bytecache/ \
 	./container/ \
 	./contextutil/ \
 	./errors/ \
@@ -224,7 +225,7 @@ run_linter "$go" tool fieldalignment \
 	./testutil/... \
 	./timeutil/ \
 	./validate/ \
-	./version \
+	./version/ \
 	;
 
 run_linter -e "$go" tool shadow --strict work
