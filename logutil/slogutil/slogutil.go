@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"cmp"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"log/slog"
@@ -161,8 +162,13 @@ func RemoveTime(groups []string, a slog.Attr) (res slog.Attr) {
 	return a
 }
 
-// PrintStack logs the stacktrace into l on the given level.
+// PrintStack logs the stacktrace into l on the given level.  It doesn't collect
+// the stacktrace if l doesn't log lvl.
 func PrintStack(ctx context.Context, l *slog.Logger, lvl slog.Level) {
+	if !l.Enabled(ctx, lvl) {
+		return
+	}
+
 	stack := bytes.Split(debug.Stack(), []byte{'\n'})
 	for i, line := range stack {
 		line = bytes.TrimSpace(line)
@@ -173,8 +179,12 @@ func PrintStack(ctx context.Context, l *slog.Logger, lvl slog.Level) {
 }
 
 // PrintLines splits s and logs the lines to l using the given level, including
-// empty lines.
+// empty lines.  It doesn't split s if l doesn't log lvl.
 func PrintLines(ctx context.Context, l *slog.Logger, lvl slog.Level, msg, s string) {
+	if !l.Enabled(ctx, lvl) {
+		return
+	}
+
 	lines := strings.Split(s, "\n")
 	for i, line := range lines {
 		l.Log(ctx, lvl, msg, "line_num", i+1, "line", line)
@@ -182,12 +192,33 @@ func PrintLines(ctx context.Context, l *slog.Logger, lvl slog.Level, msg, s stri
 }
 
 // PrintByteLines splits b and logs the lines to l using the given level,
-// including empty lines.
+// including empty lines.  It doesn't split b if l doesn't log lvl.
 func PrintByteLines(ctx context.Context, l *slog.Logger, lvl slog.Level, msg string, b []byte) {
+	if !l.Enabled(ctx, lvl) {
+		return
+	}
+
 	lines := bytes.Split(b, []byte{'\n'})
 	for i, line := range lines {
 		l.Log(ctx, lvl, msg, "line_num", i+1, "line", line)
 	}
+}
+
+// PrintStringerLines is like [PrintLines], but it calls s.String only if l
+// logs lvl, so callers don't pay for formatting values that are expensive to
+// format, such as DNS messages, when the level is disabled.  s must not be nil.
+func PrintStringerLines(
+	ctx context.Context,
+	l *slog.Logger,
+	lvl slog.Level,
+	msg string,
+	s fmt.Stringer,
+) {
+	if !l.Enabled(ctx, lvl) {
+		return
+	}
+
+	PrintLines(ctx, l, lvl, msg, s.String())
 }
 
 // bufferedTextHandler is a combination of one bytes buffer and a text handler
