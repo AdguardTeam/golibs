@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/AdguardTeam/golibs/logutil/slogutil"
+	"github.com/AdguardTeam/golibs/testutil/fakefmt"
 )
 
 func ExampleNew_default() {
@@ -92,6 +93,25 @@ This is a very long text with many lines.`
 	// INFO my text line_num=1 line="A Very Long Text"
 	// INFO my text line_num=2 line=""
 	// INFO my text line_num=3 line="This is a very long text with many lines."
+}
+
+func ExamplePrintStringerLines() {
+	l := slogutil.New(nil)
+
+	stringer := fakefmt.NewStringer()
+	stringer.OnString = func() (s string) {
+		return "first line\nsecond line"
+	}
+
+	ctx := context.Background()
+	slogutil.PrintStringerLines(ctx, l, slog.LevelInfo, "my value", stringer)
+
+	// String is not called, because the level is disabled.
+	slogutil.PrintStringerLines(ctx, l, slog.LevelDebug, "my value", fakefmt.NewStringer())
+
+	// Output:
+	// INFO my value line_num=1 line="first line"
+	// INFO my value line_num=2 line="second line"
 }
 
 func ExampleNew_trace() {
