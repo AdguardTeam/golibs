@@ -3,6 +3,7 @@ package netutil
 import (
 	"math"
 	"net"
+	"net/netip"
 	"slices"
 	"strings"
 )
@@ -44,6 +45,30 @@ func IPAndPortFromAddr(addr net.Addr) (ip net.IP, port uint16) {
 
 	return nil, 0
 }
+
+// IPv4LocalhostZeroPortString is the string form of [IPv4LocalhostZeroPort].
+const IPv4LocalhostZeroPortString = "127.0.0.1:0"
+
+// IPv6LocalhostZeroPortString is the string form of [IPv6LocalhostZeroPort].
+const IPv6LocalhostZeroPortString = "[::1]:0"
+
+// IPv4LocalhostZeroPort returns the IPv4 localhost address with zero port.  It
+// is intended to be used to bind a listener and let the OS choose a port.
+func IPv4LocalhostZeroPort() (ipp netip.AddrPort) {
+	return netip.AddrPortFrom(IPv4Localhost(), 0)
+}
+
+// IPv6LocalhostZeroPort returns the IPv6 localhost address with zero port.  It
+// is intended to be used to bind a listener and let the OS choose a port.
+func IPv6LocalhostZeroPort() (ipp netip.AddrPort) {
+	return netip.AddrPortFrom(IPv6Localhost(), 0)
+}
+
+// IPv4Localhost returns the IPv4 localhost address "127.0.0.1".
+func IPv4Localhost() (ip netip.Addr) { return netip.AddrFrom4([4]byte{127, 0, 0, 1}) }
+
+// IPv6Localhost returns the IPv6 localhost address "::1".
+func IPv6Localhost() (ip netip.Addr) { return netip.AddrFrom16([16]byte{15: 1}) }
 
 // IPv4bcast returns a new limited broadcast IPv4 address, 255.255.255.255.  It
 // has the same name as the variable in package net, but the result always has

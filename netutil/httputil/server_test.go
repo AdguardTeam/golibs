@@ -175,6 +175,7 @@ func TestServer(t *testing.T) {
 
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
+		testutil.CleanupAndRequireSuccess(t, resp.Body.Close)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		lines := bytes.Split(logOutput.Bytes(), []byte("\n"))
@@ -193,7 +194,7 @@ func TestServer(t *testing.T) {
 
 		srv := httputil.NewServer(&httputil.ServerConfig{
 			BaseLogger:     logger,
-			InitialAddress: netip.AddrPortFrom(netutil.IPv4Localhost(), 0),
+			InitialAddress: netutil.IPv4LocalhostZeroPort(),
 			Server: &http.Server{
 				Handler:   httputil.HealthCheckHandler,
 				TLSConfig: tlsConfig,
@@ -212,6 +213,7 @@ func TestServer(t *testing.T) {
 
 		resp, err := client.Do(req)
 		require.NoError(t, err)
+		testutil.CleanupAndRequireSuccess(t, resp.Body.Close)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		lines := bytes.Split(logOutput.Bytes(), []byte("\n"))

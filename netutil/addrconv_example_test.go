@@ -7,20 +7,6 @@ import (
 	"github.com/AdguardTeam/golibs/netutil"
 )
 
-func ExampleIPv4Localhost() {
-	fmt.Println(netutil.IPv4Localhost())
-
-	// Output:
-	// 127.0.0.1
-}
-
-func ExampleIPv6Localhost() {
-	fmt.Println(netutil.IPv6Localhost())
-
-	// Output:
-	// ::1
-}
-
 func ExampleZeroPrefix() {
 	fmt.Println(netutil.ZeroPrefix(netutil.AddrFamilyIPv4))
 	fmt.Println(netutil.ZeroPrefix(netutil.AddrFamilyIPv6))

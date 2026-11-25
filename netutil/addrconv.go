@@ -8,12 +8,6 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 )
 
-// IPv4Localhost returns the IPv4 localhost address "127.0.0.1".
-func IPv4Localhost() (ip netip.Addr) { return netip.AddrFrom4([4]byte{127, 0, 0, 1}) }
-
-// IPv6Localhost returns the IPv6 localhost address "::1".
-func IPv6Localhost() (ip netip.Addr) { return netip.AddrFrom16([16]byte{15: 1}) }
-
 // ZeroPrefix returns an IP subnet with prefix 0 and all bytes of the IP address
 // set to 0.  fam must be either [AddrFamilyIPv4] or [AddrFamilyIPv6].
 func ZeroPrefix(fam AddrFamily) (n netip.Prefix) {
@@ -138,14 +132,14 @@ func IPNetToPrefixNoMapped(subnet *net.IPNet) (p netip.Prefix, err error) {
 //	}
 //
 // See https://github.com/golang/go/issues/53607.
-func NetAddrToAddrPort(addr net.Addr) (addrPort netip.AddrPort) {
+func NetAddrToAddrPort(addr net.Addr) (ipp netip.AddrPort) {
 	if ap, ok := addr.(interface{ AddrPort() (a netip.AddrPort) }); ok {
-		addrPort = ap.AddrPort()
-		ip := addrPort.Addr()
+		ipp = ap.AddrPort()
+		ip := ipp.Addr()
 		if ip.Is4In6() {
-			addrPort = netip.AddrPortFrom(ip.Unmap(), addrPort.Port())
+			ipp = netip.AddrPortFrom(ip.Unmap(), ipp.Port())
 		}
 	}
 
-	return addrPort
+	return ipp
 }
