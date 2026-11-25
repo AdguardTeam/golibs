@@ -128,9 +128,11 @@ underscores() {
 			-type 'f' \
 			-name '*_*.go' \
 			'!' '(' \
-			-name '*_darwin.go' \
+			-name '*_bsd.go' \
+			-o -name '*_darwin.go' \
 			-o -name '*_generate.go' \
 			-o -name '*_linux.go' \
+			-o -name '*_openbsd.go' \
 			-o -name '*_others.go' \
 			-o -name '*_test.go' \
 			-o -name '*_unix.go' \
