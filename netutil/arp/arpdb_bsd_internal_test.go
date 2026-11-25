@@ -7,9 +7,6 @@ import (
 	"net/netip"
 )
 
-// testOtherIPv6Str is the address of an additional IPv6 neighbor in the BSD fixture.
-const testOtherIPv6Str = "2001:db8::3"
-
 // testARPOutput is sample output from arp -a on macOS and FreeBSD.
 const testARPOutput = `
 invalid.mac (` + testOtherIPv4Str + `) at 12:34:56:78:910 on el0 ifscope [ethernet]

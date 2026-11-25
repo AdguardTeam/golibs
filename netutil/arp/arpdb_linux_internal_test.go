@@ -30,7 +30,7 @@ const ipNeighOutput = `
 ` + testIPv4Str + ` dev enp0s3 lladdr ab:cd:ef:ab:cd:ef DELAY
 ` + testIPv6Str + ` dev enp0s3 lladdr ef:cd:ab:ef:cd:ab router STALE`
 
-// testNeighbors contains the neighbors expected from the Linux test fixtures.
+// testNeighbors contains the neighbors expected from the Linux test data.
 var testNeighbors = []*Neighbor{{
 	IP:  testIPv4,
 	MAC: net.HardwareAddr{0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF},

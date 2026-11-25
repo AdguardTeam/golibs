@@ -29,6 +29,7 @@ const (
 	testIPv4Str        = "192.0.2.2"
 	testIPv6Str        = "2001:db8::2"
 	testOtherIPv4Str   = "192.0.2.4"
+	testOtherIPv6Str   = "2001:db8::3"
 	testInvalidIPv4Str = "192.0.2.256"
 )
 
