@@ -1,10 +1,12 @@
 //go:build darwin || freebsd
 
-package arp
+package arp_test
 
 import (
 	"net"
 	"net/netip"
+
+	"github.com/AdguardTeam/golibs/netutil/arp"
 )
 
 // testARPOutput is sample output from arp -a on macOS and FreeBSD.
@@ -18,7 +20,7 @@ hostname.two (` + testIPv6Str + `) at ef:cd:ab:ef:cd:ab on em0 expires in 1198 s
 `
 
 // testNeighbors contains the neighbors expected from [testARPOutput].
-var testNeighbors = []*Neighbor{{
+var testNeighbors = []*arp.Neighbor{{
 	Name: "hostname.one",
 	IP:   testIPv4,
 	MAC:  net.HardwareAddr{0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF},

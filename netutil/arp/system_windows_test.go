@@ -1,8 +1,12 @@
 //go:build windows
 
-package arp
+package arp_test
 
-import "net"
+import (
+	"net"
+
+	"github.com/AdguardTeam/golibs/netutil/arp"
+)
 
 // testARPOutput is sample output from arp /a on Windows.
 const testARPOutput = `
@@ -13,7 +17,7 @@ Interface: 192.0.2.1 --- 0x7
   ` + testIPv6Str + `           ef-cd-ab-ef-cd-ab     static`
 
 // testNeighbors contains the neighbors expected from [testARPOutput].
-var testNeighbors = []*Neighbor{{
+var testNeighbors = []*arp.Neighbor{{
 	IP:  testIPv4,
 	MAC: net.HardwareAddr{0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF},
 }, {
