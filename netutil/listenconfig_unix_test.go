@@ -4,7 +4,6 @@ package netutil_test
 
 import (
 	"net"
-	"net/netip"
 	"syscall"
 	"testing"
 
@@ -14,12 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/unix"
-)
-
-// Localhost addrs for tests.
-var (
-	localhost4 = netip.AddrPortFrom(netutil.IPv4Localhost(), 0).String()
-	localhost6 = netip.AddrPortFrom(netutil.IPv6Localhost(), 0).String()
 )
 
 // syscallConner is an interface for connections that provide access to their
@@ -37,7 +30,11 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 
 	require.True(t, t.Run("ipv4", func(t *testing.T) {
 		var c net.PacketConn
-		c, err = lc.ListenPacket(testutil.ContextWithTimeout(t, testTimeout), "udp4", localhost4)
+		c, err = lc.ListenPacket(
+			testutil.ContextWithTimeout(t, testTimeout),
+			"udp4",
+			netutil.IPv4LocalhostZeroPortString,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
@@ -60,7 +57,11 @@ func TestNewListenConfigWithOOB(t *testing.T) {
 
 	require.True(t, t.Run("ipv6", func(t *testing.T) {
 		var c net.PacketConn
-		c, err = lc.ListenPacket(testutil.ContextWithTimeout(t, testTimeout), "udp6", localhost6)
+		c, err = lc.ListenPacket(
+			testutil.ContextWithTimeout(t, testTimeout),
+			"udp6",
+			netutil.IPv6LocalhostZeroPortString,
+		)
 		if errors.Is(err, syscall.EADDRNOTAVAIL) {
 			// Some CI machines have IPv6 disabled.
 			t.Skipf("ipv6 seems to not be supported: %s", err)
@@ -110,7 +111,11 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 
 	t.Run("ipv4", func(t *testing.T) {
 		var c net.PacketConn
-		c, err = lc.ListenPacket(testutil.ContextWithTimeout(t, testTimeout), "udp4", localhost4)
+		c, err = lc.ListenPacket(
+			testutil.ContextWithTimeout(t, testTimeout),
+			"udp4",
+			netutil.IPv4LocalhostZeroPortString,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		testutil.CleanupAndRequireSuccess(t, c.Close)
@@ -142,7 +147,11 @@ func TestNewListenConfigWithOOB_withSO(t *testing.T) {
 
 	t.Run("ipv6", func(t *testing.T) {
 		var c net.PacketConn
-		c, err = lc.ListenPacket(testutil.ContextWithTimeout(t, testTimeout), "udp6", localhost6)
+		c, err = lc.ListenPacket(
+			testutil.ContextWithTimeout(t, testTimeout),
+			"udp6",
+			netutil.IPv6LocalhostZeroPortString,
+		)
 		if errors.Is(err, syscall.EADDRNOTAVAIL) {
 			// Some CI machines have IPv6 disabled.
 			t.Skipf("ipv6 seems to not be supported: %s", err)
