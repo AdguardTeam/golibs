@@ -1,4 +1,4 @@
-//go:build linux
+//go:build darwin || linux
 
 package netutil
 
@@ -10,6 +10,16 @@ import (
 	"github.com/AdguardTeam/golibs/errors"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
+)
+
+// Set of socket option flags for configuring a UDP connection to receive an
+// appropriate OOB data.  For both IP versions the flags are:
+//
+//   - FlagDst
+//   - FlagInterface
+const (
+	ipv4Flags ipv4.ControlFlags = ipv4.FlagDst | ipv4.FlagInterface
+	ipv6Flags ipv6.ControlFlags = ipv6.FlagDst | ipv6.FlagInterface
 )
 
 // newListenConfigWithOOB returns new listen config which saves local address
@@ -68,8 +78,8 @@ func setIPOpts(c net.PacketConn) (err error) {
 	// on the OS, the valid errors are ENOPROTOOPT, EINVAL, and maybe others.
 	// Investigate and make OS-specific versions to make sure we don't miss any
 	// real errors.
-	err6 := ipv6.NewPacketConn(c).SetControlMessage(ipv6.FlagDst|ipv6.FlagInterface, true)
-	err4 := ipv4.NewPacketConn(c).SetControlMessage(ipv4.FlagDst|ipv4.FlagInterface, true)
+	err4 := ipv4.NewPacketConn(c).SetControlMessage(ipv4Flags, true)
+	err6 := ipv6.NewPacketConn(c).SetControlMessage(ipv6Flags, true)
 	if err4 != nil && err6 != nil {
 		return fmt.Errorf("setting ipv4 and ipv6 options: %w", errors.Join(err4, err6))
 	}

@@ -1,4 +1,4 @@
-//go:build linux
+//go:build darwin || linux
 
 package netutil
 
@@ -11,8 +11,6 @@ import (
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )
-
-// TODO(f.setrakov): Support this on other platforms.
 
 // type check
 var _ PacketSession = (*packetSession)(nil)
@@ -40,12 +38,6 @@ type udpConn interface {
 	WriteMsgUDP(b, oob []byte, addr *net.UDPAddr) (n, oobn int, err error)
 	SyscallConn() (c syscall.RawConn, err error)
 }
-
-// IPDstOOBSize is the required size of the control-message buffer for
-// [net.UDPConn.ReadMsgUDP] to read the original destination on Linux.
-//
-// See packetconn_linux_internal_test.go.
-const IPDstOOBSize = 40
 
 // oobPool is the pool of byte slices for out-of-band data.
 var oobPool = syncutil.NewSlicePool[byte](IPDstOOBSize)
@@ -104,8 +96,7 @@ func origLAddr(oob []byte) (origDst net.IP, err error) {
 	}
 
 	if dst := ctrlMsg6.Dst; dst != nil {
-		// Linux maps IPv4 addresses to IPv6 ones by default, so we can get an
-		// IPv4 dst from an IPv6 control-message.
+		// NOTE: dst can be an IPv6 mapped IPv4.
 		origDst = dst.To4()
 		if origDst == nil {
 			origDst = dst
@@ -128,17 +119,15 @@ func origLAddr(oob []byte) (origDst net.IP, err error) {
 func newRespOOB(origDst net.IP) (b []byte) {
 	switch len(origDst) {
 	case net.IPv4len:
-		cm := &ipv4.ControlMessage{
+		// TODO(f.setrakov): Consider implementing a zero-allocating API for
+		// control message marshalling.
+		return (&ipv4.ControlMessage{
 			Src: origDst,
-		}
-
-		return cm.Marshal()
+		}).Marshal()
 	case net.IPv6len:
-		cm := &ipv6.ControlMessage{
+		return (&ipv6.ControlMessage{
 			Src: origDst,
-		}
-
-		return cm.Marshal()
+		}).Marshal()
 	default:
 		// TODO(f.setrakov): Consider better error handling.
 		return nil
